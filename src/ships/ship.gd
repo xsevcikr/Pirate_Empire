@@ -12,6 +12,9 @@ const HEEL_COEFF: float = 0.25
 const POINT_COLUMNS: int = 4
 const POINT_ROWS: int = 4
 
+signal sank_signal
+signal hit_taken(result: Dictionary)
+
 @export var stats: ShipStats
 
 var ocean: WaveModel
@@ -26,6 +29,12 @@ var submerged_fraction: float = 0.0
 var angle_off_wind: float = 90.0
 var speed_forward_ms: float = 0.0
 
+var damage: DamageModel
+var crew: CrewState
+var broadside: Broadside
+var projectiles: ProjectileManager
+var display_label: String = ""
+
 var _points: PackedVector3Array = PackedVector3Array()
 var _k_point: float = 0.0
 var _c_point: float = 0.0
@@ -37,6 +46,13 @@ func _ready() -> void:
 	if stats == null:
 		stats = load("res://data/ships/sloop.tres")
 	mass = stats.mass_kg
+	collision_layer = 2
+	collision_mask = 2
+	damage = DamageModel.new(stats)
+	crew = CrewState.new(stats)
+	damage.mast_fell.connect(_on_mast_fell)
+	damage.sank.connect(_on_sank)
+	damage.magazine_exploded.connect(func() -> void: Vfx.explosion(get_parent(), global_position + Vector3.UP * 2.0))
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0, -0.3, 0)
 	# Replace the project-wide default damping; drag is modelled explicitly below.
@@ -57,6 +73,9 @@ func _ready() -> void:
 	var vmax: float = MathUtils.knots_to_ms(stats.max_speed_kn)
 	_k_drag = stats.mass_kg / (stats.accel_tau_s * vmax)
 	_f_ref = _k_drag * vmax * vmax
+	broadside = Broadside.new()
+	broadside.ship = self
+	add_child(broadside)
 
 
 func _build_points() -> void:
@@ -87,6 +106,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	# Buoyancy
 	var wet: int = 0
 	var max_depth: float = stats.draft_m * 2.0
+	var flood: float = damage.flood_fraction()
+	var buoyancy_scale: float = 0.04 if damage.sunk else 1.0 - 0.95 * flood
 	for p in _points:
 		var offset: Vector3 = xf.basis * p
 		var world: Vector3 = xf.origin + offset
@@ -95,7 +116,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		if depth > 0.0:
 			wet += 1
 			var pv: Vector3 = state.get_velocity_at_local_position(offset)
-			var f: float = _k_point * minf(depth, max_depth) - _c_point * pv.y
+			var f: float = (_k_point * minf(depth, max_depth) - _c_point * pv.y) * buoyancy_scale
 			state.apply_force(Vector3.UP * maxf(f, 0.0), offset)
 	submerged_fraction = float(wet) / float(_points.size())
 	var in_water: bool = submerged_fraction > 0.25
@@ -111,7 +132,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var factor: float = SailModel.speed_factor(angle_off_wind, stats.square_rig)
 		var level: float = SailModel.LEVELS[clampi(sail_level, 0, 3)]
 		var ratio: float = minf(wind.speed_ms() / RHO_REF_WIND_MS, 1.5)
-		var thrust: float = _f_ref * ratio * ratio * factor * factor * level
+		var condition: float = damage.sail_health() * (1.0 - 0.8 * flood)
+		var thrust: float = _f_ref * ratio * ratio * factor * factor * level * condition
 		state.apply_central_force(forward * thrust)
 		# Hull drag
 		state.apply_central_force(-forward * _k_drag * speed_forward_ms * absf(speed_forward_ms))
@@ -123,11 +145,18 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		# Rudder
 		rudder_actual = move_toward(rudder_actual, rudder_input, dt / RUDDER_TIME_S)
 		var vmax: float = MathUtils.knots_to_ms(stats.max_speed_kn)
-		var authority: float = clampf(absf(speed_forward_ms) / (0.35 * vmax), 0.0, 1.0)
+		var authority: float = clampf(absf(speed_forward_ms) / (0.35 * vmax), 0.0, 1.0) * clampf(damage.rudder_fraction() * 2.0, 0.5, 1.0)
 		var desired: float = -rudder_actual * deg_to_rad(stats.turn_rate_deg_s) * authority
 		var av: Vector3 = state.angular_velocity
 		av.y = lerpf(av.y, desired, 1.0 - exp(-3.0 * dt))
 		state.angular_velocity = av
+
+	# Flooded compartments list the ship toward the heavier side
+	if flood > 0.05:
+		var heavy: float = 0.0
+		for i in damage.section_count:
+			heavy += damage.water_t[i] * (1.0 if damage.section_is_starboard(i) else -1.0)
+		state.apply_torque(forward * heavy * 9.81 * stats.beam_m * 0.15)
 
 	# Roll and pitch damping (local axes)
 	var local_av: Vector3 = xf.basis.inverse() * state.angular_velocity
@@ -166,6 +195,7 @@ func _build_visuals() -> void:
 	cloth.roughness = 1.0
 	cloth.cull_mode = BaseMaterial3D.CULL_DISABLED
 
+	_hull_material = wood
 	var hull := MeshInstance3D.new()
 	var hull_mesh := BoxMesh.new()
 	hull_mesh.size = Vector3(stats.beam_m, stats.draft_m + stats.freeboard_m, stats.length_m * 0.8)
@@ -202,6 +232,7 @@ func _build_visuals() -> void:
 		mast.material_override = wood
 		mast.position = Vector3(0, stats.freeboard_m + mast_mesh.height * 0.5, z)
 		add_child(mast)
+		_mast_nodes.append(mast)
 		var sail := MeshInstance3D.new()
 		var sail_mesh := BoxMesh.new()
 		sail_mesh.size = Vector3(0.05, mast_mesh.height * 0.7, stats.length_m * 0.4)
@@ -209,3 +240,93 @@ func _build_visuals() -> void:
 		sail.material_override = cloth
 		sail.position = Vector3(0, stats.freeboard_m + mast_mesh.height * 0.45, z + stats.length_m * 0.2)
 		add_child(sail)
+		_sail_nodes.append(sail)
+
+
+func _physics_process(delta: float) -> void:
+	if damage == null:
+		return
+	var rc: float = crew.repair_crew()
+	damage.tick(delta, rc)
+	_fire_fx_timer += delta
+	if _fire_fx_timer >= 0.5:
+		_fire_fx_timer = 0.0
+		for i in damage.section_count:
+			if damage.fire_level[i] > 0:
+				Vfx.flames(get_parent(), to_global(section_center(i) + Vector3(0, 1.0, 0)))
+	if damage.sunk:
+		sail_level = 0
+		rudder_input = 0.0
+
+
+var _fire_fx_timer: float = 0.0
+var _mast_nodes: Array[MeshInstance3D] = []
+var _sail_nodes: Array[MeshInstance3D] = []
+
+
+func section_center(i: int) -> Vector3:
+	var l: float = stats.length_m
+	if damage.section_count == 4:
+		match i:
+			0: return Vector3(0, 0.5, -0.4 * l)
+			1: return Vector3(-stats.beam_m * 0.3, 0.5, 0.0)
+			2: return Vector3(stats.beam_m * 0.3, 0.5, 0.0)
+			_: return Vector3(0, 0.5, 0.4 * l)
+	if i == 0:
+		return Vector3(0, 0.5, -0.45 * l)
+	if i == 7:
+		return Vector3(0, 0.5, 0.45 * l)
+	var band: int = (i - 1) / 2
+	var side: float = 1.0 if (i - 1) % 2 == 1 else -1.0
+	return Vector3(side * stats.beam_m * 0.3, 0.5, lerpf(-0.27, 0.27, band / 2.0) * l)
+
+
+## Called by the projectile manager when a cannonball touches the hull.
+func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Vector3, gun_id: String,
+		ammo_id: String, distance: float, source: Node) -> Dictionary:
+	var info := HitInfo.new()
+	var inv: Transform3D = global_transform.affine_inverse()
+	info.local_position = inv * world_pos
+	info.local_normal = (inv.basis * world_normal).normalized()
+	info.direction = (inv.basis * world_dir).normalized()
+	info.gun_id = gun_id
+	info.ammo_id = ammo_id
+	info.damage = GunData.damage_at_range(gun_id, distance, ammo_id)
+	info.source = source
+	var water_y: float = ocean.height_at(world_pos.x, world_pos.z) if ocean else 0.0
+	info.below_waterline = world_pos.y < water_y
+	var result: Dictionary = damage.apply_hit(info)
+	if result["killed"] > 0:
+		crew.kill(result["killed"])
+	var parent: Node = get_parent()
+	if result["ricochet"]:
+		Vfx.burst(parent, world_pos, Color(1, 0.9, 0.5), 8, 8.0, 0.4, 0.06, -9.8, 60.0, world_normal)
+	else:
+		Vfx.splinters(parent, world_pos)
+	_update_damage_visuals()
+	hit_taken.emit(result)
+	return result
+
+
+func _on_mast_fell(index: int) -> void:
+	if index < _mast_nodes.size():
+		_mast_nodes[index].visible = false
+		_sail_nodes[index].visible = false
+		Vfx.splinters(get_parent(), _mast_nodes[index].global_position)
+		Vfx.splinters(get_parent(), _mast_nodes[index].global_position + Vector3.UP * 3.0)
+
+
+func _on_sank() -> void:
+	sink_started = true
+	sank_signal.emit()
+	get_tree().create_timer(45.0).timeout.connect(queue_free)
+
+
+var sink_started: bool = false
+var _hull_material: StandardMaterial3D
+
+
+func _update_damage_visuals() -> void:
+	if _hull_material:
+		var f: float = damage.hull_fraction()
+		_hull_material.albedo_color = Color(0.36, 0.22, 0.12).lerp(Color(0.12, 0.08, 0.06), 1.0 - f)

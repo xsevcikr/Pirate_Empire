@@ -13,12 +13,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		ship.sail_level = mini(ship.sail_level + 1, 3)
 	elif event.is_action_pressed("sail_down"):
 		ship.sail_level = maxi(ship.sail_level - 1, 0)
+	elif event.is_action_pressed("crew_focus"):
+		ship.crew.focus = ((ship.crew.focus + 1) % 4) as CrewState.Focus
+	for i in GunData.AMMO_ORDER.size():
+		if event.is_action_pressed("ammo_%d" % (i + 1)):
+			ship.broadside.set_ammo(GunData.AMMO_ORDER[i])
 
 
 func _physics_process(delta: float) -> void:
 	if ship == null:
 		return
 	ship.rudder_input = Input.get_axis("steer_left", "steer_right")
+	ship.broadside.set_elevation(ship.broadside.elevation_deg + Input.get_axis("elev_down", "elev_up") * 8.0 * delta)
+	if Input.is_action_pressed("fire_port"):
+		ship.broadside.fire(Broadside.Side.PORT)
+	if Input.is_action_pressed("fire_starboard"):
+		ship.broadside.fire(Broadside.Side.STARBOARD)
 	if wind:
 		if Input.is_action_pressed("wind_cw"):
 			wind.direction = wind.direction.rotated(deg_to_rad(20.0) * delta)
