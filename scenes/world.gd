@@ -45,12 +45,21 @@ func _ready() -> void:
 	ocean.model = WaveModel.new(wind.sea_state(), wind.direction)
 	add_child(ocean)
 
+	var gen := WorldGen.new()
+	for i in gen.islands.size():
+		var isl: Dictionary = gen.islands[i]
+		if (isl["pos"] as Vector2).length() > 3500.0:
+			continue
+		var node := Island.make(isl["radius"], 100 + i)
+		node.position = Vector3(isl["pos"].x, 0.0, isl["pos"].y)
+		add_child(node)
+
 	ship = Ship.new()
 	ship.stats = SLOOP
 	ship.ocean = ocean.model
 	ship.wind = wind
-	ship.position = Vector3(0, 0.0, 0)
-	ship.rotation_degrees.y = 0.0
+	ship.position = Vector3(0, 0.0, 420)
+	ship.rotation_degrees.y = -90.0
 	add_child(ship)
 	ocean.follow = ship
 
@@ -64,7 +73,7 @@ func _ready() -> void:
 	target.ocean = ocean.model
 	target.wind = wind
 	target.sail_level = 0
-	target.position = Vector3(110, 0.5, -30)
+	target.position = Vector3(110, 0.5, 390)
 	target.rotation_degrees.y = 90.0
 	add_child(target)
 	target.broadside.projectiles = projectiles

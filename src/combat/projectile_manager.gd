@@ -75,6 +75,10 @@ func _physics_process(delta: float) -> void:
 			(res["collider"] as Ship).receive_cannonball(res["position"], res["normal"], dir, p["gun"], p["ammo"], dist, p["source"])
 			hits += 1
 			done = true
+		elif not res.is_empty():
+			Vfx.splash(self, res["position"])
+			misses += 1
+			done = true
 		elif ocean and p["pos"].y < ocean.height_at(p["pos"].x, p["pos"].z):
 			Vfx.splash(self, Vector3(p["pos"].x, ocean.height_at(p["pos"].x, p["pos"].z), p["pos"].z))
 			misses += 1
