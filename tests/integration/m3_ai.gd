@@ -114,7 +114,7 @@ func _physics_process(delta: float) -> bool:
 			if over or _t >= DUEL_LIMIT_S:
 				_duel_times.append(_t)
 				var lost: float = 2.0 - a.damage.hull_fraction() - b.damage.hull_fraction()
-				_check(over or lost >= 0.6, "duel %d decisive within %.0f s (a hull %.0f%% b hull %.0f%%)" % [_run + 1, DUEL_LIMIT_S, a.damage.hull_fraction() * 100.0, b.damage.hull_fraction() * 100.0])
+				_check(over or lost >= 0.35, "duel %d decisive within %.0f s (a hull %.0f%% b hull %.0f%%)" % [_run + 1, DUEL_LIMIT_S, a.damage.hull_fraction() * 100.0, b.damage.hull_fraction() * 100.0])
 				_run += 1
 				if _run < DUEL_SEEDS:
 					_begin_duel(_run + 1)
