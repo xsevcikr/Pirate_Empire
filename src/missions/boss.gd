@@ -17,6 +17,16 @@ const DEFS: Dictionary = {
 		"actions": [["teleport_behind", "phase_out"], ["summon_ghost_sloops", "lightning_storm"], ["skeletal_boarders", "cursed_lantern"]],
 		"untargetable_phases": [0], "captain_hp": 0.0, "reward": "The Revenant",
 	},
+	"kraken": {
+		"name": "The Kraken", "hp": 7000.0, "phases": 3, "thresholds": [1.0, 0.66, 0.33],
+		"actions": [["tentacle_slam", "grab_and_crush"], ["pull_into_whirlpool", "ink_cloud"], ["head_emerges", "ram_it"]],
+		"untargetable_phases": [], "captain_hp": 0.0, "reward": "Kraken Ink",
+	},
+	"black_ibrahim": {
+		"name": "Black Ibrahim", "hp": 20000.0, "phases": 3, "thresholds": [1.0, 0.6, 0.3],
+		"actions": [["fleet_duel", "frigate_formation"], ["mortar_rain", "bombard_bases"], ["burning_deck_duel", "attack_pattern_three"]],
+		"untargetable_phases": [], "captain_hp": 900.0, "reward": "Pirate King crown",
+	},
 }
 
 var id: String
