@@ -13,15 +13,27 @@ const FLOOR_H_M: float = 3.0
 const JETTY_M: float = 0.55
 
 
+static var _mats: Dictionary = {}
+static var _boxes: Dictionary = {}
+
+
+## Materials and box meshes are shared by colour and size: a harbour is hundreds of small timbers and streaming it
+## in must not allocate a resource for each.
 static func mat(c: Color, rough: float = 0.92) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = c
-	m.roughness = rough
-	return m
+	var key: String = "%s/%.2f" % [c.to_html(), rough]
+	if not _mats.has(key):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = c
+		m.roughness = rough
+		_mats[key] = m
+	return _mats[key] as StandardMaterial3D
 
 
 static func box(parent: Node3D, size: Vector3, at: Vector3, c: Color, rot_deg: Vector3 = Vector3.ZERO) -> MeshInstance3D:
-	return DeckArt.add_mesh(parent, DeckArt.box(size), mat(c), at, rot_deg)
+	var key := Vector3(snappedf(size.x, 0.01), snappedf(size.y, 0.01), snappedf(size.z, 0.01))
+	if not _boxes.has(key):
+		_boxes[key] = DeckArt.box(size)
+	return DeckArt.add_mesh(parent, _boxes[key] as Mesh, mat(c), at, rot_deg)
 
 
 static func cyl(parent: Node3D, r_top: float, r_bot: float, h: float, at: Vector3, c: Color, segs: int = 12) -> MeshInstance3D:

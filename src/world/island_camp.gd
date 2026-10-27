@@ -42,46 +42,60 @@ static func wants_camp(isl: Island, rng: RandomNumberGenerator) -> bool:
 
 
 static func build(isl: Island, rng: RandomNumberGenerator) -> Node3D:
-	if not wants_camp(isl, rng):
+	var plan: Dictionary = plan_camp(isl, rng)
+	if plan.is_empty():
 		return null
+	for job in plan["jobs"]:
+		(job as Callable).call()
+	return plan["root"]
+
+
+## The camp as a root node already in the island plus the jobs that fill it, in the order that keeps the island's
+## random numbers the same however they are spread over frames. Empty when the island has no camp.
+static func plan_camp(isl: Island, rng: RandomNumberGenerator) -> Dictionary:
+	if not wants_camp(isl, rng):
+		return {}
 	var site: Dictionary = find_site(isl, rng)
 	if not bool(site["ok"]):
-		return null
+		return {}
 	var root := Node3D.new()
 	root.name = "Camp"
 	var at: Vector2 = site["pos"]
 	root.position = Vector3(at.x, float(site["h"]), at.y)
 	isl.add_child(root)
 	var big: bool = isl.radius_m > 220.0
-	var fire := CampFire.new(rng.randf() * 10.0)
-	root.add_child(fire)
-	var huts: int = rng.randi_range(2, 3) + (3 if big else 0)
-	for i in huts:
-		var a: float = TAU * i / huts + rng.randf_range(-0.3, 0.3)
-		var d: float = rng.randf_range(7.0, 10.0)
-		var pos := Vector3(cos(a) * d, 0.0, sin(a) * d)
-		pos.y = isl.ground_y(at + Vector2(pos.x, pos.z)) - float(site["h"])
-		if pos.y < -0.4:
-			continue
-		_hut(root, pos, -a * 180.0 / PI + 90.0, rng)
-	for i in rng.randi_range(1, 2):
-		var a2: float = rng.randf() * TAU
-		var pos2 := Vector3(cos(a2) * 5.5, 0.0, sin(a2) * 5.5)
-		pos2.y = isl.ground_y(at + Vector2(pos2.x, pos2.z)) - float(site["h"])
-		_tent(root, pos2, rng.randf() * 360.0)
-	_rack(root, Vector3(3.2, 0.0, -3.6), rng)
-	for i in rng.randi_range(3, 5):
-		var a3: float = rng.randf() * TAU
-		var q := Vector3(cos(a3) * rng.randf_range(4.5, 6.0), 0.0, sin(a3) * rng.randf_range(4.5, 6.0))
-		q.y = isl.ground_y(at + Vector2(q.x, q.z)) - float(site["h"])
-		if rng.randf() < 0.5:
-			_barrel(root, q)
-		else:
-			_crate(root, q, rng.randf() * 90.0)
-	_flag(root, Vector3(-4.0, 0.0, 4.0), rng)
-	_boat(root, Vector3(-9.0, -0.3, -5.0), rng.randf() * 360.0)
-	_people(root, rng, big)
-	return root
+	var h0: float = float(site["h"])
+	var jobs: Array = []
+	jobs.append(func() -> void:
+		root.add_child(CampFire.new(rng.randf() * 10.0))
+		var huts: int = rng.randi_range(2, 3) + (3 if big else 0)
+		for i in huts:
+			var a: float = TAU * i / huts + rng.randf_range(-0.3, 0.3)
+			var d: float = rng.randf_range(7.0, 10.0)
+			var pos := Vector3(cos(a) * d, 0.0, sin(a) * d)
+			pos.y = isl.ground_y(at + Vector2(pos.x, pos.z)) - h0
+			if pos.y < -0.4:
+				continue
+			_hut(root, pos, -a * 180.0 / PI + 90.0, rng))
+	jobs.append(func() -> void:
+		for i in rng.randi_range(1, 2):
+			var a2: float = rng.randf() * TAU
+			var pos2 := Vector3(cos(a2) * 5.5, 0.0, sin(a2) * 5.5)
+			pos2.y = isl.ground_y(at + Vector2(pos2.x, pos2.z)) - h0
+			_tent(root, pos2, rng.randf() * 360.0)
+		_rack(root, Vector3(3.2, 0.0, -3.6), rng)
+		for i in rng.randi_range(3, 5):
+			var a3: float = rng.randf() * TAU
+			var q := Vector3(cos(a3) * rng.randf_range(4.5, 6.0), 0.0, sin(a3) * rng.randf_range(4.5, 6.0))
+			q.y = isl.ground_y(at + Vector2(q.x, q.z)) - h0
+			if rng.randf() < 0.5:
+				_barrel(root, q)
+			else:
+				_crate(root, q, rng.randf() * 90.0)
+		_flag(root, Vector3(-4.0, 0.0, 4.0), rng)
+		_boat(root, Vector3(-9.0, -0.3, -5.0), rng.randf() * 360.0))
+	jobs.append(func() -> void: _people(root, rng, big))
+	return {"root": root, "jobs": jobs}
 
 
 static func _hut(root: Node3D, at: Vector3, yaw: float, rng: RandomNumberGenerator) -> void:

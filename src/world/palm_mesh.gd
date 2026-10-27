@@ -35,7 +35,26 @@ static func trunk_at(v: Dictionary, f: float) -> Vector3:
 	return Vector3(float(v["lean"]) * f * f * 1.4, f * float(v["height"]), float(v["lean"]) * 0.3 * sin(f * 3.0))
 
 
+static var _cache: Dictionary = {}
+
+
+## Build every shared palm now, while the world loads, so none is built mid-voyage.
+static func prewarm() -> void:
+	for v in VARIANTS.size():
+		for sd in 4:
+			build(v, sd)
+
+
+## Palms are shared between islands: a few seed buckets per variant keep them varied without rebuilding the
+## mesh every time an island streams in.
 static func build(variant: int, seed_v: int = 1) -> ArrayMesh:
+	var key: int = (variant % VARIANTS.size()) * 8 + posmod(seed_v, 4)
+	if not _cache.has(key):
+		_cache[key] = _build(variant, posmod(seed_v, 4) + 1)
+	return _cache[key] as ArrayMesh
+
+
+static func _build(variant: int, seed_v: int) -> ArrayMesh:
 	var v: Dictionary = VARIANTS[variant % VARIANTS.size()]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_v * 977 + variant

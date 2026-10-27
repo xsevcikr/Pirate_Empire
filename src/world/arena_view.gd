@@ -24,6 +24,11 @@ static func make(id: String) -> ArenaView:
 
 func _ready() -> void:
 	_ring()
+	if BossModel.has_model(boss_id):
+		var model: BossModel = BossModel.make(boss_id)
+		if not bool(BossArena.ARENAS[boss_id]["on_foot"]):
+			model.position = Vector3(radius * 0.3, 0.0, 0.0)
+		add_child(model)
 	match kind:
 		"whirlpool":
 			_whirlpool()

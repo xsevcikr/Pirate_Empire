@@ -81,3 +81,12 @@ func test_camp_needs_a_big_enough_island() -> void:
 	var rng := RandomNumberGenerator.new()
 	assert_true(not IslandCamp.wants_camp(small, rng))
 	small.free()
+
+
+func test_every_boss_arena_with_a_model_builds_one() -> void:
+	for id in BossModel.KINDS:
+		assert_true(BossArena.ARENAS.has(id), "%s has an arena" % id)
+	var m := BossModel.make("kraken")
+	assert_eq(m.name, "Boss_kraken")
+	m.free()
+	assert_true(not BossModel.has_model("valcourt"), "fleet bosses are ships, not models")

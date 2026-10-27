@@ -16,6 +16,9 @@ var port_id: String = PortData.START_PORT
 var world: Node
 var buildings: Array[DestructibleBuilding] = []
 var fort_level: int = 1
+var staged: bool = false
+var _fort_length: float = 0.0
+var _fort_built: bool = false
 var _style: Dictionary = {}
 
 
@@ -55,13 +58,23 @@ func _ready() -> void:
 	if port["tier"] in ["capital", "city"]:
 		_make("lighthouse", 0, Vector3(30.0, PIER_HEIGHT_M, -length + 4.0), Vector3(5.0, 22.0, 5.0), Color(0.86, 0.84, 0.78), Color(0.6, 0.2, 0.15))
 	_flag(_style["flag"], Vector3(PIER_WIDTH_M * 0.5, PIER_HEIGHT_M, -length * 0.5))
-	_build_fort(length)
+	_fort_length = length
+	if not staged:
+		build_fort()
 	var lantern := OmniLight3D.new()
 	lantern.position = Vector3(0, PIER_HEIGHT_M + 4.0, -8.0)
 	lantern.light_color = Color(1.0, 0.75, 0.4)
 	lantern.omni_range = 40.0
 	add_child(lantern)
 	_post(Vector3(0, PIER_HEIGHT_M + 2.0, -8.0), Vector3(0.4, 4.0, 0.4))
+
+
+## The fort goes up on its own frame when the streamer builds the harbour, so a port never costs one long frame.
+func build_fort() -> void:
+	if _fort_built:
+		return
+	_fort_built = true
+	_build_fort(_fort_length)
 
 
 func _island_ground(local: Vector3) -> float:
