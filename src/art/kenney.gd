@@ -80,6 +80,37 @@ static func mesh(kit: String, model: String) -> Mesh:
 	return _meshes[p] as Mesh
 
 
+## Every mesh of a model merged into one multi-surface mesh (node transforms baked in), cached, for MultiMesh scatter.
+static func merged(kit: String, model: String) -> Mesh:
+	var key: String = "m:" + path(kit, model)
+	if _meshes.has(key):
+		return _meshes[key] as Mesh
+	var root: Node3D = scene(kit, model).instantiate() as Node3D
+	var out := ArrayMesh.new()
+	for mi in meshes_of(root):
+		var xf: Transform3D = Transform3D.IDENTITY
+		var n: Node = mi
+		while n != null and n != root:
+			xf = (n as Node3D).transform * xf
+			n = n.get_parent()
+		for i in mi.mesh.get_surface_count():
+			var arrays: Array = mi.mesh.surface_get_arrays(i)
+			var vs: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var ns: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+			for k in vs.size():
+				vs[k] = xf * vs[k]
+				if k < ns.size():
+					ns[k] = (xf.basis * ns[k]).normalized()
+			arrays[Mesh.ARRAY_VERTEX] = vs
+			arrays[Mesh.ARRAY_NORMAL] = ns
+			arrays[Mesh.ARRAY_TANGENT] = null
+			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+			out.surface_set_material(out.get_surface_count() - 1, toon(mi.mesh.surface_get_material(i)))
+	root.free()
+	_meshes[key] = out
+	return out
+
+
 static func _first_mesh(n: Node) -> MeshInstance3D:
 	if n is MeshInstance3D:
 		return n as MeshInstance3D

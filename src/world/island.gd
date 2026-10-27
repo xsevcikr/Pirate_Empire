@@ -171,7 +171,7 @@ func _sample_range(from: int, to: int) -> void:
 			continue
 		var slope: float = absf(ground_y(p + Vector2(1.5, 0)) - h) + absf(ground_y(p + Vector2(0, 1.5)) - h)
 		var basis := Basis(Vector3.UP, rng.randf() * TAU)
-		if bool(_look["palms"]) and h < peak_m * 0.5 and slope < 2.2 and (_palm_sets[0].size() + _palm_sets[1].size() + _palm_sets[2].size()) < PALM_CAP and rng.randf() < 0.55:
+		if _has_trees() and h < peak_m * 0.5 and slope < 2.2 and (_palm_sets[0].size() + _palm_sets[1].size() + _palm_sets[2].size()) < PALM_CAP and rng.randf() < 0.55:
 			var sc: float = rng.randf_range(0.8, 1.45)
 			_palm_sets[rng.randi_range(0, 2)].append(Transform3D(basis.scaled(Vector3.ONE * sc), Vector3(p.x, h - 0.2, p.y)))
 		elif bool(_look["bushes"]) and h < peak_m * 0.62 and slope < 3.0 and rng.randf() < 0.5:
@@ -182,16 +182,44 @@ func _sample_range(from: int, to: int) -> void:
 			_rocks.append(Transform3D(basis.scaled(Vector3(sr, sr * 0.75, sr)), Vector3(p.x, h - sr * 0.2, p.y)))
 
 
+## Trees: palms on the warm islands, oaks and pines on the temperate and rocky ones.
+func _has_trees() -> bool:
+	return bool(_look["palms"]) or biome == "temperate" or biome == "rocky"
+
+
+## [kit, model, scale] of the three tree variants of this biome.
+func _tree_models() -> Array:
+	if bool(_look["palms"]):
+		return [["pirate", "palm-bend", 2.1], ["pirate", "palm-straight", 2.4], ["pirate", "palm-detailed-bend", 1.8]]
+	if biome == "rocky":
+		return [["nature", "tree_pineTallA", 6.0], ["nature", "tree_pineTallB", 6.5], ["nature", "tree_pineSmallA", 5.5]]
+	return [["nature", "tree_oak", 6.0], ["nature", "tree_default", 6.5], ["nature", "tree_pineTallA", 6.5]]
+
+
+const ROCKS: Array = [["pirate", "rocks-a", 0.5], ["pirate", "rocks-b", 0.5], ["pirate", "rocks-c", 0.5]]
+
+
+## Every model an island can use, built into shared merged meshes while the world loads.
+static func prewarm() -> void:
+	for set in [["pirate", "palm-bend"], ["pirate", "palm-straight"], ["pirate", "palm-detailed-bend"], ["nature", "tree_pineTallA"], ["nature", "tree_pineTallB"], ["nature", "tree_pineSmallA"], ["nature", "tree_oak"], ["nature", "tree_default"], ["nature", "plant_bushLarge"], ["pirate", "rocks-a"], ["pirate", "rocks-b"], ["pirate", "rocks-c"], ["nature", "campfire_logs"]]:
+		Kenney.merged(set[0], set[1])
+
+
 func _scatter_vegetation() -> void:
+	var models: Array = _tree_models()
 	for v in 3:
 		var xs: Array[Transform3D] = []
 		xs.assign(_palm_sets[v])
-		_scatter(PalmMesh.build(v, seed_value), xs, true)
-	_scatter(_bush_mesh(_look["forest"]), _bushes, true)
-	_scatter(_rock_mesh((_look["rock"] as Color).lightened(0.08)), _rocks, true)
+		_scatter(Kenney.merged(models[v][0], models[v][1]), xs, float(models[v][2]))
+	_scatter(Kenney.merged("nature", "plant_bushLarge"), _bushes, 5.0)
+	for v in 3:
+		var rs: Array[Transform3D] = []
+		for i in range(v, _rocks.size(), 3):
+			rs.append(_rocks[i])
+		_scatter(Kenney.merged(ROCKS[v][0], ROCKS[v][1]), rs, float(ROCKS[v][2]))
 
 
-func _scatter(mesh: Mesh, xf: Array[Transform3D], vertex_colors: bool) -> void:
+func _scatter(mesh: Mesh, xf: Array[Transform3D], base_scale: float) -> void:
 	if xf.is_empty():
 		return
 	var mm := MultiMesh.new()
@@ -199,85 +227,13 @@ func _scatter(mesh: Mesh, xf: Array[Transform3D], vertex_colors: bool) -> void:
 	mm.mesh = mesh
 	mm.instance_count = xf.size()
 	for i in xf.size():
-		mm.set_instance_transform(i, xf[i])
+		var t: Transform3D = xf[i]
+		t.basis = t.basis.scaled(Vector3.ONE * base_scale)
+		mm.set_instance_transform(i, t)
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = vertex_colors
-	mat.roughness = 0.9
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mmi.material_override = mat
 	mmi.visibility_range_end = 2500.0
 	add_child(mmi)
-
-
-static func _palm_mesh() -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var trunk := Color(0.42, 0.3, 0.18)
-	var segs: int = 7
-	var ring: int = 6
-	var pts: Array[Vector3] = []
-	for i in segs + 1:
-		var f: float = i / float(segs)
-		pts.append(Vector3(sin(f * 1.4) * 1.1, f * 8.0, 0.0))
-	for i in segs:
-		var r0: float = lerpf(0.34, 0.2, i / float(segs))
-		var r1: float = lerpf(0.34, 0.2, (i + 1) / float(segs))
-		for k in ring:
-			var a0: float = TAU * k / ring
-			var a1: float = TAU * (k + 1) / ring
-			var p00: Vector3 = pts[i] + Vector3(cos(a0) * r0, 0, sin(a0) * r0)
-			var p01: Vector3 = pts[i] + Vector3(cos(a1) * r0, 0, sin(a1) * r0)
-			var p10: Vector3 = pts[i + 1] + Vector3(cos(a0) * r1, 0, sin(a0) * r1)
-			var p11: Vector3 = pts[i + 1] + Vector3(cos(a1) * r1, 0, sin(a1) * r1)
-			for v in [p00, p10, p01, p01, p10, p11]:
-				st.set_color(trunk.darkened(0.15 * float(i % 2)))
-				st.add_vertex(v)
-	var top: Vector3 = pts[segs]
-	for f in 9:
-		var ang: float = TAU * f / 9.0 + 0.3
-		var dir := Vector3(cos(ang), 0, sin(ang))
-		var side := Vector3(-dir.z, 0, dir.x)
-		var tip: Vector3 = top + dir * 3.6 + Vector3(0, -1.8 - 0.2 * float(f % 3), 0)
-		var mid: Vector3 = top + dir * 1.8 + Vector3(0, 0.55, 0)
-		var green := Color(0.16, 0.38, 0.12).lerp(Color(0.3, 0.5, 0.15), float(f % 3) / 3.0)
-		for tri in [[top, mid + side * 0.7, mid - side * 0.7], [mid + side * 0.7, tip, mid - side * 0.7]]:
-			for v in tri:
-				st.set_color(green)
-				st.add_vertex(v)
-	st.generate_normals()
-	return st.commit()
-
-
-static func _bush_mesh(c: Color) -> ArrayMesh:
-	var sphere := SphereMesh.new()
-	sphere.radius = 1.0
-	sphere.height = 1.6
-	sphere.radial_segments = 8
-	sphere.rings = 4
-	return _tinted(sphere, c.lightened(0.1))
-
-
-static func _rock_mesh(c: Color) -> ArrayMesh:
-	var sphere := SphereMesh.new()
-	sphere.radius = 1.0
-	sphere.height = 1.7
-	sphere.radial_segments = 6
-	sphere.rings = 3
-	return _tinted(sphere, c)
-
-
-static func _tinted(src: Mesh, c: Color) -> ArrayMesh:
-	var arrays: Array = src.surface_get_arrays(0)
-	var n: int = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
-	var cols := PackedColorArray()
-	for i in n:
-		cols.append(c)
-	arrays[Mesh.ARRAY_COLOR] = cols
-	var m := ArrayMesh.new()
-	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return m
 
 
 ## A translucent turquoise skirt and a foam line where the beach meets the water.

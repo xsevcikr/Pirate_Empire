@@ -26,7 +26,7 @@ var _accum: float = 99.0
 
 func _init() -> void:
 	gen = PortData.gen()
-	PalmMesh.prewarm()
+	Island.prewarm()
 
 
 func _physics_process(delta: float) -> void:

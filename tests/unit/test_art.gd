@@ -48,11 +48,12 @@ func test_crew_skins_are_stable_and_fit_the_kind() -> void:
 	assert_true(seen.size() >= 3, "a crew is not all one face")
 
 
-func test_palm_variants_build_geometry() -> void:
-	for v in 3:
-		var m: ArrayMesh = PalmMesh.build(v, 5)
-		var arrays: Array = m.surface_get_arrays(0)
-		assert_true((arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() > 600, "variant %d" % v)
+func test_island_models_merge_into_toon_meshes() -> void:
+	Island.prewarm()
+	for set in [["pirate", "palm-bend"], ["nature", "tree_oak"], ["nature", "plant_bushLarge"], ["pirate", "rocks-a"]]:
+		var m: Mesh = Kenney.merged(set[0], set[1])
+		assert_true(m.get_surface_count() >= 1, set[1])
+		assert_true(m.surface_get_material(0) is ShaderMaterial, set[1])
 
 
 func test_town_walkers_meet_and_turn_to_each_other() -> void:
