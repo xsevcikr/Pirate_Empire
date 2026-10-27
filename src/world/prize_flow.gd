@@ -51,16 +51,23 @@ func _physics_process(delta: float) -> void:
 func _on_boarding_finished(won: bool, ship: Ship) -> void:
 	if not is_instance_valid(ship):
 		return
+	var losses: Dictionary = Session.reconcile_crew(player)
+	_report_losses(losses)
 	if not won:
+		CrewLife.add_morale(Session.state, Morale.DELTA["defeat"])
 		Svc.node("EventBus").toast.emit(Loc.t("prize.repelled"))
 		(_controllers[ship] as BoardingController).queue_free()
 		_controllers.erase(ship)
 		return
 	_busy = true
 	var loot: Dictionary = roll_loot(ship, Session.state)
+	var split: Dictionary = share_out(loot, Session.state)
 	apply_loot(loot, Session.state)
+	CrewLife.award_xp(Session.state, "boarding")
 	var lines := PackedStringArray()
 	lines.append(Loc.t("prize.gold") % int(loot["gold"]))
+	if split["crew"] > 0.0:
+		lines.append(Loc.t("prize.crew_share") % [int(split["crew"]), int(float(Session.state["captain_cut"]) * 100.0)])
 	for g: String in loot["cargo"]:
 		lines.append("%d × %s" % [int(loot["cargo"][g]), Loc.t("good." + g)])
 	for s: String in loot["supplies"]:
@@ -93,6 +100,8 @@ func _on_fate(fate: int, ship: Ship, loot: Dictionary, layer: CanvasLayer) -> vo
 ## Quest, log and tutorial bookkeeping after a ship was looted. Also used by the scripted test.
 func finish_prize(ship: Ship, loot: Dictionary, fate: int) -> void:
 	var bus: Node = Svc.node("EventBus")
+	CrewLife.add_morale(Session.state, Morale.DELTA["victory"])
+	CrewLife.award_xp(Session.state, "battle")
 	var info: Dictionary = {"quest": str(ship.get_meta("quest", "")), "tutorial": str(ship.get_meta("tutorial", "")), "loot": loot, "fate": fate}
 	if loot["map_fragment"] != "":
 		Session.state["map_fragments"].append(loot["map_fragment"])
@@ -117,11 +126,26 @@ func _on_sunk(ship: Ship) -> void:
 		return
 	var full: Dictionary = roll_loot(ship, Session.state)
 	var loot: Dictionary = {"gold": floori(full["gold"] * Loot.SINK_CARGO_FRACTION), "cargo": {}, "supplies": {}, "map_fragment": ""}
+	share_out(loot, Session.state)
 	for g: String in full["cargo"]:
 		loot["cargo"][g] = floorf(full["cargo"][g] * Loot.SINK_CARGO_FRACTION)
 	apply_loot(loot, Session.state)
 	Svc.node("EventBus").toast.emit(Loc.t("prize.barrels") % int(loot["gold"]))
 	finish_prize(ship, loot, CaptureFate.Fate.STRIP_AND_SINK)
+
+
+## Splits the gold between the captain's cut and the crew's shares (spec section 4). Changes loot["gold"]
+## to the captain's part and moves the crew's morale by the cut and the shares paid.
+static func share_out(loot: Dictionary, state: Dictionary) -> Dictionary:
+	var split: Dictionary = Morale.loot_split(float(loot["gold"]), float(state["captain_cut"]), int(state["crew"]))
+	loot["gold"] = floori(split["captain"])
+	CrewLife.add_morale(state, split["morale"])
+	return split
+
+
+func _report_losses(losses: Dictionary) -> void:
+	if int(losses["dead"]) > 0 or int(losses["wounded"]) > 0:
+		Svc.node("EventBus").toast.emit(Loc.t("crew.losses") % [int(losses["dead"]), int(losses["wounded"])])
 
 
 static func roll_loot(ship: Ship, state: Dictionary) -> Dictionary:

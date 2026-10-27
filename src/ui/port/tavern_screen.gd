@@ -21,9 +21,18 @@ func build() -> void:
 		var ok: bool = room > 0 and cost <= int(s["gold"]) and (tier == "green" or level >= 2)
 		add_item_row("%s  %d g  (%s %d g/%s)" % [Loc.t("crew." + tier), cost, Loc.t("port.wage"), CrewManager.WAGE_PER_DAY * (1 if tier == "green" else 2), Loc.t("port.day")],
 			[[Loc.t("port.hire"), _hire.bind(tier) if ok else Callable()]])
+	add_text(Loc.t("port.specialists"))
+	var offers: Array[String] = PortService.tavern_offers(s, port_id)
+	if offers.is_empty():
+		add_text("  " + Loc.t("port.no_specialists"))
+	for t in offers:
+		var spec: Dictionary = CrewTypes.TYPES[t]
+		var can: bool = room > 0 and int(spec["hire"]) <= int(s["gold"])
+		add_item_row("%s  %d g  (%s %d g/%s)" % [Loc.t("crew." + t), int(spec["hire"]), Loc.t("port.wage"), int(spec["wage"]), Loc.t("port.day")],
+			[[Loc.t("port.hire"), _hire.bind(t) if can else Callable()]])
 	add_text(Loc.t("port.roster"))
 	for m: Dictionary in s["roster"]:
-		add_text("  %s  (%s)" % [m["name"], Loc.t("crew." + m["type"])])
+		add_text("  %s  (%s, %s %d, %d XP)" % [m["name"], Loc.t("crew." + m["type"]), Loc.t("crew.level"), int(m["level"]), int(m["xp"])])
 	add_text(Loc.t("port.rumours"))
 	add_text("  " + Loc.t("rumour.%d" % (int(s["day"]) % 3)))
 	if TutorialData.index_of(s["tutorial"]) <= TutorialData.index_of("hunt_lugger"):

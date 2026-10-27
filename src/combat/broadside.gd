@@ -15,6 +15,7 @@ var ammo_id: String = "round"
 var ammo: Dictionary = {"round": 300, "chain": 60, "grape": 60, "heated": 0, "explosive": 0}
 var elevation_deg: float = 3.0
 var spread_scale: float = 1.0
+var reload_scale: float = 1.0  ## gunners aboard shorten the reload
 var projectiles: ProjectileManager
 var shots_fired: int = 0
 
@@ -37,7 +38,7 @@ func gun_count() -> int:
 
 
 func reload_time() -> float:
-	return GunData.GUNS[gun_id]["reload"] * ship.crew.understaffed_multiplier() / ship.crew.guns_efficiency()
+	return GunData.GUNS[gun_id]["reload"] * ship.crew.understaffed_multiplier() / ship.crew.guns_efficiency() * reload_scale
 
 
 func ready_count(side: int) -> int:

@@ -70,6 +70,7 @@ func _begin_duel(seed_value: int) -> void:
 	for s in [a, b]:
 		s.broadside.projectiles = _pm
 		s.damage.rng.seed = seed_value * 7 + s.get_index()
+		s.broadside._rng.seed = seed_value * 13 + s.get_index()  # gun spread was the one unseeded random source
 	_ready_to_run = true
 
 

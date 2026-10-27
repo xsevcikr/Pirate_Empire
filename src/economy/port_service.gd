@@ -56,8 +56,7 @@ static func cargo_free(state: Dictionary) -> float:
 
 
 static func food_days(state: Dictionary) -> float:
-	var crew: int = int(state["crew"]) + 1  # the captain eats too
-	return float(state["supplies"]["food"]) * 4.0 / float(crew)
+	return CrewLife.days_left(state, "food")
 
 
 # ---- goods and supplies ------------------------------------------------------------------------
@@ -127,7 +126,22 @@ static func crew_room(state: Dictionary) -> int:
 	return ship_stats(state["ship_class"]).crew_max - int(state["crew"])
 
 
+## Specialists on offer today: one per tavern level, redrawn every two days, minus those already hired.
+static func tavern_offers(state: Dictionary, port_id: String) -> Array[String]:
+	var window: int = floori(float(state["day"]) / float(PortData.HIRE_REFRESH_DAYS))
+	if int(state["offers_window"]) != window:
+		state["offers_window"] = window
+		state["offers_taken"] = []
+	var out: Array[String] = []
+	for t in CrewTypes.offers(int(state["seed"]), int(state["day"]), PortData.PORTS[port_id]["tavern_level"]):
+		if not state["offers_taken"].has(t):
+			out.append(t)
+	return out
+
+
 static func hire(state: Dictionary, tier: String, port_id: String) -> bool:
+	if not TIER_LEVEL.has(tier):
+		return _hire_specialist(state, tier, port_id)
 	var cm := CrewManager.new()
 	cm.gold = int(state["gold"])
 	var level: int = PortData.PORTS[port_id]["tavern_level"]
@@ -137,6 +151,21 @@ static func hire(state: Dictionary, tier: String, port_id: String) -> bool:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(state["seed"]) * 131 + state["roster"].size() * 17 + int(state["crew"])
 	state["roster"].append({"name": NAMES[rng.randi() % NAMES.size()], "type": tier, "level": 1, "xp": 0})
+	state["crew"] = int(state["crew"]) + 1
+	return true
+
+
+static func _hire_specialist(state: Dictionary, type: String, port_id: String) -> bool:
+	if not tavern_offers(state, port_id).has(type) or crew_room(state) <= 0:
+		return false
+	var cost: int = int(CrewTypes.TYPES[type]["hire"])
+	if cost > int(state["gold"]):
+		return false
+	state["gold"] = int(state["gold"]) - cost
+	state["offers_taken"].append(type)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(state["seed"]) * 131 + state["roster"].size() * 17 + int(state["crew"]) + 5
+	state["roster"].append({"name": NAMES[rng.randi() % NAMES.size()], "type": type, "level": 1, "xp": 0})
 	state["crew"] = int(state["crew"]) + 1
 	return true
 

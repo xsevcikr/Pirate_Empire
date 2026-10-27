@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 4
+const VERSION: int = 5
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -13,7 +13,9 @@ static func new_state() -> Dictionary:
 		"supplies": PortData.START_SUPPLIES.duplicate(), "ammo": {"round": WeaponData.SWIVEL_START_SHOTS, "chain": 0, "grape": 0, "heated": 0, "explosive": 0},
 		"captain_hp": 100, "melee": "rusty_cutlass", "pistol": "flintlock", "pistol_shots": WeaponData.PISTOL_START_SHOTS,
 		"owned_weapons": ["rusty_cutlass", "flintlock"], "fame": 0, "docked_at": PortData.START_PORT, "starter_exchange": true,
-		"tutorial": "leave_dock", "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
+		"tutorial": "leave_dock", "captain_cut": Morale.CUT_DEFAULT, "captain_level": 1, "rum_ration": true, "wounded": 0,
+		"starve_days": 0, "thirst_days": 0, "unpaid_days": 0, "death_accum": 0.0, "wound_accum": 0.0, "desert_accum": 0.0,
+		"mutiny_shield_day": -99, "last_tick_day": 1, "offers_window": -1, "offers_taken": [], "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
 		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "act": 0, "beat": 0,
 		"fleet": [], "bases": [], "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
@@ -33,7 +35,7 @@ static func from_json(text: String) -> Dictionary:
 
 ## JSON turns ints into floats; put the integer fields back so a round trip compares equal.
 static func _restore_types(d: Dictionary) -> Dictionary:
-	for k in ["version", "gold", "day", "crew", "act", "beat", "seed", "difficulty", "saved_at"]:
+	for k in ["version", "gold", "day", "crew", "act", "beat", "seed", "difficulty", "saved_at", "wounded", "starve_days", "thirst_days", "unpaid_days", "mutiny_shield_day", "last_tick_day", "captain_level"]:
 		if d.has(k):
 			d[k] = int(d[k])
 	return d
@@ -61,6 +63,9 @@ static func migrate(d: Dictionary) -> Dictionary:
 	if v < 4:
 		# v4 adds the port-and-supplies layer. Old saves keep their own ship, gold and crew; the rest takes defaults.
 		d["version"] = 4
+	if v < 5:
+		# v5 adds crew life: rations, wounded, wages and the loot cut. Defaults below fill them in.
+		d["version"] = 5
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

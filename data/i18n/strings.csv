@@ -65,7 +65,7 @@ tut.hire_crew,Hire four deckhands at the tavern. Crew eat every day.,Najmi v hos
 tut.buy_food,Buy food at the market. One unit feeds four crew for a day.,Kup na trhu jídlo. Jedna jednotka nasytí čtyři muže na den.
 tut.quest_board,Take a job from the quest board.,Vezmi si zakázku z nástěnky.
 hud.dock_hint,Press Space to dock,Mezerníkem zakotvíš
-hud.status,Gold %d   Food %.1f days   Cargo %.2f / %.1f t,Zlato %d   Jídlo %.1f dne   Náklad %.2f / %.1f t
+hud.status,Gold %d   Food %.1f d   Water %.1f d   Cargo %.2f / %.1f t   Morale %d (%s),Zlato %d   Jídlo %.1f d   Voda %.1f d   Náklad %.2f / %.1f t   Morálka %d (%s)
 port.header,Gold %d   Cargo %.2f / %.1f t   Food %.1f days,Zlato %d   Náklad %.2f / %.1f t   Jídlo %.1f dne
 port.market,Market,Trh
 port.shipyard,Shipyard,Loděnice
@@ -178,3 +178,46 @@ weapon.grenado,Grenado,Granát
 rumour.0,"They say a map piece changes hands for a bottle of rum in Gallows Cove.","Říká se, že v Gallows Cove se kus mapy vymění za láhev rumu."
 rumour.1,"Convoys leave Merchant's Reach every twelve hours. Sink one and sugar gets dear in Blackwater.","Z Merchant's Reach vyplouvají konvoje každých dvanáct hodin. Potop jeden a cukr v Blackwateru zdraží."
 rumour.2,"The Navy buys fish by the barrel. Pirates buy rum by the ocean.","Námořnictvo kupuje ryby po sudech. Piráti kupují rum po oceánech."
+morale.loyal,Loyal,Oddaná
+morale.content,Content,Spokojená
+morale.grumbling,Grumbling,Reptající
+morale.mutinous,Mutinous,Vzpurná
+morale.mutiny,Mutiny,Vzpoura
+crew.gunner,Gunner,Střelec
+crew.swordsman,Swordsman,Šermíř
+crew.musketeer,Musketeer,Mušketýr
+crew.carpenter,Carpenter,Tesař
+crew.surgeon,Surgeon,Chirurg
+crew.cook,Cook,Kuchař
+crew.navigator,Navigator,Navigátor
+crew.bosun,Bosun,Loďmistr
+crew.quartermaster,Quartermaster,Proviantní důstojník
+crew.level,level,úroveň
+crew.losses,Lost in the fight: %d dead and %d wounded.,Ztráty v boji: %d mrtvých a %d raněných.
+crew.no_food,The crew has nothing to eat!,Posádka nemá co jíst!
+crew.no_water,The water casks are empty!,Sudy s vodou jsou prázdné!
+crew.unpaid,The crew was not paid today.,Posádka dnes nedostala žold.
+crew.died_hunger,%d of the crew starved.,%d členů posádky zemřelo hlady.
+crew.died_thirst,%d of the crew died of thirst.,%d členů posádky zemřelo žízní.
+crew.died_wounds,%d of the wounded died.,%d raněných zemřelo.
+crew.deserted,%d crewmen deserted in port.,%d členů posádky v přístavu dezertovalo.
+crew.screen,Ship and crew,Loď a posádka
+crew.morale_line,Morale %d (%s): work efficiency %d%%,Morálka %d (%s): pracovní výkon %d%%
+crew.supplies_line,Food %.1f days   Water %.1f days   Rum %.1f days,Jídlo %.1f dne   Voda %.1f dne   Rum %.1f dne
+crew.wages_line,Wages %d g/day   Crew %d   Wounded %d,Žold %d zl./den   Posádka %d   Ranění %d
+crew.cut,Captain's cut of loot (%),Kapitánův podíl z kořisti (%)
+crew.rum_ration,Daily rum ration,Denní příděl rumu
+crew.roster,Roster,Soupis posádky
+port.specialists,Specialists for hire,Specialisté k najmutí
+port.no_specialists,No specialists today.,Dnes žádní specialisté.
+prize.crew_share,Crew shares: %d gold (captain's cut %d%%),Podíly posádky: %d zlaťáků (kapitánův podíl %d %%)
+mutiny.title,Mutiny!,Vzpoura!
+mutiny.text,"The crew has had enough. Pay them off, duel the ringleader, or maroon the mutineers.","Posádka už má dost. Vyplať ji, vyzvi vůdce na souboj, nebo vzbouřence vysaď na ostrov."
+mutiny.pay,Pay them off,Vyplatit je
+mutiny.duel,Duel the ringleader,Souboj s vůdcem
+mutiny.maroon,Maroon the mutineers,Vysadit vzbouřence
+mutiny.cannot_pay,You cannot afford to pay them off.,Nemáš dost zlata na vyplacení.
+mutiny.paid,You pay the crew off. They grumble but stay.,Vyplatil jsi posádku. Reptají ale zůstávají.
+mutiny.duel_won,You cut down the ringleader. The crew falls in line.,Zabil jsi vůdce. Posádka se podřídila.
+mutiny.duel_lost,The ringleader wins and takes half your gold.,Vůdce vyhrál a vzal ti polovinu zlata.
+mutiny.marooned,The mutineers are left on a lonely island.,Vzbouřenci zůstali na opuštěném ostrově.

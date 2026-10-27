@@ -15,7 +15,10 @@ var _last_sea_state: float = -1.0
 var prizes: PrizeFlow
 var overlay: GameOverlay
 var tutorial: Tutorial
+var player_controller: PlayerController
+var hud: SailingHud
 var _last_market_h: float = -1.0
+var _last_repair_h: float = -1.0
 var _dock_world: Vector3 = Vector3(PortData.PORTS[PortData.START_PORT]["dock"].x, 0.0, PortData.PORTS[PortData.START_PORT]["dock"].y)
 
 
@@ -101,6 +104,7 @@ func _ready() -> void:
 		_markers.append(ring)
 
 	var pc := PlayerController.new()
+	player_controller = pc
 	pc.ship = ship
 	pc.wind = wind
 	add_child(pc)
@@ -115,7 +119,7 @@ func _ready() -> void:
 	day_night.ocean = ocean
 	add_child(day_night)
 
-	var hud := SailingHud.new()
+	hud = SailingHud.new()
 	hud.ship = ship
 	hud.wind = wind
 	hud.target = target
@@ -209,6 +213,104 @@ func spawn_quest_ship(id: String) -> Ship:
 	return m
 
 
+## Hourly markets, daily crew life and the carpenter's repairs, driven by the game clock.
+func _game_tick() -> void:
+	var now_h: float = GameClock.day * 24.0 + GameClock.hour
+	if _last_market_h < 0.0:
+		_last_market_h = now_h
+		_last_repair_h = now_h
+		return
+	if now_h - _last_market_h >= 1.0:
+		PortService.advance_markets(Session.state, floorf(now_h - _last_market_h))
+		_last_market_h = now_h
+	if (now_h - _last_repair_h) * 60.0 >= 1.0:
+		_carpenter(( now_h - _last_repair_h) * 60.0)
+		_last_repair_h = now_h
+	while GameClock.day > int(Session.state["last_tick_day"]):
+		Session.state["last_tick_day"] = int(Session.state["last_tick_day"]) + 1
+		_daily_crew_tick()
+
+
+func _carpenter(minutes: float) -> void:
+	if CrewEffects.compute(Session.state["roster"])["repair_hp_per_min"] <= 0.0 or get_node_or_null("PortLayer") != null:
+		return
+	Session.state["ship_hull"] = ship.damage.hull_fraction()
+	if CrewLife.carpenter_repair(Session.state, minutes) > 0.0:
+		Session.apply_hull(ship)
+
+
+func _daily_crew_tick() -> void:
+	Session.reconcile_crew(ship)
+	var near_port: bool = ship.global_position.distance_to(_dock_world) <= PortData.DOCK_RADIUS_M
+	var faction: String = PortData.PORTS[PortData.START_PORT]["faction"]
+	var ctx: Dictionary = {"in_port": near_port, "shore_leave": near_port and float(Session.state["rep"][faction]) >= 20.0, "day": GameClock.day}
+	var report: Dictionary = CrewLife.daily_tick(Session.state, ctx)
+	Session.apply_to_ship(ship)
+	if report["no_food"]:
+		EventBus.toast.emit(Loc.t("crew.no_food"))
+	if report["no_water"]:
+		EventBus.toast.emit(Loc.t("crew.no_water"))
+	if report["wages_unpaid"]:
+		EventBus.toast.emit(Loc.t("crew.unpaid"))
+	if int(report["deaths"]) > 0:
+		EventBus.toast.emit(Loc.t("crew.died_" + str(report["died_of"] if report["died_of"] != "" else "wounds")) % int(report["deaths"]))
+	if int(report["deserted"]) > 0:
+		EventBus.toast.emit(Loc.t("crew.deserted") % int(report["deserted"]))
+	if report["mutiny"]:
+		open_mutiny()
+
+
+func open_mutiny() -> void:
+	if get_node_or_null("MutinyLayer") != null:
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MutinyLayer"
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	layer.layer = 55
+	add_child(layer)
+	var screen := MutinyScreen.new()
+	layer.add_child(screen)
+	screen.resolved.connect(func() -> void:
+		Session.apply_to_ship(ship)
+		layer.queue_free())
+
+
+## After port: put the state's crew, ammo and hull on the ship, or build a new ship if a different class was bought.
+func sync_player_ship() -> void:
+	if ship.stats.class_id != Session.state["ship_class"] or not _upgrades_applied():
+		_replace_player_ship()
+	Session.apply_to_ship(ship)
+
+
+func _upgrades_applied() -> bool:
+	var expect: ShipStats = Session.player_stats()
+	return is_equal_approx(ship.stats.hull_hp, expect.hull_hp) and is_equal_approx(ship.stats.max_speed_kn, expect.max_speed_kn) and ship.stats.crew_max == expect.crew_max and is_equal_approx(ship.stats.turn_rate_deg_s, expect.turn_rate_deg_s)
+
+
+func _replace_player_ship() -> void:
+	var old: Ship = ship
+	var fresh := Ship.new()
+	fresh.stats = Session.player_stats()
+	fresh.ocean = ocean.model
+	fresh.wind = wind
+	fresh.position = old.position
+	fresh.rotation = old.rotation
+	fresh.sail_level = old.sail_level
+	fresh.faction = old.faction
+	add_child(fresh)
+	fresh.broadside.projectiles = projectiles
+	ship = fresh
+	ocean.follow = fresh
+	rig.target = fresh
+	player_controller.ship = fresh
+	hud.ship = fresh
+	if prizes != null:
+		prizes.player = fresh
+	if tutorial != null:
+		tutorial.ship = fresh
+	old.queue_free()
+
+
 ## Docking: inside the dock zone and slow, Space opens the port menu.
 func can_dock() -> bool:
 	return ship.global_position.distance_to(_dock_world) <= PortData.DOCK_RADIUS_M and ship.speed_knots() <= PortData.DOCK_MAX_SPEED_KN
@@ -226,6 +328,7 @@ func open_port() -> void:
 	layer.add_child(menu)
 	menu.world = self
 	menu.closed.connect(func() -> void:
+		sync_player_ship()
 		Session.autosave(self)
 		layer.queue_free())
 	Session.state["docked_at"] = menu.port_id
@@ -254,15 +357,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	Session.playtime_s += delta
 	if Session.has_state():
-		var now_h: float = GameClock.day * 24.0 + GameClock.hour
-		if _last_market_h < 0.0:
-			_last_market_h = now_h
-		elif now_h - _last_market_h >= 1.0:
-			PortService.advance_markets(Session.state, floorf(now_h - _last_market_h))
-			_last_market_h = now_h
+		_game_tick()
 	if overlay != null:
 		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else "")
-		overlay.set_info(Loc.t("hud.status") % [int(Session.state["gold"]), PortService.food_days(Session.state), PortService.cargo_used(Session.state), PortService.cargo_capacity(Session.state)])
+		var st: Dictionary = Session.state
+		overlay.set_info(Loc.t("hud.status") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water"), PortService.cargo_used(st), PortService.cargo_capacity(st), int(st["morale"]), Loc.t("morale." + Morale.band(float(st["morale"])))])
 	wind.update(delta)
 	var ss: float = snappedf(wind.sea_state(), 0.1)
 	if absf(ss - _last_sea_state) > 0.05:

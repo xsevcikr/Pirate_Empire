@@ -17,6 +17,7 @@ var crew_max: int = 30
 var focus: Focus = Focus.BALANCED
 var quality: float = 1.0
 var morale: float = 70.0
+var brief_morale: bool = false  ## player ship: morale bands from the spec (Morale) instead of the older table
 var captain_hands: int = 0  ## the captain works a gun or a sheet when the crew is thin (player ship only)
 
 
@@ -49,6 +50,8 @@ func sails_efficiency() -> float:
 
 
 func morale_factor() -> float:
+	if brief_morale:
+		return Morale.efficiency(morale)
 	if morale < 15.0:
 		return 0.7
 	if morale < 40.0:
