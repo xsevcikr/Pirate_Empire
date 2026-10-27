@@ -156,6 +156,7 @@ func _start_game_layer() -> void:
 	add_child(convoys)
 	tours = TourDirector.new()
 	tours.ship = ship
+	tours.world = self
 	tours.state = Session.state
 	add_child(tours)
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
@@ -186,6 +187,23 @@ func _make_ship(stats: ShipStats, pos: Vector3, yaw: float, faction: String) -> 
 	add_child(s)
 	s.broadside.projectiles = projectiles
 	return s
+
+
+## Three ghost sloops rise round a point; only heated or blessed shot hurts them.
+func spawn_ghost_sloops(at: Vector2) -> Array[Ship]:
+	var out: Array[Ship] = []
+	for i in TourHazards.GHOST_SLOOPS:
+		var s: Ship = _make_ship(load("res://data/ships/sloop.tres"), Vector3(at.x + 260.0 * (i + 1), 0.5, at.y + 120.0 * i), 90.0, "pirate")
+		s.set_meta("ghost", true)
+		s.sail_level = 2
+		s.crew.count = 12
+		var ai := ShipAI.new()
+		ai.ship = s
+		ai.waypoints = [Vector3(at.x, 0, at.y), Vector3(at.x + 500.0, 0, at.y + 500.0)]
+		s.ai = ai
+		s.add_child(ai)
+		out.append(s)
+	return out
 
 
 ## Old Finn's fishing lugger: three fishermen, no guns, drifting off the harbour mouth.

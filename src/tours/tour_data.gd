@@ -40,8 +40,54 @@ const TOURS: Dictionary = {
 			{"id": "escape", "kind": "escape", "island": "Pearlhome", "text": "tour.ss.escape"},
 		],
 	},
+	"ghost_ledger": {
+		"name": "tour.ghost_ledger", "region": "dead_reach", "island": "Wraith Isle",
+		"reward": {"gold": 10000, "perks": ["ship_revenant"], "pearls": 0},
+		"steps": [
+			{"id": "read_map", "kind": "clue", "island": "Haven Rock", "night": true, "text": "tour.gl.read_map"},
+			{"id": "ghost_storm", "kind": "sail", "island": "Bonefield Shoals", "night": true, "hazard": "ghost_storm", "text": "tour.gl.storm"},
+			{"id": "wraith_isle", "kind": "sail", "island": "Wraith Isle", "text": "tour.gl.isle"},
+			{"id": "crypt", "kind": "dungeon", "island": "Wraith Isle", "dungeon": "crypt", "text": "tour.gl.crypt"},
+			{"id": "ghost_admiral", "kind": "guardian", "island": "Wraith Isle", "monster": "ghost_admiral", "text": "tour.gl.admiral"},
+			{"id": "escape", "kind": "escape", "island": "Haven Rock", "text": "tour.gl.escape"},
+		],
+	},
+	"iron_heart": {
+		"name": "tour.iron_heart", "region": "iron_marches", "island": "Cinder Bay",
+		"reward": {"gold": 12000, "perks": ["explosive_blueprint", "armor_t5"], "pearls": 0},
+		"steps": [
+			{"id": "read_map", "kind": "clue", "island": "Ironhold", "text": "tour.ih.read_map"},
+			{"id": "blockade", "kind": "sail", "island": "Cinder Bay", "hazard": "blockade", "text": "tour.ih.blockade"},
+			{"id": "volcano", "kind": "dungeon", "island": "Cinder Bay", "dungeon": "volcano_tunnels", "text": "tour.ih.volcano"},
+			{"id": "colossus", "kind": "guardian", "island": "Cinder Bay", "monster": "brass_colossus", "text": "tour.ih.colossus"},
+			{"id": "escape", "kind": "escape", "island": "Ironhold", "text": "tour.ih.escape"},
+		],
+	},
+	"frostmourn_vault": {
+		"name": "tour.frostmourn_vault", "region": "dead_reach", "island": "Frostmourn",
+		"reward": {"gold": 15000, "perks": ["frost_sails", "white_flag"], "pearls": 0},
+		"steps": [
+			{"id": "read_map", "kind": "clue", "island": "Haven Rock", "text": "tour.fv.read_map"},
+			{"id": "icebergs", "kind": "sail", "island": "Frostmourn", "hazard": "icebergs", "text": "tour.fv.bergs"},
+			{"id": "glacier", "kind": "dungeon", "island": "Frostmourn", "dungeon": "glacier_caves", "text": "tour.fv.glacier"},
+			{"id": "leviathan", "kind": "guardian", "island": "Frostmourn", "monster": "ice_leviathan", "text": "tour.fv.leviathan"},
+			{"id": "escape", "kind": "escape", "island": "Haven Rock", "text": "tour.fv.escape"},
+		],
+	},
+	"krakens_maw": {
+		"name": "tour.krakens_maw", "region": "dead_reach", "island": "Kraken's Maw",
+		"requires": ["drowned_purse", "song_of_sirens", "ghost_ledger", "iron_heart", "frostmourn_vault"],
+		"reward": {"gold": 40000, "perks": ["kraken_ink", "heart_of_the_deep", "unlock_black_ibrahim"], "pearls": 0},
+		"steps": [
+			{"id": "read_map", "kind": "clue", "island": "Haven Rock", "text": "tour.km.read_map"},
+			{"id": "whirlpool", "kind": "sail", "island": "Kraken's Maw", "hazard": "whirlpool", "text": "tour.km.whirl"},
+			{"id": "kraken", "kind": "guardian", "island": "Kraken's Maw", "monster": "kraken", "text": "tour.km.kraken"},
+			{"id": "drowned_city", "kind": "dungeon", "island": "Kraken's Maw", "dungeon": "drowned_city", "text": "tour.km.city"},
+			{"id": "escape", "kind": "escape", "island": "Haven Rock", "text": "tour.km.escape"},
+		],
+	},
 }
-const ORDER: Array[String] = ["drowned_purse", "song_of_sirens"]
+const ORDER: Array[String] = ["drowned_purse", "song_of_sirens", "ghost_ledger", "iron_heart", "frostmourn_vault", "krakens_maw"]
 
 ## Siren waters: the pull on the helm, the morale it drains and how the player stops it.
 const SIREN: Dictionary = {
@@ -62,14 +108,58 @@ const MONSTERS: Dictionary = {
 		"parry": [], "dodge": ["coil", "head_strike", "tail_sweep"],
 	},
 }
+const MONSTERS_BIG: Dictionary = {
+	"valcourt": {
+		"player": "ship", "armor": 0.6, "exposed_mult": 2.0, "expose_s": 3.0,
+		"dmg": {"line_ahead_broadsides": 250.0, "board_if_close": 100.0, "fire_ships": 200.0, "iron_bulwark": 0.0, "ram_and_board": 300.0, "captain_duel": 150.0},
+		"parry": [], "dodge": ["line_ahead_broadsides", "board_if_close", "fire_ships", "ram_and_board", "captain_duel"],
+	},
+	"ghost_admiral": {
+		"player": "ship", "armor": 0.7, "exposed_mult": 2.0, "expose_s": 3.0, "lanterns": 2,
+		"dmg": {"teleport_behind": 200.0, "phase_out": 0.0, "summon_ghost_sloops": 150.0, "lightning_storm": 250.0, "skeletal_boarders": 120.0, "cursed_lantern": 200.0},
+		"parry": [], "dodge": ["teleport_behind", "summon_ghost_sloops", "lightning_storm", "skeletal_boarders", "cursed_lantern"],
+	},
+	"kraken": {
+		"player": "ship", "armor": 1.0, "exposed_mult": 2.5, "expose_s": 4.0, "tentacles": 8, "tentacle_hp": 150.0, "head_up_s": 12.0,
+		"dmg": {"tentacle_slam": 200.0, "grab_and_crush": 350.0, "pull_into_whirlpool": 150.0, "ink_cloud": 0.0, "head_emerges": 300.0, "ram_it": 0.0},
+		"parry": [], "dodge": ["tentacle_slam", "grab_and_crush", "pull_into_whirlpool", "head_emerges"],
+	},
+	"black_ibrahim": {
+		"player": "ship", "armor": 0.6, "exposed_mult": 2.0, "expose_s": 3.0,
+		"dmg": {"fleet_duel": 250.0, "frigate_formation": 150.0, "mortar_rain": 300.0, "bombard_bases": 200.0, "burning_deck_duel": 250.0, "attack_pattern_three": 300.0},
+		"parry": [], "dodge": ["fleet_duel", "frigate_formation", "mortar_rain", "bombard_bases", "burning_deck_duel", "attack_pattern_three"],
+	},
+	"brass_colossus": {
+		"player": "captain", "armor": 0.5, "exposed_mult": 2.5, "expose_s": 3.0, "cool_extends_s": 3.0,
+		"dmg": {"steam_blast": 50.0, "ground_slam": 60.0, "flame_jets": 45.0},
+		"parry": [], "dodge": ["steam_blast", "ground_slam", "flame_jets"],
+	},
+	"ice_leviathan": {
+		"player": "ship", "armor": 0.7, "exposed_mult": 2.0, "expose_s": 4.0, "explosive_mult": 2.0,
+		"dmg": {"break_ice": 200.0, "hurl_ice": 150.0, "freezing_breath": 100.0},
+		"parry": [], "dodge": ["break_ice", "hurl_ice", "freezing_breath"],
+	},
+}
 const PLAYER_HP: Dictionary = {"captain": 100.0, "ship": 1200.0}
 const STRIKE_DMG: Dictionary = {"captain": 30.0, "ship": 160.0}
 
 ## Dungeons: room count and the order of what is in them.
 const DUNGEONS: Dictionary = {
 	"sea_cave": {"rooms": ["entry", "trap", "puzzle:sluice", "chest", "guard", "exit"], "air_s": 0.0},
+	"crypt": {"rooms": ["entry", "trap", "puzzle:bells", "guard", "chest", "exit"], "air_s": 0.0},
+	"volcano_tunnels": {"rooms": ["entry", "puzzle:vents", "puzzle:cart", "chest", "exit"], "air_s": 0.0},
+	"glacier_caves": {"rooms": ["entry", "puzzle:ice", "trap", "chest", "exit"], "air_s": 0.0},
+	"drowned_city": {"rooms": ["entry", "puzzle:mirrors", "puzzle:rhyme", "guard", "chest", "exit"], "air_s": 0.0},
 	"sunken_temple": {"rooms": ["entry", "puzzle:mirrors", "chest", "puzzle:rhyme", "guard", "exit"], "air_s": 120.0},
 }
+const SEQUENCES: Dictionary = {"rhyme": [4, 6], "bells": [4, 4], "cart": [5, 2]}  ## kind -> [length, symbols]
+const VENTS: int = 3
+const VENT_PERIOD_S: float = 6.0
+const VENT_OPEN_S: float = 3.0
+const VENT_BURN_DMG: float = 20.0
+const ICE_GRID: int = 5
+const ICE_ROCKS: int = 5
+const RANDOM_REWARD: Array[int] = [1000, 8000]
 const TORCH_S: float = 300.0
 const SLUICE_GATES: int = 3
 const SLUICE_TIME_S: float = 180.0
@@ -101,12 +191,44 @@ const DIG_PITY_EMPTY: int = 2  ## after two empty holes the next one on a tour s
 const DIG_SNAKE_DMG: float = 20.0
 
 
+## Treasure maps made by the random generator, rebuilt from the save by restore().
+static var EXTRA: Dictionary = {}
+
+
+static func tour(tour_id: String) -> Dictionary:
+	return TOURS[tour_id] if TOURS.has(tour_id) else EXTRA[tour_id]
+
+
+static func is_generated(tour_id: String) -> bool:
+	return EXTRA.has(tour_id)
+
+
+static func dungeon(dungeon_id: String, rooms: Array = []) -> Dictionary:
+	if not rooms.is_empty():
+		return {"rooms": rooms, "air_s": 0.0}
+	return DUNGEONS[dungeon_id]
+
+
 static func tour_ids() -> Array[String]:
 	return ORDER
 
 
+static func all_ids() -> Array[String]:
+	var out: Array[String] = ORDER.duplicate()
+	for id: String in EXTRA.keys():
+		out.append(id)
+	return out
+
+
+## Put the generated tours saved in a state back into the registry.
+static func restore(state: Dictionary) -> void:
+	EXTRA.clear()
+	for id: String in state.get("tours", {}).get("generated", {}).keys():
+		EXTRA[id] = state["tours"]["generated"][id]
+
+
 static func steps(tour_id: String) -> Array:
-	return TOURS[tour_id]["steps"]
+	return tour(tour_id)["steps"]
 
 
 static func step_index(tour_id: String, step_id: String) -> int:

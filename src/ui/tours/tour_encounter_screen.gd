@@ -65,7 +65,7 @@ func _build_room() -> void:
 			add_button("act.look", _look)
 			add_button("act.cross", _cross)
 		"puzzle":
-			for i in (3 if run.puzzle.kind != "rhyme" else 6):
+			for i in run.puzzle.symbol_count():
 				add_button("act.press", _press.bind(i)).text = "%s %d" % [Loc.t("act.press"), i + 1]
 			for lv in range(1, 4):
 				add_button("act.hint", _puzzle_hint.bind(lv)).text = "%s %d" % [Loc.t("act.hint"), lv]

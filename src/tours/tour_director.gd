@@ -16,6 +16,11 @@ var wax: bool = false
 var singing: bool = false
 var _bus: Node
 var _digs: Dictionary = {}
+var world: Node
+var ghosts_out: bool = false
+var bergs: Array[Dictionary] = []
+var patrols: Array[Vector2] = []
+var _haz_t: float = 0.0
 
 
 func _ready() -> void:
@@ -23,11 +28,25 @@ func _ready() -> void:
 	if state.is_empty() and Session.has_state():
 		state = Session.state
 	rng.seed = int(state.get("seed", 1)) * 31 + 18
+	TourData.restore(state)
 	wax = TourState.root(state).has("wax")
 
 
 func pos2() -> Vector2:
 	return Vector2(ship.global_position.x, ship.global_position.z)
+
+
+## Put the arena of the guardian a tour is about to fight in the world once the ship is within 4 km of it.
+func _show_arena() -> void:
+	if world == null:
+		return
+	for id in TourState.active(state):
+		var step: Dictionary = TourState.current_step(state, id)
+		if step["kind"] != "guardian" or not BossArena.ARENAS.has(step["monster"]):
+			continue
+		var node_name: String = "Arena_" + str(step["monster"])
+		if world.get_node_or_null(node_name) == null and pos2().distance_to(TourData.step_pos(step)) < 4000.0:
+			world.add_child(ArenaView.make(str(step["monster"])))
 
 
 func _hours() -> float:
@@ -44,6 +63,7 @@ func _physics_process(delta: float) -> void:
 	if ship == null or state.is_empty():
 		return
 	TourState.tick(state, delta)
+	_show_arena()
 	update_voyage(pos2(), _hour_of_day(), OceanCurrent.tide_m(_hours()), delta)
 
 
@@ -57,16 +77,70 @@ func update_voyage(pos: Vector2, hour: float, tide: float, delta: float = 0.0) -
 					_done(id, step)
 			"sirens":
 				_siren_tick(id, step, pos, delta)
+		if step["kind"] == "sail" and step.has("hazard"):
+			_hazard_tick(step, pos, hour, delta)
+
+
+## Voyage hazards of the tour step in progress. They hurt but never block: arrival still completes the step.
+func _hazard_tick(step: Dictionary, pos: Vector2, hour: float, delta: float) -> void:
+	if delta <= 0.0 or ship == null:
+		return
+	var centre: Vector2 = TourData.step_pos(step)
+	var h: String = str(step["hazard"])
+	if h == "patrol":
+		h = "blockade"
+	match h:
+		"ghost_storm":
+			if pos.distance_to(centre) < 2500.0 and TourHazards.moonlit(hour):
+				if not ghosts_out and world != null:
+					ghosts_out = true
+					world.spawn_ghost_sloops(pos)
+				_haz_t += delta
+				if _haz_t >= TourHazards.GHOST_BOLT_EVERY_S:
+					_haz_t = 0.0
+					_hurt(TourHazards.GHOST_BOLT_DAMAGE)
+		"icebergs":
+			if bergs.is_empty():
+				bergs = TourHazards.icebergs(centre, rng)
+			var speed: float = ship.linear_velocity.length()
+			if speed > 0.5 and TourHazards.berg_hit(pos, 20.0, bergs):
+				var e: float = CollisionModel.impact_energy(ship.stats.mass_kg, 0.0, speed)
+				_hurt(CollisionModel.hull_damage(e, "ice"))
+				ship.linear_velocity *= 0.3
+		"whirlpool":
+			var v: Vector2 = TourHazards.whirlpool(pos, centre)
+			ship.apply_central_force(Vector3(v.x, 0.0, v.y) * ship.stats.mass_kg * 0.05)
+			if TourHazards.in_whirl_core(pos, centre):
+				_hurt(60.0 * delta)
+		"blockade":
+			if patrols.is_empty():
+				patrols = TourHazards.patrols(centre, rng)
+			for p in patrols:
+				if TourHazards.patrol_sees(pos, p, not (hour >= 6.0 and hour < 18.0)):
+					_haz_t += delta
+					if _haz_t >= 10.0:
+						_haz_t = 0.0
+						_hurt(80.0)
+					break
+
+
+func _hurt(dmg: float) -> void:
+	if ship != null and ship.damage != null and dmg > 0.0:
+		ship.damage.apply_impact(rng.randi_range(0, ship.damage.section_count - 1), dmg, 0.0, false)
 
 
 func _done(id: String, step: Dictionary) -> void:
+	bergs.clear()
+	patrols.clear()
+	ghosts_out = false
+	_haz_t = 0.0
 	var finished: bool = TourState.complete_step(state, id)
 	if _bus != null:
 		_bus.toast.emit(Loc.t("tour.step_done"))
 	step_completed.emit(id, step["id"])
 	if finished:
 		if _bus != null:
-			_bus.toast.emit(Loc.t("tour.complete") % int(TourData.TOURS[id]["reward"]["gold"]))
+			_bus.toast.emit(Loc.t("tour.complete") % int(TourData.tour(id)["reward"]["gold"]))
 		tour_completed.emit(id)
 
 
@@ -82,7 +156,7 @@ func puzzle_turns(tour_id: String) -> Array[int]:
 
 func rotate_piece(tour_id: String, piece: int) -> bool:
 	MapFragments.rotate(puzzle_turns(tour_id), piece)
-	if TourState.read_map(state, tour_id, puzzle_turns(tour_id)):
+	if TourState.read_map(state, tour_id, puzzle_turns(tour_id), _hour_of_day()):
 		if _bus != null:
 			_bus.toast.emit(Loc.t("tour.joined"))
 		step_completed.emit(tour_id, "read_map")
@@ -162,7 +236,7 @@ func start_dungeon(tour_id: String) -> Dungeon:
 	var step: Dictionary = TourState.current_step(state, tour_id)
 	if step["kind"] != "dungeon" or not near_step(tour_id):
 		return null
-	return Dungeon.new(step["dungeon"], int(state.get("seed", 1)) + tour_id.hash() + int(TourState.progress(state, tour_id)["step"]))
+	return Dungeon.new(step["dungeon"], int(state.get("seed", 1)) + tour_id.hash() + int(TourState.progress(state, tour_id)["step"]), 100.0, step.get("rooms", []))
 
 
 ## The dungeon run ended: pay its gold and move on when it was walked to the exit.

@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 9
+const VERSION: int = 10
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -78,6 +78,9 @@ static func migrate(d: Dictionary) -> Dictionary:
 	if v < 9:
 		# v9 adds the treasure tours: progress, hints bought, perks won. Fragments already in map_fragments stay.
 		d["version"] = 9
+	if v < 10:
+		# v10 adds generated treasure maps and boss perks inside the tours record; nothing to convert.
+		d["version"] = 10
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

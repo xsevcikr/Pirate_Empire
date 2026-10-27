@@ -15,7 +15,7 @@ func _init() -> void:
 
 func build() -> void:
 	var tours: Array[String] = []
-	for id: String in TourData.tour_ids():
+	for id: String in TourData.all_ids():
 		if MapFragments.owned(Session.state, id) > 0:
 			tours.append(id)
 	if tours.is_empty():
@@ -25,7 +25,7 @@ func build() -> void:
 	if tour_id == "" or not tours.has(tour_id):
 		tour_id = tours[0]
 	for id in tours:
-		var b: Button = add_button(TourData.TOURS[id]["name"], _pick.bind(id))
+		var b: Button = add_button(TourData.tour(id)["name"], _pick.bind(id))
 		b.disabled = id == tour_id
 		if TourState.is_done(Session.state, id):
 			b.text += "  (%s)" % Loc.t("tour.done")
