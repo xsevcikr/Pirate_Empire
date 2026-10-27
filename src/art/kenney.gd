@@ -16,6 +16,7 @@ static func path(kit: String, model: String) -> String:
 
 
 static func scene(kit: String, model: String) -> PackedScene:
+	_hook_exit()
 	var p: String = path(kit, model)
 	if not _scenes.has(p):
 		_scenes[p] = load(p)
@@ -201,3 +202,29 @@ static func place(parent: Node3D, kit: String, model: String, at: Vector3, yaw_d
 	n.scale = Vector3.ONE * s
 	parent.add_child(n)
 	return n
+
+
+static var _hooked: bool = false
+
+
+## Clears the caches when the window closes, so nothing is still alive at engine shutdown.
+static func _hook_exit() -> void:
+	if _hooked:
+		return
+	_hooked = true
+	var loop: SceneTree = Engine.get_main_loop() as SceneTree
+	if loop != null:
+		loop.root.tree_exiting.connect(clear_caches)
+
+
+## Drops every cached scene, mesh and material, so nothing is still alive when the engine shuts down.
+static func clear_caches() -> void:
+	_scenes.clear()
+	_meshes.clear()
+	_toons.clear()
+	_flats.clear()
+	_plank_mats.clear()
+	_vcol = null
+	ShipModel.clear_cache()
+	DeckFighterView.clear_cache()
+	TownBuilder.clear_cache()

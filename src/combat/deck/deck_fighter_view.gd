@@ -288,3 +288,6 @@ func _sync(delta: float) -> void:
 	var tag: String = fighter.display_name if fighter.display_name != "" else fighter.kind
 	_label.text = "%s  %d" % [tag, ceili(maxf(fighter.hp, 0.0))] if fighter.is_alive() else ""
 	_label.modulate = Color(1, 1, 1) if fighter.team == 0 else Color(1.0, 0.65, 0.6)
+
+static func clear_cache() -> void:
+	_prim.clear()

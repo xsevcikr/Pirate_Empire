@@ -365,3 +365,6 @@ static func dress_body(body: Node3D, kind: String, size: Vector3, seed_v: int) -
 		"dock":
 			for i in int(size.z / 1.2):
 				box(body, Vector3(size.x + 0.1, 0.05, 0.06), Vector3(0, size.y * 0.5 + 0.02, -size.z * 0.5 + i * 1.2), Color(0.18, 0.11, 0.06))
+
+static func clear_cache() -> void:
+	_boxes.clear()

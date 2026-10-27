@@ -189,3 +189,6 @@ static func mast_piece() -> Dictionary:
 	scene.free()
 	_cache["_mast"] = out
 	return out
+
+static func clear_cache() -> void:
+	_cache.clear()
