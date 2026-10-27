@@ -66,10 +66,7 @@ func _box(size: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
 	var b := BoxMesh.new()
 	b.size = size
 	m.mesh = b
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.9
-	m.material_override = mat
+	m.material_override = Kenney.flat(color)
 	m.position = at
 	add_child(m)
 	return m
@@ -93,9 +90,7 @@ func _build_deck() -> void:
 	for r in combat.ropes:
 		DeckArt._rope(self, Vector3(r["pos"].x, 0.1, r["pos"].y), Vector3(r["pos"].x, 9.5, r["pos"].y), 0.03, DeckArt.plain(Color(0.7, 0.58, 0.35), 0.95))
 	var sun := DirectionalLight3D.new()
-	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 60.0
-	sun.light_angular_distance = 0.5
+	Look.apply_sun(sun, 60.0)
 	add_child(sun)
 	var env := Environment.new()
 	var sky := Sky.new()
@@ -103,12 +98,8 @@ func _build_deck() -> void:
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.glow_enabled = true
-	env.glow_intensity = 0.5
 	env.fog_enabled = true
-	env.ssao_enabled = true
+	Look.apply_environment(env)
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)

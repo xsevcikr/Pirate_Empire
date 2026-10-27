@@ -45,20 +45,17 @@ func _ready() -> void:
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.glow_enabled = true
-	env.glow_intensity = 0.6
+	# The Kenney starter-scene recipe: strong tinted ambient, filmic tone mapping, soft AO and a little bloom, plus a
+	# touch of colour grading so everything reads bright and flat-coloured.
 	env.fog_enabled = true
+	Look.apply_environment(env)
 	env.fog_density = 0.0006
-	env.ssao_enabled = true
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 
 	var sun := DirectionalLight3D.new()
-	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 250.0
+	Look.apply_sun(sun, 250.0)
 	add_child(sun)
 
 	ocean = Ocean.new()

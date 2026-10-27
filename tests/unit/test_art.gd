@@ -31,17 +31,21 @@ func test_interior_has_every_gun_and_the_right_chests() -> void:
 	root.free()
 
 
-func test_crew_marks_are_stable_and_follow_the_odds() -> void:
-	assert_eq(CrewMarks.roll(41, "crew"), CrewMarks.roll(41, "crew"))
-	var patches: int = 0
-	var clean: int = 0
-	for i in 2000:
-		if CrewMarks.roll(i, "brute")["patch"]:
-			patches += 1
-		if CrewMarks.roll(i, "captain_player")["patch"]:
-			clean += 1
-	assert_near(float(patches) / 2000.0, 0.3, 0.04)
-	assert_eq(clean, 0)
+func test_crew_skins_are_stable_and_fit_the_kind() -> void:
+	var f := FighterState.new()
+	f.kind = "captain_player"
+	assert_eq(DeckFighterView.skin_for(f), "p", "the player captain is the eyepatch pirate")
+	f.kind = "brute"
+	f.id = 5
+	assert_eq(DeckFighterView.skin_for(f), DeckFighterView.skin_for(f))
+	assert_true(DeckFighterView.skin_for(f) in ["o", "a"])
+	var seen: Dictionary = {}
+	for i in 40:
+		var g := FighterState.new()
+		g.kind = "crew"
+		g.id = i
+		seen[DeckFighterView.skin_for(g)] = true
+	assert_true(seen.size() >= 3, "a crew is not all one face")
 
 
 func test_palm_variants_build_geometry() -> void:

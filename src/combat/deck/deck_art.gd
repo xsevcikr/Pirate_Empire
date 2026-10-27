@@ -3,29 +3,16 @@ extends RefCounted
 ## Builds the set for a deck fight from primitives: planked deck, balustrade rails, masts with rigging and sails,
 ## cannons, barrels, crates, the helm, lanterns and the enemy's ship alongside.
 
-const WOOD: Shader = preload("res://shaders/wood.gdshader")
-const SAIL: Shader = preload("res://shaders/sail.gdshader")
 const ENEMY_GAP_M: float = 1.2
 const RAIL_H: float = 1.05
 
 
-static func wood(color: Color, plank_w: float = 0.32, along_x: bool = false, wear: float = 0.5) -> ShaderMaterial:
-	var m := ShaderMaterial.new()
-	m.shader = WOOD
-	m.set_shader_parameter("wood_color", color)
-	m.set_shader_parameter("dark_color", color * 0.4)
-	m.set_shader_parameter("plank_width", plank_w)
-	m.set_shader_parameter("along_x", along_x)
-	m.set_shader_parameter("wear", wear)
-	return m
+static func wood(color: Color, plank_w: float = 0.32, along_x: bool = false, _wear: float = 0.5) -> ShaderMaterial:
+	return Kenney.planks(color.lightened(0.12), plank_w * 1.4, along_x)
 
 
-static func plain(color: Color, rough: float = 0.8, metal: float = 0.0) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.roughness = rough
-	m.metallic = metal
-	return m
+static func plain(color: Color, _rough: float = 0.8, _metal: float = 0.0) -> ShaderMaterial:
+	return Kenney.flat(color)
 
 
 static func add_mesh(parent: Node3D, mesh: Mesh, mat: Material, at: Vector3, rot_deg: Vector3 = Vector3.ZERO) -> MeshInstance3D:
@@ -142,42 +129,31 @@ static func _torus_with_spokes(tor: TorusMesh) -> ArrayMesh:
 	return mesh
 
 
-static func _mast(root: Node3D, at: Vector3, side: float) -> void:
-	var mast_mat: ShaderMaterial = wood(Color(0.38, 0.24, 0.12), 0.4, false, 0.4)
-	var mast: MeshInstance3D = add_mesh(root, cyl(0.2, 0.38, 17.0, 12), mast_mat, at + Vector3(0, 8.5, 0))
-	mast.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	# iron bands
-	for h in [1.2, 2.6]:
-		add_mesh(root, cyl(0.4, 0.4, 0.12, 12), plain(Color(0.55, 0.57, 0.6), 0.4, 0.8), at + Vector3(0, h, 0))
-	# crow's nest
-	add_mesh(root, cyl(1.0, 1.1, 0.12, 12), mast_mat, at + Vector3(0, 13.5, 0))
-	# yards and sails: spars run across the ship, canvas hangs under them and bellies fore or aft
-	for t in 2:
-		var y: float = 11.2 + t * 4.2
-		var w: float = 7.5 - t * 1.6
-		add_mesh(root, cyl(0.07, 0.09, w + 0.8, 6), mast_mat, at + Vector3(0, y, 0), Vector3(0, 0, 90))
-		var sail := MeshInstance3D.new()
-		var sm := ArrayMesh.new()
-		sm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _sail_arrays(w, 3.4, 10, 8))
-		sail.mesh = sm
-		var mat := ShaderMaterial.new()
-		mat.shader = SAIL
-		mat.set_shader_parameter("billow", 0.55)
-		mat.set_shader_parameter("bulge_dir", Vector3(0, 0, -1))
-		mat.set_shader_parameter("bulge_depth", 0.9)
-		mat.set_shader_parameter("canvas_color", Color(0.93, 0.87, 0.72))
-		sail.material_override = mat
-		sail.position = at + Vector3(0, y - 3.4, 0.05)
-		root.add_child(sail)
+static func _mast(root: Node3D, at: Vector3, _side: float) -> void:
+	var piece: Dictionary = ShipModel.mast_piece()
+	var k: float = 2.4
+	var g := Node3D.new()
+	g.position = at + Vector3(0, -float(piece["pole_y"]) * k, 0)
+	g.scale = Vector3(1.3, k, 1.3)
+	root.add_child(g)
+	var pole := MeshInstance3D.new()
+	pole.mesh = piece["mesh"]
+	g.add_child(pole)
+	var sail := MeshInstance3D.new()
+	sail.mesh = piece["sail"]
+	sail.material_override = Kenney.toon((piece["sail"] as Mesh).surface_get_material(0))
+	sail.position = piece["sail_pos"]
+	g.add_child(sail)
 	# ratlines: shrouds from the rail up to the nest, with rungs
+	var rope: ShaderMaterial = plain(Color(0.3, 0.2, 0.12))
 	for z_off in [-0.9, 0.9]:
 		for edge in [-1.0, 1.0]:
 			var base := Vector3(at.x + edge * 3.4, 0.9, at.z + z_off * 1.1)
-			var top := Vector3(at.x + edge * 0.7, 13.3, at.z + z_off * 0.5)
-			_rope(root, base, top, 0.025, plain(Color(0.12, 0.09, 0.06), 0.95))
-			for k in range(1, 14):
-				var f: float = k / 14.0
-				_rope(root, base.lerp(top, f) + Vector3(0, 0, -0.35), base.lerp(top, f) + Vector3(0, 0, 0.35), 0.018, plain(Color(0.55, 0.44, 0.27), 0.95))
+			var top := Vector3(at.x + edge * 0.7, 9.0, at.z + z_off * 0.5)
+			_rope(root, base, top, 0.04, rope)
+			for j in range(1, 9):
+				var f: float = j / 9.0
+				_rope(root, base.lerp(top, f) + Vector3(0, 0, -0.35), base.lerp(top, f) + Vector3(0, 0, 0.35), 0.03, rope)
 
 
 static func _sail_arrays(w: float, h: float, nx: int, ny: int) -> Array:
@@ -212,29 +188,15 @@ static func _rope(root: Node3D, a: Vector3, b: Vector3, r: float, mat: Material)
 
 
 static func _cannon(root: Node3D, at: Vector3, edge: float) -> void:
-	var car: ShaderMaterial = wood(Color(0.36, 0.22, 0.1), 0.2, true)
-	add_mesh(root, box(Vector3(1.5, 0.34, 0.8)), car, at + Vector3(0, 0.25, 0))
-	add_mesh(root, box(Vector3(1.5, 0.08, 0.1)), car, at + Vector3(0, 0.5, 0.36))
-	add_mesh(root, box(Vector3(1.5, 0.08, 0.1)), car, at + Vector3(0, 0.5, -0.36))
-	var iron: StandardMaterial3D = plain(Color(0.07, 0.07, 0.08), 0.35, 0.85)
-	var barrel: MeshInstance3D = add_mesh(root, cyl(0.15, 0.22, 1.7, 12), iron, at + Vector3(0.1 * -edge, 0.62, 0), Vector3(0, 0, 90))
-	barrel.rotation_degrees = Vector3(0, 0, 90)
-	add_mesh(root, cyl(0.2, 0.2, 0.06, 12), iron, at + Vector3(edge * 0.85, 0.62, 0), Vector3(0, 0, 90))
-	for wz in [-0.42, 0.42]:
-		add_mesh(root, cyl(0.2, 0.2, 0.1, 10), car, at + Vector3(0.0, 0.2, wz), Vector3(90, 0, 0))
+	Kenney.place(root, "pirate", "cannon", at, edge * 90.0, 0.85)
 
 
 static func _barrel(root: Node3D, at: Vector3) -> void:
-	var staves: ShaderMaterial = wood(Color(0.42, 0.26, 0.12), 0.12, false)
-	add_mesh(root, cyl(0.38, 0.38, 0.95, 14), staves, at + Vector3(0, 0.48, 0))
-	for h in [0.2, 0.75]:
-		add_mesh(root, cyl(0.4, 0.4, 0.05, 14), plain(Color(0.2, 0.2, 0.22), 0.5, 0.8), at + Vector3(0, h, 0))
+	Kenney.place(root, "pirate", "barrel", at, at.x * 37.0 + at.z * 11.0, 0.65)
 
 
 static func _crate(root: Node3D, at: Vector3, r: float) -> void:
-	var s: float = r * 1.5
-	add_mesh(root, box(Vector3(s, s * 0.9, s)), wood(Color(0.56, 0.42, 0.25), 0.2, true), at + Vector3(0, s * 0.45, 0))
-	add_mesh(root, box(Vector3(s * 0.5, s * 0.6, s * 0.5)), wood(Color(0.5, 0.36, 0.2), 0.15, true), at + Vector3(0.2, s * 0.9 + s * 0.3, 0.1))
+	Kenney.place(root, "pirate", "crate", at, at.z * 23.0, r * 1.3)
 
 
 static func _coil(root: Node3D, at: Vector3) -> void:
@@ -248,11 +210,7 @@ static func _coil(root: Node3D, at: Vector3) -> void:
 
 static func _lantern(root: Node3D, at: Vector3) -> void:
 	add_mesh(root, box(Vector3(0.05, 0.9, 0.05)), plain(Color(0.1, 0.1, 0.1), 0.6, 0.6), at + Vector3(0, -0.2, 0))
-	var glass := StandardMaterial3D.new()
-	glass.albedo_color = Color(1.0, 0.75, 0.35)
-	glass.emission_enabled = true
-	glass.emission = Color(1.0, 0.6, 0.2)
-	glass.emission_energy_multiplier = 2.0
+	var glass: ShaderMaterial = Kenney.flat(Color(1.0, 0.75, 0.3), 1.2)
 	add_mesh(root, cyl(0.1, 0.13, 0.28, 8), glass, at + Vector3(0, 0.35, 0))
 	var l := OmniLight3D.new()
 	l.light_color = Color(1.0, 0.75, 0.45)
