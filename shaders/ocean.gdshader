@@ -19,6 +19,7 @@ varying float v_height;
 varying float v_foam;
 varying float v_amp_scale;
 varying vec3 v_world;
+varying float v_crest;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -75,6 +76,7 @@ void vertex() {
 	v_foam = smoothstep(0.4, 0.7, pinch) * fade;
 	v_amp_scale = max(total_amp, 0.05);
 	v_world = world + disp;
+	v_crest = clamp(disp.y / v_amp_scale * 0.5 + 0.5, 0.0, 1.0);
 }
 
 void fragment() {
@@ -107,4 +109,14 @@ void fragment() {
 	SPECULAR = 0.6;
 	METALLIC = 0.0;
 	EMISSION = 0.5 * fresnel * sky_color * (1.0 - foam) + shallow_color * 0.2 * crest * crest * (1.0 - foam);
+}
+
+
+// Light travelling through the thin crest of a wave and out towards the eye: the bright green-blue glow of a swell
+// with the sun behind it. Strongest at the crest, with the sun opposite the camera.
+void light() {
+	float through = pow(clamp(dot(VIEW, -LIGHT + NORMAL * 0.35), 0.0, 1.0), 3.0);
+	float thin = smoothstep(0.45, 1.0, v_crest);
+	vec3 glow = mix(shallow_color, vec3(0.25, 0.95, 0.75), 0.6);
+	DIFFUSE_LIGHT += glow * LIGHT_COLOR * ATTENUATION * through * thin * 1.6;
 }
