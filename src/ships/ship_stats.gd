@@ -27,3 +27,4 @@ extends Resource
 @export var price: int = 2000
 @export var upkeep_per_day: int = 20
 @export var infamy_required: int = 0
+@export var boarding_defense: float = 0.0  ## fraction added to the defending crew (high castles)
