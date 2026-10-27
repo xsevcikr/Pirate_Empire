@@ -52,7 +52,7 @@ func _ready() -> void:
 	add_child(_shield)
 	_label = Label3D.new()
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_label.font_size = 28
+	_label.font_size = 20
 	_label.pixel_size = 0.01
 	_label.no_depth_test = true
 	_label.position.y = 2.4

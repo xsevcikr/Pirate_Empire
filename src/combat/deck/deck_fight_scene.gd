@@ -6,8 +6,8 @@ extends Node3D
 signal fight_over(result: Dictionary)
 
 const ARENA_ORIGIN: Vector3 = Vector3(0.0, 400.0, 0.0)
-const CAM_BACK_M: float = 7.5
-const CAM_UP_M: float = 6.0
+const CAM_BACK_M: float = 10.0
+const CAM_UP_M: float = 9.5
 const LOCK_ON_M: float = 5.0
 const RESULT_HOLD_S: float = 2.5
 const FIGHTER_HEIGHT_M: float = 1.8
@@ -220,6 +220,8 @@ func apply_input(i: Dictionary) -> void:
 
 
 func _place_camera(delta: float) -> void:
+	if not camera.is_inside_tree():
+		return
 	var p: FighterState = combat.player
 	var focus := Vector3(p.pos.x, 1.2, p.pos.y)
 	var want := focus + Vector3(-CAM_BACK_M, CAM_UP_M, 0.0)

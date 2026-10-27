@@ -58,6 +58,7 @@ func setup(mine: Dictionary, theirs: Dictionary, seed_value: int = 1) -> void:
 		var hp: float = -1.0 if not (spec is Dictionary) else float(spec.get("hp", -1.0))
 		var e: FighterState = FighterState.make_enemy(kind, hp)
 		e.pos = _slot(1, i, mini(their_list.size(), DeckData.MAX_ON_SCREEN))
+		e.aim_left = rng.randf_range(DeckData.AI_AIM_S[0], DeckData.AI_AIM_S[1])
 		_add(e)
 	reserve_kind[1] = str(theirs.get("reserve_kind", "sailor"))
 	var r0: int = int(mine.get("reserve", 0))

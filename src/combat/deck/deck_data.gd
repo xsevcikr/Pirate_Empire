@@ -74,6 +74,8 @@ const MORALE_PER_DEATH: float = 40.0  ## total morale lost when the whole side f
 const PANIC_MORALE: float = 30.0  ## sailors run below this
 const CAPTAIN_CARRIED_OFF_RANSOM_FRACTION: float = 0.5
 const AI_THINK_S: float = 0.15
+const AI_AIM_S: Array[float] = [2.5, 6.0]  ## seconds an AI shooter takes to line up a shot
+const AI_ATTACK_PAUSE_S: Array[float] = [0.9, 1.8]  ## rest after an AI swing
 
 ## Enemy archetypes: hit points, melee weapon, ranged weapon ("" for none), traits.
 const ENEMIES: Dictionary = {

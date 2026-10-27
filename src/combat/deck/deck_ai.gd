@@ -146,13 +146,16 @@ static func _fight(c: DeckCombat, f: FighterState, t: FighterState, aggression: 
 	if f.state == FighterState.State.BLOCK and (t.state != FighterState.State.SWING or t.swing_struck):
 		f.lower_block()
 	if f.can_act() and f.state == FighterState.State.IDLE:
+		var swung: bool = false
 		if t.stagger_left > 0.0 or t.stun_left > 0.0:
-			f.try_swing(true if c.rng.randf() < 0.5 else false)
-			return
-		if c.rng.randf() < 0.55 * aggression:
-			f.try_swing(c.rng.randf() < 0.2 + f.heavy_bias)
+			swung = f.try_swing(true if c.rng.randf() < 0.5 else false)
+		elif c.rng.randf() < 0.55 * aggression:
+			swung = f.try_swing(c.rng.randf() < 0.2 + f.heavy_bias)
+		if swung:  # a man catches his breath between exchanges
+			f.think_left = c.rng.randf_range(DeckData.AI_ATTACK_PAUSE_S[0], DeckData.AI_ATTACK_PAUSE_S[1]) / maxf(aggression, 0.3)
 
 
 static func _shoot(c: DeckCombat, f: FighterState, t: FighterState) -> void:
 	if f.can_fire():
 		c.fire_ranged(f, t.pos - f.pos)
+		f.aim_left = c.rng.randf_range(DeckData.AI_AIM_S[0], DeckData.AI_AIM_S[1])

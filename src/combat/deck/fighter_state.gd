@@ -54,6 +54,7 @@ var kick_done: bool = false
 var charges: int = 0
 var ranged_ammo: int = 0
 var reload_left: float = 0.0
+var aim_left: float = 0.0  ## AI men take their time lining up a shot
 
 var command_target: int = -1
 var target_id: int = -1
@@ -159,6 +160,7 @@ func tick(dt: float, _now: float) -> void:
 		stamina = minf(stamina + DeckData.STAMINA_REGEN_PER_S * dt, DeckData.STAMINA_MAX)
 	if stun_left > 0.0:
 		stun_left -= dt
+	aim_left = maxf(aim_left - dt, 0.0)
 	if reload_left > 0.0:
 		reload_left -= dt
 		if reload_left <= 0.0 and charges < _brace() and ranged_ammo > charges:
@@ -294,7 +296,7 @@ func stagger(seconds: float) -> void:
 
 
 func can_fire() -> bool:
-	return ranged != "" and charges > 0 and ranged_ammo > 0 and can_act()
+	return ranged != "" and charges > 0 and ranged_ammo > 0 and aim_left <= 0.0 and can_act()
 
 
 ## Result of a fighter taking a melee blow. `att` may be null for traps. Returns
