@@ -64,7 +64,10 @@ func _ready() -> void:
 	crew = CrewState.new(stats)
 	damage.mast_fell.connect(_on_mast_fell)
 	damage.sank.connect(_on_sank)
-	damage.magazine_exploded.connect(func() -> void: Vfx.explosion(get_parent(), global_position + Vector3.UP * 2.0))
+	damage.magazine_exploded.connect(func() -> void:
+		Vfx.explosion(get_parent(), global_position + Vector3.UP * 2.0)
+		Sfx.play("explosion", global_position))
+	damage.fire_started.connect(func(_i: int) -> void: Sfx.play("fire_crackle", global_position))
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0, -0.3, 0)
 	# Replace the project-wide default damping; drag is modelled explicitly below.
@@ -286,12 +289,17 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 		Vfx.burst(parent, world_pos, Color(1, 0.9, 0.5), 8, 8.0, 0.4, 0.06, -9.8, 60.0, world_normal)
 	else:
 		Vfx.splinters(parent, world_pos)
+		Sfx.play("wood_impact", world_pos)
+		Sfx.play("splinter", world_pos)
 	_update_damage_visuals()
 	hit_taken.emit(result)
 	return result
 
 
 func _on_mast_fell(index: int) -> void:
+	Sfx.play("mast_snap", global_position)
+	if faction == "player":
+		Sfx.bark("mast_down")
 	mast_drag_s = CUT_LOOSE_S
 	_mast_side = 1.0 if index % 2 == 0 else -1.0
 	if visuals and index < visuals.mast_groups.size():

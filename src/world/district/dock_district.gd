@@ -246,6 +246,8 @@ func _physics_process(delta: float) -> void:
 		return
 	var move: Vector2 = read_move()
 	step(move, delta)
+	if move.length() > 0.1:
+		Sfx.play("step_wood")
 	_place_camera(delta)
 	_update_prompt()
 	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("deck_use"):

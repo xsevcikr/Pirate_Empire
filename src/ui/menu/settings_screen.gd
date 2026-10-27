@@ -56,6 +56,15 @@ func _build_general() -> void:
 		st.master_volume = v
 		AudioServer.set_bus_volume_db(0, linear_to_db(maxf(v, 0.0001))))
 	add_row("menu.volume", vol)
+	for n in ["music", "sfx", "voice", "ambience"]:
+		var sl := HSlider.new()
+		sl.max_value = 1.0
+		sl.step = 0.05
+		sl.value = float(st.get(n + "_volume"))
+		sl.value_changed.connect(func(v: float) -> void:
+			st.set(n + "_volume", v)
+			st.apply())
+		add_row("menu.vol_" + n, sl)
 	var lang := OptionButton.new()
 	var locales: Array = Loc.locales()
 	for l in locales:

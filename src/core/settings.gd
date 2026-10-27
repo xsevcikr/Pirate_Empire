@@ -6,6 +6,10 @@ const PRESETS: PackedStringArray = ["low", "medium", "high", "ultra", "deck"]
 
 var graphics_preset: String = "high"
 var master_volume: float = 1.0
+var music_volume: float = 0.8
+var sfx_volume: float = 1.0
+var voice_volume: float = 1.0
+var ambience_volume: float = 0.8
 var locale: String = "en"
 var accessibility := Accessibility.new()
 
@@ -14,6 +18,8 @@ func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("graphics", "preset", graphics_preset)
 	cfg.set_value("audio", "master", master_volume)
+	for n in ["music", "sfx", "voice", "ambience"]:
+		cfg.set_value("audio", n, get(n + "_volume"))
 	cfg.set_value("game", "locale", locale)
 	cfg.set_value("access", "camera_shake", accessibility.camera_shake)
 	cfg.set_value("access", "fov", accessibility.fov)
@@ -30,6 +36,8 @@ func load_settings() -> void:
 	if PRESETS.has(preset):
 		graphics_preset = preset
 	master_volume = clampf(cfg.get_value("audio", "master", master_volume), 0.0, 1.0)
+	for n in ["music", "sfx", "voice", "ambience"]:
+		set(n + "_volume", clampf(cfg.get_value("audio", n, get(n + "_volume")), 0.0, 1.0))
 	var loc: String = cfg.get_value("game", "locale", locale)
 	if Loc.locales().has(loc):
 		locale = loc
@@ -44,6 +52,9 @@ func load_settings() -> void:
 func apply() -> void:
 	Loc.locale = locale
 	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(master_volume, 0.0001)))
+	var mixer: Node = get_node_or_null("/root/Audio")
+	if mixer != null:
+		mixer.apply_volumes()
 	EventBus.settings_changed.emit()
 
 

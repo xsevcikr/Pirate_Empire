@@ -9,6 +9,9 @@ const SPAWN_DIST_M: float = 900.0
 const LOSS_RADIUS_M: float = 2500.0
 const BECALMED_KN: float = 0.5
 const MAX_CATCH_UP_H: int = 3
+const CULL_DIST_M: float = 5000.0  ## event and rival ships this far behind are taken off the sea
+const KEEP_NEAR_M: float = 600.0
+const MAX_AMBIENT_SHIPS: int = 10
 
 var world: Node
 var ship: Ship
@@ -19,6 +22,7 @@ var _hour_i: int = -1
 var _day_i: int = -1
 var _saved_wind: float = -1.0
 var _bus: Node
+var _ambient: Array = []  ## ships this director put on the sea, oldest first
 
 
 func _ready() -> void:
@@ -85,7 +89,38 @@ func hour_tick(region: String, storm: bool, hour: float) -> Array[String]:
 			challenge(rid)
 			fired.append("rival:" + rid)
 			break
+	cull()
 	return fired
+
+
+## Takes event and rival ships that sailed far behind off the sea, and keeps the count at the cap, so a long voyage
+## does not fill the world with ships nobody will meet.
+func cull() -> void:
+	var here: Vector3 = ship.global_position
+	var keep: Array = []
+	for v in _ambient:
+		if is_instance_valid(v):
+			keep.append(v)
+	_ambient = keep
+	var i: int = 0
+	while i < _ambient.size():
+		var s: Ship = _ambient[i] as Ship
+		var d: float = s.global_position.distance_to(here)
+		var over_cap: bool = _ambient.size() > MAX_AMBIENT_SHIPS and d > KEEP_NEAR_M
+		if d > CULL_DIST_M or over_cap:
+			_remove(s)
+			_ambient.remove_at(i)
+		else:
+			i += 1
+
+
+func _remove(s: Ship) -> void:
+	for rid: String in active.keys():
+		if active[rid] == s:
+			active.erase(rid)
+	if world != null and world.prizes != null:
+		world.prizes.targets.erase(s)
+	s.queue_free()
 
 
 func _day_tick() -> void:
@@ -184,6 +219,7 @@ func _spawn(class_id: String, faction: String, at: Vector3, loot: Dictionary) ->
 	s.ai = ai
 	s.add_child(ai)
 	world.prizes.add_target(s)
+	_ambient.append(s)
 	return s
 
 
@@ -215,6 +251,7 @@ func challenge(rid: String) -> Ship:
 	s.add_child(ai)
 	world.prizes.add_target(s)
 	active[rid] = s
+	_ambient.append(s)
 	return s
 
 

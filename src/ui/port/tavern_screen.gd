@@ -2,10 +2,18 @@ class_name TavernScreen
 extends PortScreen
 ## Hire crew, listen to Old Finn and the rumours.
 
+var _shanty: int = -1
+
 
 func _init() -> void:
 	super()
 	_title_key = "port.tavern"
+
+
+func _ready() -> void:
+	super()
+	Sfx.music(AudioData.TAVERN_TRACK)
+	tree_exiting.connect(func() -> void: Sfx.music(""))
 
 
 func build() -> void:
@@ -37,11 +45,20 @@ func build() -> void:
 	add_text("  " + Loc.t("rumour.%d" % (int(s["day"]) % 3)))
 	if TutorialData.index_of(s["tutorial"]) <= TutorialData.index_of("hunt_lugger"):
 		add_item_row(Loc.t("port.old_finn"), [[Loc.t("port.talk"), _talk_finn]])
+	if float(s["morale"]) >= AudioData.SHANTY_MIN_MORALE:
+		add_button("tavern.shanty", _sing)
 	add_button("games.title", func() -> void:
 		var menu := MiniGameMenu.new()
 		menu.port_id = port_id
 		open_child(menu))
 	add_button("menu.back", close)
+
+
+## The crew sings, and the player picks the shanty: each press moves on to the next one.
+func _sing() -> void:
+	_shanty = (_shanty + 1) % AudioData.SHANTIES.size()
+	Sfx.music("shanty_" + AudioData.SHANTIES[_shanty])
+	toast("tavern.sung_" + AudioData.SHANTIES[_shanty])
 
 
 func _hire(tier: String) -> void:

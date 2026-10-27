@@ -80,10 +80,12 @@ func _physics_process(delta: float) -> void:
 			done = true
 		elif not res.is_empty():
 			Vfx.splash(self, res["position"])
+			Sfx.play("splash", res["position"])
 			misses += 1
 			done = true
 		elif ocean and p["pos"].y < ocean.height_at(p["pos"].x, p["pos"].z):
 			Vfx.splash(self, Vector3(p["pos"].x, ocean.height_at(p["pos"].x, p["pos"].z), p["pos"].z))
+			Sfx.play("splash", p["pos"])
 			misses += 1
 			done = true
 		elif p["age"] > MAX_AGE_S or p["pos"].y < -60.0:
