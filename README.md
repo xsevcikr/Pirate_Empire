@@ -11,3 +11,8 @@ Install Godot 4.4.x, open `project.godot`, press F5.
 ## Roadmap
 Built milestone by milestone (M0 skeleton, M1 ocean and sailing, M2 cannons, and so on).
 The full design spec lives in `docs/SPEC.md`.
+
+## Release tooling (M10)
+- `tools/qa.sh` runs the full suite and fails on any ERROR line.
+- `tools/soak.gd` runs a sailing and firing bot; pass `-- --minutes=240` for the 4-hour soak.
+- `tools/export.sh` exports Windows, Linux and macOS (needs Godot export templates installed).

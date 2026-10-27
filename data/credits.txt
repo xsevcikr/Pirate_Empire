@@ -1,0 +1,7 @@
+PIRATE EMPIRE
+
+Design, code and build: Rob Sevcik with Claude
+Engine: Godot 4 (MIT licence)
+Physics: Jolt Physics (MIT licence)
+
+Thanks to everyone who plays.
