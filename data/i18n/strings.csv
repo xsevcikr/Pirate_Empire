@@ -283,3 +283,28 @@ defeat.title,Sunk!,Potopen!
 defeat.body,You wash up at %s. You lost %d g and %d crew.,Vyplaveš v %s. Ztratil jsi %d g a %d členů posádky.
 defeat.ship_kept,The insurers pay out: your ship is salvaged.,Pojišťovna vyplácí: tvá loď je zachráněna.
 defeat.ship_lost,Your ship is lost. You start again with a cutter.,Loď je ztracena. Začínáš znovu s kutrem.
+region.haven_waters,Haven Waters,Havenské vody
+region.albion_shallows,Albion Shallows,Albionské mělčiny
+region.merchants_reach,Merchant's Reach,Obchodnický záliv
+region.coral_isles,Coral Isles,Korálové ostrovy
+region.iron_marches,Iron Marches,Železné marky
+region.dead_reach,Dead Reach,Mrtvé pásmo
+map.title,The Ashen Archipelago,Popelavé souostroví
+map.help,Left click: set course   Right click: clear   M or Esc: close,Levé tlačítko: nastavit kurz   Pravé: zrušit   M nebo Esc: zavřít
+map.eta,"Route %.1f nm, ETA %s","Trasa %.1f nm, příjezd za %s"
+map.no_route,No route through the islands,Žádná trasa mezi ostrovy
+map.you,You,Ty
+map.stream_learned,You feel a current take the ship. It is now on your chart.,"Cítíš proud, který unáší loď. Je zanesen do mapy."
+hud.nav,Current %.1f kn %s   Tide %+.1f m (%s),Proud %.1f kn %s   Příliv %+.1f m (%s)
+tide.rising,rising,stoupá
+tide.falling,falling,klesá
+port.walk,Walk the docks,Projít přístavem
+dock.district,Dock district,Přístavní čtvrť
+dock.use,Press E: %s,Stiskni E: %s
+dock.sign_market,Market,Trh
+dock.sign_shipyard,Shipyard,Loděnice
+dock.sign_tavern,Tavern,Hospoda
+dock.sign_outfitter,Outfitter,Zbrojnice
+dock.sign_quests,Quest board,Zakázky
+dock.sign_bank,Bank,Banka
+dock.sign_pier,Back to the ship,Zpět na loď

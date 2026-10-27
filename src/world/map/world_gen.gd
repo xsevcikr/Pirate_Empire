@@ -4,10 +4,10 @@ extends RefCounted
 
 const SEED: int = 20240601
 const ISLAND_COUNTS: Dictionary = {
-	"albion_shallows": 4, "merchants_reach": 4, "haven_waters": 5, "coral_isles": 4, "iron_marches": 4, "dead_reach": 3,
+	"albion_shallows": 4, "merchants_reach": 4, "haven_waters": 4, "coral_isles": 4, "iron_marches": 4, "dead_reach": 4,
 }
 const POI_COUNTS: Dictionary = {
-	"port": 14, "fort": 6, "base": 8, "treasure_island": 20, "cave": 10, "wreck": 12, "reef": 15, "whirlpool": 3, "lighthouse": 8,
+	"port": 16, "fort": 6, "base": 8, "treasure_island": 20, "cave": 10, "wreck": 12, "reef": 15, "whirlpool": 3, "lighthouse": 8,
 }
 const MIN_ISLAND_GAP_M: float = 700.0
 const HARBOR_OFFSET_M: float = 200.0
@@ -24,7 +24,7 @@ func _init() -> void:
 
 
 func _place_islands() -> void:
-	islands.append({"name": "Haven Rock", "pos": WorldMap.HAVEN_ROCK, "radius": 160.0, "region": "haven_waters"})
+	islands.append(_named({"pos": WorldMap.HAVEN_ROCK, "radius": 160.0, "region": "haven_waters"}, 0))
 	for region in ISLAND_COUNTS.keys():
 		var rect: Rect2 = WorldMap.REGIONS[region]["rect"]
 		var want: int = ISLAND_COUNTS[region] - (1 if region == "haven_waters" else 0)
@@ -35,8 +35,44 @@ func _place_islands() -> void:
 			var p := Vector2(_rng.randf_range(rect.position.x + 400.0, rect.end.x - 400.0), _rng.randf_range(rect.position.y + 400.0, rect.end.y - 400.0))
 			var r: float = _rng.randf_range(120.0, 300.0)
 			if _clear(p, r, MIN_ISLAND_GAP_M):
-				islands.append({"name": "%s %d" % [region.capitalize().replace("_", " "), made + 1], "pos": p, "radius": r, "region": region})
+				islands.append(_named({"pos": p, "radius": r, "region": region}, made + (1 if region == "haven_waters" else 0)))
 				made += 1
+
+
+## Adds the hand-made name, city, tier and biome for the `slot`-th island of its region.
+func _named(isl: Dictionary, slot: int) -> Dictionary:
+	var e: Dictionary = IslandData.entries_for(isl["region"])[slot]
+	isl["name"] = e["name"]
+	isl["city"] = e["city"]
+	isl["tier"] = e["tier"]
+	isl["biome"] = e["biome"]
+	isl["note"] = e["note"]
+	return isl
+
+
+func index_of(island_name: String) -> int:
+	for i in islands.size():
+		if islands[i]["name"] == island_name:
+			return i
+	return -1
+
+
+## The islands that have a harbour, in layout order.
+func city_islands() -> Array[int]:
+	var out: Array[int] = []
+	for i in islands.size():
+		if islands[i]["city"] != "":
+			out.append(i)
+	return out
+
+
+## Angle from an island out to its harbour: facing the centre of the map, so every pier points the same way
+## on each run, and Haven Rock keeps its south-facing pier.
+func harbor_angle(island_index: int) -> float:
+	if island_index == 0:
+		return PI * 0.5
+	var to_centre: Vector2 = -islands[island_index]["pos"]
+	return to_centre.angle() if to_centre.length() > 1.0 else PI * 0.5
 
 
 func _clear(p: Vector2, r: float, gap: float) -> bool:
@@ -52,11 +88,12 @@ func harbor_point(island_index: int, angle: float) -> Vector2:
 
 
 func _place_pois() -> void:
-	# Haven Rock is port 0, the start hub.
-	pois.append({"type": "port", "pos": harbor_point(0, PI * 0.5), "island": 0})
+	# Every city island gets its port; Haven Rock is port 0, the start hub.
+	for idx in city_islands():
+		pois.append({"type": "port", "pos": harbor_point(idx, harbor_angle(idx)), "island": idx, "city": islands[idx]["city"]})
 	var counters: Dictionary = {}
-	for type in ["port", "fort", "base", "lighthouse", "cave"]:
-		var n: int = POI_COUNTS[type] - (1 if type == "port" else 0)
+	for type in ["fort", "base", "lighthouse", "cave"]:
+		var n: int = POI_COUNTS[type]
 		for k in n:
 			var idx: int = (k * 5 + (3 if type != "port" else 1) + counters.size() * 7) % islands.size()
 			var ang: float = _rng.randf() * TAU

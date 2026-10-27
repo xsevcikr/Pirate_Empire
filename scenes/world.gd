@@ -18,10 +18,13 @@ var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
 var convoys: ConvoyManager
+var streamer: WorldStreamer
+var discovery: Discovery
+var _discover_accum: float = 99.0
+var _drift_log: Dictionary = {}
 var _last_market_h: float = -1.0
 var _last_repair_h: float = -1.0
 var _trade_rng := RandomNumberGenerator.new()
-var _dock_world: Vector3 = Vector3(PortData.PORTS[PortData.START_PORT]["dock"].x, 0.0, PortData.PORTS[PortData.START_PORT]["dock"].y)
 
 
 func _ready() -> void:
@@ -55,14 +58,8 @@ func _ready() -> void:
 	ocean.model = WaveModel.new(wind.sea_state(), wind.direction)
 	add_child(ocean)
 
-	var gen := WorldGen.new()
-	for i in gen.islands.size():
-		var isl: Dictionary = gen.islands[i]
-		if (isl["pos"] as Vector2).length() > 3500.0:
-			continue
-		var node := Island.make(isl["radius"], 100 + i)
-		node.position = Vector3(isl["pos"].x, 0.0, isl["pos"].y)
-		add_child(node)
+	streamer = WorldStreamer.new()
+	add_child(streamer)
 
 	ship = Ship.new()
 	ship.stats = Session.player_stats()
@@ -72,6 +69,8 @@ func _ready() -> void:
 	ship.rotation_degrees.y = -90.0
 	add_child(ship)
 	ocean.follow = ship
+	streamer.player = ship
+	streamer.load_all_near(Vector2(ship.position.x, ship.position.z))
 
 	projectiles = ProjectileManager.new()
 	projectiles.ocean = ocean.model
@@ -88,7 +87,6 @@ func _ready() -> void:
 		target.rotation_degrees.y = 90.0
 		add_child(target)
 		target.broadside.projectiles = projectiles
-	add_child(PortScene.new())
 
 	for side in 2:
 		var ring := MeshInstance3D.new()
@@ -198,7 +196,7 @@ func spawn_quest_ship(id: String) -> Ship:
 		if is_instance_valid(t) and t.get_meta("quest", "") == id:
 			return t
 	var gen := WorldGen.new()
-	var island: Dictionary = gen.islands[job["island"]]
+	var island: Dictionary = gen.islands[gen.index_of(job["island_name"])]
 	var at: Vector2 = island["pos"] + Vector2(island["radius"] + 260.0, 0.0)
 	var spec: Dictionary = job["ship"]
 	var stats: ShipStats = load("res://data/ships/%s.tres" % spec["class"]).duplicate()
@@ -292,8 +290,9 @@ func _carpenter(minutes: float) -> void:
 
 func _daily_crew_tick() -> void:
 	Session.reconcile_crew(ship)
-	var near_port: bool = ship.global_position.distance_to(_dock_world) <= PortData.DOCK_RADIUS_M
-	var faction: String = PortData.PORTS[PortData.START_PORT]["faction"]
+	var here: String = dock_port()
+	var near_port: bool = here != ""
+	var faction: String = PortData.PORTS[here if near_port else PortData.START_PORT]["faction"]
 	var ctx: Dictionary = {"in_port": near_port, "shore_leave": near_port and float(Session.state["rep"][faction]) >= 20.0, "day": GameClock.day}
 	var report: Dictionary = CrewLife.daily_tick(Session.state, ctx)
 	Session.apply_to_ship(ship)
@@ -363,8 +362,13 @@ func _replace_player_ship() -> void:
 
 
 ## Docking: inside the dock zone and slow, Space opens the port menu.
+## The port whose dock zone the ship is in, or "".
+func dock_port() -> String:
+	return PortData.port_near(Vector2(ship.global_position.x, ship.global_position.z))
+
+
 func can_dock() -> bool:
-	return ship.global_position.distance_to(_dock_world) <= PortData.DOCK_RADIUS_M and ship.speed_knots() <= PortData.DOCK_MAX_SPEED_KN
+	return dock_port() != "" and ship.speed_knots() <= PortData.DOCK_MAX_SPEED_KN
 
 
 ## Tonnage in the hold times the fee, at lawful ports only.
@@ -378,6 +382,7 @@ func open_port() -> void:
 	if get_node_or_null("PortLayer") != null:
 		return
 	var menu := PortMenu.new()
+	menu.port_id = dock_port() if dock_port() != "" else PortData.START_PORT
 	var inspect: bool = Smuggling.rolled(Session.state, menu.port_id, _trade_rng)
 	var fee: int = _docking_fee(menu.port_id)
 	if fee > 0:
@@ -413,7 +418,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		open_port()
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed("pause") and get_node_or_null("PauseMenu") == null:
+	if Session.has_state() and event.is_action_pressed("world_map"):
+		open_map()
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("pause") and get_node_or_null("PauseMenu") == null and get_node_or_null("MapLayer") == null:
 		var menu := PauseMenu.new()
 		menu.name = "PauseMenu"
 		menu.world = self
@@ -427,10 +436,65 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Reveal the chart around the ship, learn the streams it sails, and let the water carry every ship.
+func _navigate(delta: float) -> void:
+	var clock: Node = get_node_or_null("/root/GameClock")
+	var hours: float = (float(clock.day) * 24.0 + float(clock.hour)) if clock != null else 0.0
+	for n in get_tree().get_nodes_in_group("ships"):
+		var s: Ship = n as Ship
+		if s == null or s.damage.sunk:
+			continue
+		var drift: Vector2 = OceanCurrent.velocity_at(Vector2(s.global_position.x, s.global_position.z), hours)
+		s.global_position += Vector3(drift.x, 0.0, drift.y) * delta
+	_discover_accum += delta
+	if _discover_accum < 1.0 or not Session.has_state():
+		return
+	_discover_accum = 0.0
+	var at := Vector2(ship.global_position.x, ship.global_position.z)
+	if discovery == null:
+		discovery = SaveGame.restore_discovery(str(Session.state["discovery"]))
+	var before: int = discovery.count()
+	var mult: float = float(CrewEffects.compute(Session.state["roster"])["reveal_radius_mult"])
+	discovery.reveal_around(at, 1500.0 * mult)
+	if discovery.count() != before:
+		Session.state["discovery"] = SaveGame.capture_discovery(discovery)
+	for id in OceanCurrent.streams_at(at):
+		if not Session.state["streams_known"].has(id):
+			Session.state["streams_known"].append(id)
+			EventBus.toast.emit(Loc.t("map.stream_learned"))
+	if overlay != null:
+		var v: Vector2 = OceanCurrent.velocity_at(at, hours)
+		overlay.set_nav(Loc.t("hud.nav") % [v.length() / OceanCurrent.KN_TO_MS, _compass(v), OceanCurrent.tide_m(hours), Loc.t("tide.rising" if OceanCurrent.tide_rising(hours) else "tide.falling")])
+
+
+static func _compass(v: Vector2) -> String:
+	if v.length() < 0.05:
+		return "-"
+	var names: Array[String] = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"]  # x east, y south
+	return names[int(round(fposmod(v.angle(), TAU) / (TAU / 8.0))) % 8]
+
+
+func open_map() -> void:
+	if get_node_or_null("MapLayer") != null or get_node_or_null("PortLayer") != null:
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MapLayer"
+	layer.layer = 52
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var screen := WorldMapScreen.new()
+	screen.player_pos = Vector2(ship.global_position.x, ship.global_position.z)
+	screen.player_heading = ship.heading()
+	screen.max_speed_kn = Session.player_stats().max_speed_kn
+	layer.add_child(screen)
+	screen.closed.connect(layer.queue_free)
+
+
 func _physics_process(delta: float) -> void:
 	Session.playtime_s += delta
 	if Session.has_state():
 		_game_tick()
+	_navigate(delta)
 	if overlay != null:
 		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else "")
 		var st: Dictionary = Session.state

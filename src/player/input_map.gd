@@ -19,6 +19,7 @@ const ACTIONS: Dictionary = {
 	"grapple": [KEY_G],
 	"photo_mode": [KEY_P],
 	"interact": [KEY_SPACE],
+	"world_map": [KEY_M],
 	"ammo_1": [KEY_1],
 	"ammo_2": [KEY_2],
 	"ammo_3": [KEY_3],

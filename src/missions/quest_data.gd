@@ -4,7 +4,7 @@ extends RefCounted
 
 const JOBS: Dictionary = {
 	"gallows_raid": {
-		"title": "quest.gallows_raid.title", "text": "quest.gallows_raid.text", "reward": 300, "island": 10,
+		"title": "quest.gallows_raid.title", "text": "quest.gallows_raid.text", "reward": 300, "island_name": "Gallows Key",
 		"ship": {"class": "sloop", "guns_per_side": 2, "crew": 6, "faction": "merchant", "hull_hp": 700.0},
 		"loot": {"gold": [180, 260], "cargo": {"sugar": 12}, "map_fragment": "drowned_purse_1"},
 	},

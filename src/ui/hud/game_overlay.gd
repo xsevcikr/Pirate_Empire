@@ -8,6 +8,7 @@ const MAX_TOASTS: int = 4
 var _prompt: Label
 var _hint: Label
 var _info: Label
+var _nav: Label
 var _toasts: VBoxContainer
 var _toast_age: Array[float] = []
 
@@ -20,6 +21,13 @@ func _ready() -> void:
 	_info.offset_left = 32.0
 	_info.offset_top = -130.0
 	_info.offset_bottom = -100.0
+	_nav = _make_label(Vector2.ZERO, 18)
+	_nav.anchor_left = 1.0
+	_nav.anchor_right = 1.0
+	_nav.offset_left = -520.0
+	_nav.offset_right = -24.0
+	_nav.offset_top = 40.0
+	_nav.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_prompt = _bottom_centre(26, -230.0)
 	_hint = _bottom_centre(24, -180.0)
 	_toasts = VBoxContainer.new()
@@ -32,6 +40,10 @@ func _ready() -> void:
 	var bus: Node = Svc.node("EventBus")
 	if bus != null:
 		bus.toast.connect(add_toast)
+
+
+func set_nav(text: String) -> void:
+	_nav.text = text
 
 
 func _bottom_centre(size: int, offset_y: float) -> Label:

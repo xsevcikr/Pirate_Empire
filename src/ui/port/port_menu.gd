@@ -4,6 +4,7 @@ extends MenuScreen
 
 var port_id: String = PortData.START_PORT
 var world: Node
+var _district: DockDistrict
 
 
 func _init() -> void:
@@ -24,6 +25,7 @@ func build() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_box.add_child(title)
 	_box.move_child(title, 0)
+	add_button("port.walk", _walk_the_docks)
 	add_button("port.market", func() -> void: _open(MarketScreen.new()))
 	add_button("port.shipyard", func() -> void: _open(ShipyardScreen.new()))
 	add_button("port.tavern", func() -> void: _open(TavernScreen.new()))
@@ -34,12 +36,49 @@ func build() -> void:
 	add_button("port.set_sail", close)
 
 
+func _walk_the_docks() -> void:
+	_district = DockDistrict.new()
+	_district.port_id = port_id
+	get_tree().current_scene.add_child(_district)
+	visible = false
+	_district.door_used.connect(_on_door)
+	_district.left.connect(func() -> void:
+		_district = null
+		visible = true
+		_rebuild())
+
+
+func _on_door(kind: String) -> void:
+	match kind:
+		"market":
+			_open(MarketScreen.new())
+		"shipyard":
+			_open(ShipyardScreen.new())
+		"tavern":
+			_open(TavernScreen.new())
+		"outfitter":
+			_open(OutfitterScreen.new())
+		"quests":
+			_open(QuestBoardScreen.new())
+		"bank":
+			_open(BankScreen.new())
+
+
+func _on_child_closed(screen: MenuScreen) -> void:
+	super(screen)
+	if _district != null and is_instance_valid(_district):
+		visible = false
+		_district.active = true
+
+
 func _open(screen: PortScreen) -> void:
 	screen.port_id = port_id
 	open_child(screen)
 
 
 func close() -> void:
+	if _district != null and is_instance_valid(_district):
+		_district.queue_free()
 	get_tree().paused = false
 	var bus: Node = Svc.node("EventBus")
 	if bus != null:

@@ -27,34 +27,84 @@ const SUPPLIES: Dictionary = {
 }
 const START_SUPPLIES: Dictionary = {"food": 4.0, "water": 4.0, "rum": 1.0, "small_arms": 0.0, "timber": 0.0, "medicine": 0.0}
 
-const PORTS: Dictionary = {
+## Hand-tuned economies for the five ports the early game leans on; the other cities come from IslandData.
+const HAND_PORTS: Dictionary = {
 	"blackwater": {
 		"name": "Blackwater Town", "island": 0, "dock": Vector2(0.0, 360.0), "tier": "capital", "faction": "pirate",
 		"lawful": false, "tavern_level": 2, "shipyard_level": 3, "margin": 0.10, "target_units": 100.0,
 		"producer": ["rum"], "consumer": ["sugar", "gunpowder"], "black_market": true,
 	},
 	"meridian": {
-		"name": "Port Meridian", "island": -1, "dock": Vector2(0.0, 5200.0), "tier": "city", "faction": "merchant",
+		"name": "Saint Marguerite", "island": -1, "dock": Vector2.ZERO, "tier": "capital", "faction": "merchant",
 		"lawful": true, "tavern_level": 2, "shipyard_level": 2, "margin": 0.08, "target_units": 100.0,
-		"producer": ["sugar", "tobacco", "silk"], "consumer": ["rum", "fish"], "fence": true,
+		"producer": ["sugar", "tobacco", "silk"], "consumer": ["rum", "fish"], "fence": true, "bank": true,
 	},
 	"albion": {
-		"name": "Albion Harbour", "island": -1, "dock": Vector2(-6000.0, 5400.0), "tier": "capital", "faction": "navy",
+		"name": "Port Regal", "island": -1, "dock": Vector2.ZERO, "tier": "capital", "faction": "navy",
 		"lawful": true, "tavern_level": 3, "shipyard_level": 3, "margin": 0.12, "target_units": 120.0,
 		"producer": [], "consumer": ["tobacco", "tea", "silk", "spices", "rum", "fish"], "rum_demand": 2.0, "bank": true,
 	},
 	"ironhold": {
-		"name": "Ironhold", "island": -1, "dock": Vector2(6000.0, 5000.0), "tier": "city", "faction": "iron_dominion",
+		"name": "Ironhold", "island": -1, "dock": Vector2.ZERO, "tier": "capital", "faction": "iron_dominion",
 		"lawful": true, "tavern_level": 2, "shipyard_level": 2, "margin": 0.14, "target_units": 100.0,
 		"producer": ["gunpowder", "iron"], "consumer": ["fish", "timber", "tobacco"],
 	},
 	"coral_landing": {
-		"name": "Coral Landing", "island": -1, "dock": Vector2(-6000.0, -6000.0), "tier": "town", "faction": "reef_folk",
+		"name": "Tavai Lagoon", "island": -1, "dock": Vector2.ZERO, "tier": "city", "faction": "reef_folk",
 		"lawful": true, "tavern_level": 1, "shipyard_level": 1, "margin": 0.10, "target_units": 80.0,
 		"producer": ["fish", "spices", "tea"], "consumer": ["iron", "rum"], "fence": true,
 	},
 }
 const START_PORT: String = "blackwater"
+## Every port of the archipelago by id: dock position, faction and economy. Built once from the layout.
+static var PORTS: Dictionary = _build_ports()
+static var _gen: WorldGen
+
+
+static func gen() -> WorldGen:
+	if _gen == null:
+		_gen = WorldGen.new()
+	return _gen
+
+
+static func _build_ports() -> Dictionary:
+	var g: WorldGen = gen()
+	var out: Dictionary = {}
+	for idx in g.city_islands():
+		var isl: Dictionary = g.islands[idx]
+		var city: String = isl["city"]
+		var id: String = IslandData.port_id_of(city)
+		var faction: String = str(WorldMap.REGIONS[isl["region"]]["faction"])
+		var p: Dictionary
+		if HAND_PORTS.has(id):
+			p = (HAND_PORTS[id] as Dictionary).duplicate(true)
+		else:
+			var tier: Dictionary = IslandData.TIER_STATS[isl["tier"]]
+			var eco: Dictionary = IslandData.ECONOMY[city]
+			p = {"tier": isl["tier"], "faction": faction, "lawful": faction != "pirate", "tavern_level": tier["tavern"], "shipyard_level": tier["yard"],
+				"margin": 0.10, "target_units": tier["target"], "producer": eco["producer"], "consumer": eco["consumer"]}
+			if faction == "pirate":
+				p["black_market"] = true
+			elif isl["tier"] in ["town", "city"] and faction != "navy":
+				p["fence"] = true
+		p["name"] = city
+		p["island"] = idx
+		p["dock"] = g.harbor_point(idx, g.harbor_angle(idx))
+		p["biome"] = isl["biome"]
+		out[id] = p
+	return out
+
+
+## The port whose dock is within `radius` of a world point, or "".
+static func port_near(p: Vector2, radius: float = DOCK_RADIUS_M) -> String:
+	var best: String = ""
+	var best_d: float = radius
+	for id: String in PORTS:
+		var d: float = (PORTS[id]["dock"] as Vector2).distance_to(p)
+		if d <= best_d:
+			best_d = d
+			best = id
+	return best
 
 
 static func build_market(port_id: String) -> Market:
