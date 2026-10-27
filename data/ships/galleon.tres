@@ -28,3 +28,4 @@ cargo_t = 600.0
 price = 85000
 upkeep_per_day = 300
 infamy_required = 3500
+boarding_defense = 0.25
