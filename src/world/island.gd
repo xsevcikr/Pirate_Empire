@@ -129,7 +129,7 @@ func _color_for(h: float, n: float) -> Color:
 func _grow_vegetation() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value * 31 + 7
-	var palms: Array[Transform3D] = []
+	var palm_sets: Array = [[], [], []]
 	var bushes: Array[Transform3D] = []
 	var rocks: Array[Transform3D] = []
 	var tries: int = int(clampf(radius_m * 5.0, 200.0, 1800.0) * float(_look["density"]))
@@ -142,16 +142,20 @@ func _grow_vegetation() -> void:
 			continue
 		var slope: float = absf(ground_y(p + Vector2(1.5, 0)) - h) + absf(ground_y(p + Vector2(0, 1.5)) - h)
 		var basis := Basis(Vector3.UP, rng.randf() * TAU)
-		if bool(_look["palms"]) and h < peak_m * 0.5 and slope < 2.2 and palms.size() < PALM_CAP and rng.randf() < 0.55:
+		if bool(_look["palms"]) and h < peak_m * 0.5 and slope < 2.2 and (palm_sets[0].size() + palm_sets[1].size() + palm_sets[2].size()) < PALM_CAP and rng.randf() < 0.55:
 			var sc: float = rng.randf_range(0.8, 1.45)
-			palms.append(Transform3D(basis.scaled(Vector3.ONE * sc), Vector3(p.x, h - 0.2, p.y)))
+			palm_sets[rng.randi_range(0, 2)].append(Transform3D(basis.scaled(Vector3.ONE * sc), Vector3(p.x, h - 0.2, p.y)))
 		elif bool(_look["bushes"]) and h < peak_m * 0.62 and slope < 3.0 and rng.randf() < 0.5:
 			var sb: float = rng.randf_range(0.9, 2.4)
 			bushes.append(Transform3D(basis.scaled(Vector3(sb, sb * 0.7, sb)), Vector3(p.x, h, p.y)))
 		elif (slope > 1.2 or h > peak_m * 0.5) and biome != "ice":
 			var sr: float = rng.randf_range(0.8, 3.2)
 			rocks.append(Transform3D(basis.scaled(Vector3(sr, sr * 0.75, sr)), Vector3(p.x, h - sr * 0.2, p.y)))
-	_scatter(_palm_mesh(), palms, true)
+	for v in 3:
+		var xs: Array[Transform3D] = []
+		xs.assign(palm_sets[v])
+		_scatter(PalmMesh.build(v, seed_value), xs, true)
+	IslandCamp.build(self, rng)
 	_scatter(_bush_mesh(_look["forest"]), bushes, true)
 	_scatter(_rock_mesh((_look["rock"] as Color).lightened(0.08)), rocks, true)
 

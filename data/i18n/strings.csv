@@ -661,3 +661,8 @@ event.stowaway_boy,A stowaway boy joins as cabin boy.,Černý pasažér chlapec 
 event.stowaway_thief,A stowaway thief stole %d gold!,Černý pasažér zloděj ukradl %d zlata!
 event.becalmed,Becalmed for %d hours. The crew fish and play dice.,Bezvětří na %d hodin. Posádka rybaří a hraje v kostky.
 event.calm_ends,A breeze at last.,Konečně vánek.
+interior.title,Below decks,Pod palubou
+interior.gun_deck,Gun deck,Dělová paluba
+interior.hold,Hold,Nákladní prostor
+interior.cabin,Captain's cabin,Kapitánova kajuta
+interior.gold,%d gold fills %d chests.,%d zlata vyplňuje %d beden.

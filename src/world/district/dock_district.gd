@@ -42,6 +42,7 @@ func _ready() -> void:
 		var z: float = -STREET_LENGTH_M * 0.5 + 8.0 + float(i / 2) * 20.0
 		_building(kinds[i], Vector3(side * (STREET_HALF_WIDTH_M + 6.0), 0.0, z), side, style)
 	_build_pier(style)
+	_build_town(style)
 	_build_sky_and_sea()
 	captain = _make_captain()
 	captain.position = Vector3(0.0, 0.0, STREET_LENGTH_M * 0.5 - 6.0)
@@ -107,24 +108,18 @@ func _build_ground(style: Dictionary) -> void:
 
 
 func _building(kind: String, at: Vector3, side: float, style: Dictionary) -> void:
-	var size := Vector3(10.0, 6.0 + float(kind.length() % 3), 12.0)
-	_box(size, at + Vector3(0, size.y * 0.5, 0), (style["wall"] as Color).darkened(0.22))
-	var roof := MeshInstance3D.new()
-	var prism := PrismMesh.new()
-	prism.size = Vector3(size.x + 1.4, 3.0, size.z + 1.4)
-	roof.mesh = prism
-	roof.material_override = _mat(style["roof"])
-	roof.position = at + Vector3(0, size.y + 1.5, 0)
-	roof.rotation.y = PI * 0.5
-	add_child(roof)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = kind.hash() + port_id.hash()
+	var size := Vector3(9.0, 6.0 + float(kind.length() % 3), 12.0)
+	var floors: int = 2 + (kind.length() % 2)
+	TownBuilder.house(self, Vector3(at.x, 0.0, at.z), (-90.0 if side > 0.0 else 90.0), 12.0, 9.0, floors, style["roof"], rng)
 	var door_pos: Vector3 = at + Vector3(-side * (size.x * 0.5 + 0.05), 1.4, 0)
-	_box(Vector3(0.2, 2.8, 2.0), door_pos, Color(0.28, 0.17, 0.09))
 	var sign := Label3D.new()
 	sign.text = Loc.t("dock.sign_" + kind)
 	sign.font_size = 72
 	sign.pixel_size = 0.012
 	sign.outline_size = 14
-	sign.position = at + Vector3(-side * (size.x * 0.5 + 0.4), 4.4, 0)
+	sign.position = at + Vector3(-side * (size.x * 0.5 + 1.2), 4.6, 0)
 	sign.rotation.y = -PI * 0.5 * side
 	add_child(sign)
 	var stand: Vector3 = at + Vector3(-side * (size.x * 0.5 + 2.2), 0, 0)
@@ -134,6 +129,62 @@ func _building(kind: String, at: Vector3, side: float, style: Dictionary) -> voi
 	lamp.omni_range = 12.0
 	lamp.light_color = Color(1.0, 0.78, 0.45)
 	add_child(lamp)
+	_lantern_post(stand + Vector3(0, 0, 1.6))
+
+
+func _lantern_post(at: Vector3) -> void:
+	_box(Vector3(0.12, 3.2, 0.12), at + Vector3(0, 1.6, 0), Color(0.12, 0.1, 0.1))
+	_box(Vector3(0.6, 0.06, 0.06), at + Vector3(0.28, 3.1, 0), Color(0.12, 0.1, 0.1))
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = Color(1.0, 0.8, 0.45)
+	glow.emission_enabled = true
+	glow.emission = Color(1.0, 0.65, 0.25)
+	var mi := MeshInstance3D.new()
+	mi.mesh = DeckArt.box(Vector3(0.22, 0.3, 0.22))
+	mi.material_override = glow
+	mi.position = at + Vector3(0.5, 2.9, 0)
+	add_child(mi)
+
+
+## The town around the street: a cobbled floor, a square with a well and stalls, a church, rows of houses behind the
+## shop fronts, walls and a castle at the far end, and townsfolk who walk about.
+func _build_town(style: Dictionary) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = port_id.hash() * 7 + 3
+	TownBuilder.cobbles(self, STREET_HALF_WIDTH_M, STREET_LENGTH_M * 0.5 + 12.0, rng)
+	TownBuilder.street_clutter(self, STREET_HALF_WIDTH_M, STREET_LENGTH_M * 0.5, rng)
+	TownBuilder.well(self, Vector3(0.0, 0.0, 2.0))
+	for i in 4:
+		var side: float = -1.0 if i % 2 == 0 else 1.0
+		TownBuilder.stall(self, Vector3(side * 5.4, 0.0, -2.0 + 6.0 * float(i / 2) - (6.0 if i < 2 else 0.0)), -90.0 * side, rng)
+	TownBuilder.church(self, Vector3(-30.0, 0.0, -12.0), 90.0)
+	for k in 10:  # rows of houses behind the shop fronts
+		var sd: float = -1.0 if k % 2 == 0 else 1.0
+		var z: float = -STREET_LENGTH_M * 0.5 + 6.0 + float(k / 2) * 14.0
+		TownBuilder.house(self, Vector3(sd * (STREET_HALF_WIDTH_M + 24.0), 0.0, z), -90.0 * sd, 11.0, rng.randf_range(8.0, 11.0), rng.randi_range(2, 3), style["roof"], rng)
+	var far_z: float = -STREET_LENGTH_M * 0.5 - 14.0
+	TownBuilder.castle(self, Vector3(0.0, 0.0, far_z - 18.0), style["flag"])
+	TownBuilder.wall_run(self, Vector3(-30.0, 0.0, far_z + 4.0), Vector3(-14.0, 0.0, far_z - 8.0))
+	TownBuilder.wall_run(self, Vector3(30.0, 0.0, far_z + 4.0), Vector3(14.0, 0.0, far_z - 8.0))
+	TownBuilder.round_tower(self, Vector3(-30.0, 0.0, far_z + 4.0), 3.2, 12.0, style["flag"])
+	TownBuilder.round_tower(self, Vector3(30.0, 0.0, far_z + 4.0), 3.2, 12.0, style["flag"])
+	for sd in [-1.0, 1.0]:
+		TownBuilder.wall_run(self, Vector3(sd * 38.0, 0.0, far_z + 4.0), Vector3(sd * 38.0, 0.0, STREET_LENGTH_M * 0.5))
+	_spawn_people(rng, style)
+
+
+var walkers: Array[TownWalker] = []
+var _pair_t: float = 0.0
+
+
+func _spawn_people(rng: RandomNumberGenerator, style: Dictionary) -> void:
+	var spots: Array[Vector3] = [Vector3(0, 0, 2), Vector3(-5, 0, -4), Vector3(5, 0, -4), Vector3(-6, 0, 12), Vector3(6, 0, 12), Vector3(0, 0, -18), Vector3(-7, 0, -22), Vector3(7, 0, -26), Vector3(0, 0, 22)]
+	var kinds: Array[String] = ["peasant", "peasant", "merchant", "townswoman", "townswoman", "peasant", "merchant", "townswoman", "guard", "guard", "peasant", "townswoman"]
+	for i in kinds.size():
+		var w := TownWalker.new()
+		w.setup(kinds[i], 11 + i * 17, spots, port_id.hash() + i * 31)
+		add_child(w)
+		walkers.append(w)
 
 
 func _build_pier(style: Dictionary) -> void:
@@ -200,6 +251,10 @@ func _make_captain() -> Node3D:
 # ---- walking ----------------------------------------------------------------------------------------
 
 func _physics_process(delta: float) -> void:
+	_pair_t += delta
+	if _pair_t > 1.5:
+		_pair_t = 0.0
+		TownWalker.pair_up(walkers)
 	if not active:
 		return
 	var move: Vector2 = read_move()
