@@ -21,6 +21,9 @@ func _initialize() -> void:
 
 func _process(_d: float) -> bool:
 	_frames += 1
+	if _frames == 30 and current_scene.get("ship") != null:
+		current_scene.ship.sail_level = 3
+		current_scene.ship.crew.count = 12
 	if _frames == _at:
 		root.get_texture().get_image().save_png(_out)
 		print("saved ", _out)

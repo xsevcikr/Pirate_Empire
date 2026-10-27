@@ -22,6 +22,8 @@ const CREW_VESTS: Dictionary = {
 }
 
 var fighter: FighterState
+var show_label: bool = true
+var pose_idle_only: bool = false  ## ship-board crew: no fight, only breathing and a slow turn
 var _body: Node3D
 var _hips: Node3D
 var _leg_l: Node3D
@@ -105,6 +107,7 @@ func _ready() -> void:
 		var ring: MeshInstance3D = DeckArt.add_mesh(self, DeckArt.cyl(0.62, 0.62, 0.02, 24), _glow(Color(1.0, 0.8, 0.25)), Vector3(0, 0.03, 0))
 		ring.name = "Ring"
 	_label = Label3D.new()
+	_label.visible = show_label
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_label.font_size = 18
 	_label.pixel_size = 0.01

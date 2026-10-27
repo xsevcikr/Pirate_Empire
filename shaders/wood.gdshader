@@ -1,4 +1,5 @@
 shader_type spatial;
+render_mode cull_disabled;
 // Weathered planks: grooves, per-plank tint, grain and butt joints, from object-space position.
 
 uniform vec3 wood_color : source_color = vec3(0.50, 0.34, 0.19);
@@ -8,8 +9,11 @@ uniform float plank_len = 2.6;
 uniform bool along_x = false;
 uniform float wear : hint_range(0.0, 1.0) = 0.5;
 uniform float rough = 0.85;
+uniform bool use_vertex_color = false;
+uniform vec3 tint : source_color = vec3(1.0);
 
 varying vec3 v_obj;
+varying vec4 v_col;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -24,6 +28,7 @@ float noise(vec2 p) {
 
 void vertex() {
 	v_obj = VERTEX;
+	v_col = COLOR;
 }
 
 void fragment() {
@@ -40,7 +45,11 @@ void fragment() {
 	c *= 0.78 + 0.35 * grain;
 	c = mix(c, c * vec3(0.8, 0.82, 0.86), wear * noise(p.xz * 2.2 + p.y));
 	c *= mix(0.35, 1.0, groove * jline);
-	ALBEDO = c;
+	if (use_vertex_color) {
+		float m = dot(c, vec3(0.33)) / 0.36;
+		c = v_col.rgb * clamp(m, 0.45, 1.5);
+	}
+	ALBEDO = c * tint;
 	ROUGHNESS = rough - 0.15 * grain;
 	SPECULAR = 0.25;
 }
