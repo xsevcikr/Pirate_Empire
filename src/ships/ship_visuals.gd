@@ -11,6 +11,7 @@ var root: Node3D
 var hull_material: ShaderMaterial
 var mast_groups: Array[Node3D] = []
 var sail_materials: Array[ShaderMaterial] = []
+var flag_materials: Array[ShaderMaterial] = []
 var _tiers: Array[Dictionary] = []  # {node, material, rig, tier, mast, square}
 var _wake: CPUParticles3D
 var _spray_l: CPUParticles3D
@@ -328,6 +329,7 @@ func _build_rig() -> void:
 		flag.mesh = fm
 		var fmat := ShaderMaterial.new()
 		fmat.shader = FLAG_SHADER
+		flag_materials.append(fmat)
 		fmat.set_shader_parameter("skull", 1.0 if m == n - 1 else 0.0)
 		fmat.set_shader_parameter("base_color", Vector3(0.05, 0.05, 0.06) if m == n - 1 else Vector3(0.7, 0.1, 0.1))
 		flag.material_override = fmat

@@ -18,6 +18,7 @@ var sim: BoardingSim
 var seed_value: int = 1
 var active: bool = false
 var player_won: bool = false
+var _defenders_at_start: int = 0
 ## Fight the boarding as a real-time deck battle (M14) instead of the crew-pool abstraction. With `deck_driven`
 ## false the captain plays himself through DeckBridge.autopilot; a DeckFightScene sets it true and ticks the deck.
 var use_deck: bool = false
@@ -79,7 +80,9 @@ func _begin_fight() -> void:
 		return
 	var a_n: int = int(round(attacker.crew.count * STANCE_FRACTION[stance]))
 	var d_n: int = int(round(target.crew.count * (1.0 + target.stats.boarding_defense)))
-	var attack_side := BoardingSide.new(a_n, attacker.crew.quality, attacker.crew.morale)
+	_committed = a_n
+	_defenders_at_start = d_n
+	var attack_side := BoardingSide.new(a_n, attacker.crew.quality * Progression.stat(Session.state, "boarding_strength_mult"), attacker.crew.morale)
 	attack_side.pool += attacker.crew.captain_hands * CAPTAIN_FIGHT_VALUE
 	attack_side.start = attack_side.pool
 	sim = BoardingSim.new(attack_side, BoardingSide.new(d_n, target.crew.quality, target.crew.morale), seed_value)
@@ -88,7 +91,8 @@ func _begin_fight() -> void:
 func _begin_deck_fight() -> void:
 	_committed = int(round(attacker.crew.count * STANCE_FRACTION[stance]))
 	var d_n: int = int(round(target.crew.count * (1.0 + target.stats.boarding_defense)))
-	deck = DeckBridge.build(_committed, attacker.crew.quality, attacker.crew.morale, target.faction, d_n, target.crew.quality,
+	_defenders_at_start = d_n
+	deck = DeckBridge.build(_committed, attacker.crew.quality * Progression.stat(game_state, "boarding_strength_mult"), attacker.crew.morale, target.faction, d_n, target.crew.quality,
 		target.crew.morale, game_state, seed_value)
 	deck.finished.connect(_on_deck_finished)
 	sim = deck.sim
@@ -104,8 +108,16 @@ func _on_deck_finished(result: Dictionary) -> void:
 	if player_won:
 		target.crew.count = maxi(int(result["enemy_left"]), 0)
 		target.surrender()
+	_announce(player_won, int(result.get("parries", 0)))
 	if not deck_driven:
 		finished.emit(player_won)
+
+
+## Tells progression how the fight went; "outnumbered" is five or more defenders against fewer attackers.
+func _announce(won: bool, parries: int) -> void:
+	var bus: Node = Svc.node("EventBus")
+	if bus != null:
+		bus.boarding_resolved.emit(won, parries, _defenders_at_start >= 5 and _defenders_at_start > _committed)
 
 
 ## A DeckFightScene calls this once its result banner is gone.
@@ -127,4 +139,5 @@ func _end_fight() -> void:
 	if player_won:
 		target.crew.count = maxi(int(round(sim.defender.pool)), 0)
 		target.surrender()
+	_announce(player_won, 0)
 	finished.emit(player_won)

@@ -81,6 +81,8 @@ static func casualties(state: Dictionary, lost: int) -> Dictionary:
 
 
 static func add_morale(state: Dictionary, amount: float) -> void:
+	if amount > 0.0:
+		amount *= Progression.stat(state, "morale_gain_mult")
 	state["morale"] = clampf(float(state["morale"]) + amount, 0.0, 100.0)
 
 

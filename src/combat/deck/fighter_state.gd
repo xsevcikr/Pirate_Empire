@@ -13,7 +13,12 @@ var is_player: bool = false
 
 var hp: float = 60.0
 var hp_max: float = 60.0
+var stamina_max: float = DeckData.STAMINA_MAX
 var stamina: float = DeckData.STAMINA_MAX
+## Captain skills (progression): multipliers on this fighter's blade, parry window and pistol reload.
+var melee_mult: float = 1.0
+var parry_mult: float = 1.0
+var pistol_reload_mult: float = 1.0
 var pos: Vector2 = Vector2.ZERO  ## x across the deck (our rail negative), y along it
 var dir: Vector2 = Vector2.RIGHT
 var move_speed: float = DeckData.MOVE_SPEED_MS
@@ -157,7 +162,7 @@ func tick(dt: float, _now: float) -> void:
 	if state == State.DEAD:
 		return
 	if not block_up:
-		stamina = minf(stamina + DeckData.STAMINA_REGEN_PER_S * dt, DeckData.STAMINA_MAX)
+		stamina = minf(stamina + DeckData.STAMINA_REGEN_PER_S * dt, stamina_max)
 	if stun_left > 0.0:
 		stun_left -= dt
 	aim_left = maxf(aim_left - dt, 0.0)
@@ -209,7 +214,7 @@ func _brace() -> int:
 
 
 func reload_time() -> float:
-	return float(WeaponData.WEAPONS[ranged]["reload"]) if ranged != "" else 0.0
+	return float(WeaponData.WEAPONS[ranged]["reload"]) * pistol_reload_mult if ranged != "" else 0.0
 
 
 # ---- actions -----------------------------------------------------------------------------------
@@ -311,7 +316,7 @@ func receive_melee(att: FighterState, damage: float, heavy: bool, breaks_block: 
 	var dmg: float = damage
 	var result: String = "hit"
 	if block_up and in_front and att != null:
-		var window: float = DeckData.parry_window(melee)
+		var window: float = DeckData.parry_window(melee) * parry_mult
 		if now - block_started <= window:
 			att.stagger(DeckData.PARRY_STAGGER_S)
 			att.vulnerable = DeckData.PARRY_NEXT_HIT_MULT

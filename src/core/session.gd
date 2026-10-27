@@ -74,6 +74,9 @@ static func player_stats() -> ShipStats:
 		return load("res://data/ships/sloop.tres")
 	var stats: ShipStats = UpgradeEffects.apply(PortService.ship_stats(state["ship_class"]), state["upgrades"])
 	stats.max_speed_kn *= float(CrewEffects.compute(state["roster"])["speed_mult"])  # a navigator's +4%
+	stats.max_speed_kn *= Progression.stat(state, "speed_mult")
+	stats.turn_rate_deg_s *= Progression.stat(state, "turn_mult")
+	stats.cargo_t *= Progression.stat(state, "cargo_mult")
 	return stats
 
 
@@ -99,8 +102,10 @@ static func apply_to_ship(ship: Ship) -> void:
 	ship.crew.brief_morale = true
 	var fx: Dictionary = CrewEffects.compute(state["roster"])
 	ship.crew.quality = float(fx["quality"])
-	ship.broadside.spread_scale = float(fx["spread_mult"])
-	ship.broadside.reload_scale = float(fx["reload_mult"])
+	ship.broadside.spread_scale = float(fx["spread_mult"]) * Progression.stat(state, "spread_mult")
+	ship.broadside.reload_scale = float(fx["reload_mult"]) * Progression.stat(state, "reload_mult")
+	ship.broadside.double_shot_chance = Progression.stat(state, "double_shot_chance")
+	ship.broadside.mast_crit = Progression.stat(state, "mast_crit_chance")
 	ship.crew.morale = float(state["morale"])
 	ship.display_label = str(state["ship_name"])
 	for k: String in state["ammo"]:

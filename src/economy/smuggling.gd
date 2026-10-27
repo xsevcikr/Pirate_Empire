@@ -38,7 +38,11 @@ static func rolled(state: Dictionary, port_id: String, rng: RandomNumberGenerato
 	if not bool(port["lawful"]) or illegal_goods(state["cargo"]).is_empty():
 		return false
 	var p: float = inspection_chance(bounty_stars(state, port["faction"]), is_night(float(state["hour"])), state["upgrades"].has("smugglers_hold"))
-	return rng.randf() < p
+	p = maxf(p - Progression.stat(state, "inspection_evasion_add"), 0.0)
+	var caught: bool = rng.randf() < p
+	if not caught:
+		Achievements.record(state, "contraband_inspections_passed")
+	return caught
 
 
 ## Value of the illegal cargo at the port's own prices.
@@ -67,7 +71,7 @@ static func resolve(state: Dictionary, port_id: String, choice: Choice, rng: Ran
 			_confiscate(state)
 			state["rep"][faction] = clampf(float(state["rep"][faction]) + TradeData.FINE_REP, -100.0, 100.0)
 		Choice.BRIBE:
-			var cost: int = ceili(value * TradeData.BRIBE_FRACTION)
+			var cost: int = ceili(value * TradeData.BRIBE_FRACTION * Progression.stat(state, "bribe_cost_mult"))
 			if cost > int(state["gold"]):
 				out["ok"] = false
 				return out

@@ -48,6 +48,10 @@ static func build(committed: int, quality: float, morale: float, enemy_faction: 
 		"level": int(state.get("captain_level", 1)), "melee": str(state.get("melee", "rusty_cutlass")), "ranged": str(state.get("pistol", "flintlock")),
 		"shots": int(state.get("pistol_shots", 10)), "crew": crew, "reserve": maxi(committed - 1 - on_screen, 0), "morale": morale,
 		"effic": Morale.efficiency(morale) * clampf(quality, 0.5, 1.5),
+		"skills": {
+			"stamina_add": Progression.stat(state, "stamina_add"), "melee_damage_mult": Progression.stat(state, "melee_damage_mult"),
+			"parry_window_mult": Progression.stat(state, "parry_window_mult"), "pistol_reload_mult": Progression.stat(state, "pistol_reload_mult"),
+		},
 	}
 	var c := DeckCombat.new()
 	c.setup(mine, theirs, seed_value)

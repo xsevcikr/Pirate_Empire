@@ -666,3 +666,357 @@ interior.gun_deck,Gun deck,Dělová paluba
 interior.hold,Hold,Nákladní prostor
 interior.cabin,Captain's cabin,Kapitánova kajuta
 interior.gold,%d gold fills %d chests.,%d zlata vyplňuje %d beden.
+skills.title,Captain's skills,Dovednosti kapitána
+skills.header,Level %d  -  XP %d / %d  -  free points: %d,Úroveň %d  -  XP %d / %d  -  volné body: %d
+skills.raise,Raise,Zvýšit
+skills.raised,Skill raised.,Dovednost zvýšena.
+skills.respec,Reset all points,Vrátit všechny body
+skills.tree.gunnery,Gunnery,Dělostřelectvo
+skills.tree.seamanship,Seamanship,Námořnictví
+skills.tree.swordplay,Swordplay,Šerm
+skills.tree.leadership,Leadership,Velení
+skills.tree.trade,Trade,Obchod
+skill.gunnery.reload,Faster reload,Rychlejší nabíjení
+skill.gunnery.spread,Tighter spread,Přesnější rozptyl
+skill.gunnery.arc,Longer arc preview,Delší náznak dráhy
+skill.gunnery.double_shot,Double shot,Dvojitá rána
+skill.gunnery.mast_crit,Mast critical hits,Kritické zásahy do stěžňů
+skill.seamanship.speed,Speed,Rychlost
+skill.seamanship.turn,Turning,Obratnost
+skill.seamanship.storm,Storm handling,Zvládání bouří
+skill.seamanship.kedge,Kedging speed,Rychlost kotvení
+skill.seamanship.currents,Current reading,Čtení proudů
+skill.swordplay.damage,Blade damage,Poškození čepelí
+skill.swordplay.parry,Longer parry window,Delší okno krytí
+skill.swordplay.stamina,Stamina,Výdrž
+skill.swordplay.pistol,Pistol reload,Nabíjení pistole
+skill.swordplay.finisher,Finishing moves,Dorážecí chvaty
+skill.leadership.morale,Morale bonuses,Bonusy k morálce
+skill.leadership.hiring,Cheaper hires,Levnější najímání
+skill.leadership.fleet,Bigger fleet,Větší flotila
+skill.leadership.boarding,Boarding strength,Síla při abordáži
+skill.leadership.bribes,Cheaper bribes,Levnější úplatky
+skill.trade.prices,Better prices,Lepší ceny
+skill.trade.cargo,Cargo space,Nákladový prostor
+skill.trade.evasion,Inspection evasion,Úhyb před prohlídkou
+skill.trade.insurance,Insurance discount,Sleva na pojištění
+skill.trade.haggling,Haggling,Smlouvání
+progress.level_up,Captain level %d!,Úroveň kapitána %d!
+progress.achievement,Achievement: %s,Úspěch: %s
+journal.title,Captain's log,Kapitánský deník
+journal.tab.log,Log,Deník
+journal.tab.achievements,Achievements,Úspěchy
+journal.tab.stats,Stats,Statistiky
+journal.tab.clues,Clues,Stopy
+journal.empty,Nothing written yet.,Zatím nic zapsáno.
+journal.day,Day,Den
+journal.ach_count,%d of %d achievements,%d z %d úspěchů
+journal.no_clues,No clues yet. Map pieces you find are listed here.,Zatím žádné stopy. Nalezené kusy map se zapíší sem.
+stat.ships_sunk,Ships sunk,Potopených lodí
+stat.gold_earned,Gold earned,Vydělané zlato
+stat.distance_km,Distance sailed (km),Ujetá vzdálenost (km)
+stat.duels_won,Boardings won,Vyhrané abordáže
+stat.islands_found,Islands found,Objevené ostrovy
+stat.tours_done,Tours finished,Dokončené výpravy
+stat.fish_caught,Fish caught,Chycené ryby
+stat.games_played,Games played,Odehrané hry
+log.generic,Entry: %s,Zápis: %s
+log.sank,Sank a %s.,Potopen %s.
+log.prize,Took a %s as a prize.,Získán %s jako kořist.
+log.rival_prize,Beat the rival %s.,Poražen rival %s.
+log.boarding_won,Won a boarding fight.,Vyhrána abordáž.
+log.boarding_lost,Lost a boarding fight.,Prohrána abordáž.
+log.boss_shell_king,Defeated the Shell King.,Poražen Krab král.
+log.boss_serpent,Defeated the Sea Serpent.,Poražen mořský had.
+log.boss_ghost_admiral,Defeated the Ghost Admiral.,Poražen Admirál duchů.
+log.boss_colossus,Defeated the Brass Colossus.,Poražen Mosazný kolos.
+log.boss_leviathan,Defeated the Ice Leviathan.,Poražen Ledový leviatan.
+log.boss_kraken,Defeated the Kraken.,Poražen Kraken.
+log.tour_done,Finished the tour %s.,Dokončena výprava %s.
+log.island,Discovered %s.,Objeven ostrov %s.
+log.level_up,Became captain level %s.,Kapitánská úroveň %s.
+ach.from_driftwood,From Driftwood,Z naplaveného dřeva
+ach.from_driftwood.desc,Buy your first sloop.,Kup svou první šalupu.
+log.ach_from_driftwood,Earned the achievement From Driftwood.,Získán úspěch Z naplaveného dřeva.
+ach.broadside,Broadside!,Boční salva!
+ach.broadside.desc,Hit one ship with 10 balls in a single broadside.,Zasáhni jednu loď deseti koulemi jednou salvou.
+log.ach_broadside,Earned the achievement Broadside!.,Získán úspěch Boční salva!.
+ach.timber,Timber!,Padá strom!
+ach.timber.desc,Snap 3 masts in one battle.,Zlom 3 stěžně v jedné bitvě.
+log.ach_timber,Earned the achievement Timber!.,Získán úspěch Padá strom!.
+ach.hard_aground,Hard Aground,Na mělčině
+ach.hard_aground.desc,Run aground and kedge free.,Najeď na mělčinu a vyprosť se kotvou.
+log.ach_hard_aground,Earned the achievement Hard Aground.,Získán úspěch Na mělčině.
+ach.one_against_many,One Against Many,Jeden proti mnoha
+ach.one_against_many.desc,Win a boarding alone against 5 or more.,Vyhraj abordáž proti pěti a více.
+log.ach_one_against_many,Earned the achievement One Against Many.,Získán úspěch Jeden proti mnoha.
+ach.parry_master,Parry Master,Mistr krytí
+ach.parry_master.desc,10 parries in one fight.,10 krytí v jednom souboji.
+log.ach_parry_master,Earned the achievement Parry Master.,Získán úspěch Mistr krytí.
+ach.market_maker,Market Maker,Tvůrce trhu
+ach.market_maker.desc,"Sink a convoy, then sell its good at its destination for +50%.",Potop konvoj a prodej jeho zboží v cíli o 50 % dráž.
+log.ach_market_maker,Earned the achievement Market Maker.,Získán úspěch Tvůrce trhu.
+ach.smooth_smuggler,Smooth Smuggler,Hladký pašerák
+ach.smooth_smuggler.desc,Pass 10 inspections with contraband aboard.,Projdi 10 prohlídkami s kontrabandem na palubě.
+log.ach_smooth_smuggler,Earned the achievement Smooth Smuggler.,Získán úspěch Hladký pašerák.
+ach.crab_cakes,Crab Cakes,Krabí dortíčky
+ach.crab_cakes.desc,Defeat the Shell King.,Poraz Kraba krále.
+log.ach_crab_cakes,Earned the achievement Crab Cakes.,Získán úspěch Krabí dortíčky.
+ach.wax_in_ears,Wax in Your Ears,Vosk v uších
+ach.wax_in_ears.desc,Cross siren waters without losing a man.,Proplav vodami sirén bez ztráty muže.
+log.ach_wax_in_ears,Earned the achievement Wax in Your Ears.,Získán úspěch Vosk v uších.
+ach.calamari,Calamari,Kalamáry
+ach.calamari.desc,Defeat the Kraken.,Poraz Krakena.
+log.ach_calamari,Earned the achievement Calamari.,Získán úspěch Kalamáry.
+ach.mollys_redemption,Molly's Redemption,Mollyino vykoupení
+ach.mollys_redemption.desc,Recruit Mad Molly.,Najmi Šílenou Molly.
+log.ach_mollys_redemption,Earned the achievement Molly's Redemption.,Získán úspěch Mollyino vykoupení.
+ach.empire_builder,Empire Builder,Stavitel říše
+ach.empire_builder.desc,Own 6 bases.,Vlastni 6 základen.
+log.ach_empire_builder,Earned the achievement Empire Builder.,Získán úspěch Stavitel říše.
+ach.pirate_king,Pirate King,Pirátský král
+ach.pirate_king.desc,Defeat Black Ibrahim.,Poraz Černého Ibrahima.
+log.ach_pirate_king,Earned the achievement Pirate King.,Získán úspěch Pirátský král.
+ach.never_starved,Never Starved,Nikdy hladový
+ach.never_starved.desc,Reach day 100 without a starvation day.,Dožij se 100. dne bez jediného dne hladu.
+log.ach_never_starved,Earned the achievement Never Starved.,Získán úspěch Nikdy hladový.
+ach.first_blood,First Blood,První krev
+ach.first_blood.desc,Sink your first ship.,Potop svou první loď.
+log.ach_first_blood,Earned the achievement First Blood.,Získán úspěch První krev.
+ach.sea_wolf,Sea Wolf,Mořský vlk
+ach.sea_wolf.desc,Sink 25 ships.,Potop 25 lodí.
+log.ach_sea_wolf,Earned the achievement Sea Wolf.,Získán úspěch Mořský vlk.
+ach.scourge,Scourge of the Seas,Metla moří
+ach.scourge.desc,Sink 100 ships.,Potop 100 lodí.
+log.ach_scourge,Earned the achievement Scourge of the Seas.,Získán úspěch Metla moří.
+ach.prize_hunter,Prize Hunter,Lovec kořisti
+ach.prize_hunter.desc,Take 10 prizes.,Získej 10 kořistí.
+log.ach_prize_hunter,Earned the achievement Prize Hunter.,Získán úspěch Lovec kořisti.
+ach.well_off,Well Off,Zámožný
+ach.well_off.desc,"Earn 10,000 gold.",Vydělej 10 000 zlata.
+log.ach_well_off,Earned the achievement Well Off.,Získán úspěch Zámožný.
+ach.tycoon,Tycoon,Magnát
+ach.tycoon.desc,"Earn 100,000 gold.",Vydělej 100 000 zlata.
+log.ach_tycoon,Earned the achievement Tycoon.,Získán úspěch Magnát.
+ach.explorer,Explorer,Objevitel
+ach.explorer.desc,Find 10 islands.,Objev 10 ostrovů.
+log.ach_explorer,Earned the achievement Explorer.,Získán úspěch Objevitel.
+ach.cartographer,Cartographer,Kartograf
+ach.cartographer.desc,Find all 24 islands.,Objev všech 24 ostrovů.
+log.ach_cartographer,Earned the achievement Cartographer.,Získán úspěch Kartograf.
+ach.voyager,Voyager,Cestovatel
+ach.voyager.desc,Sail 500 km.,Propluj 500 km.
+log.ach_voyager,Earned the achievement Voyager.,Získán úspěch Cestovatel.
+ach.duelist,Duelist,Duelant
+ach.duelist.desc,Win 10 boardings.,Vyhraj 10 abordáží.
+log.ach_duelist,Earned the achievement Duelist.,Získán úspěch Duelant.
+ach.seasoned_captain,Seasoned Captain,Ostřílený kapitán
+ach.seasoned_captain.desc,Reach captain level 5.,Dosáhni 5. úrovně kapitána.
+log.ach_seasoned_captain,Earned the achievement Seasoned Captain.,Získán úspěch Ostřílený kapitán.
+ach.veteran_captain,Veteran Captain,Veterán
+ach.veteran_captain.desc,Reach captain level 15.,Dosáhni 15. úrovně kapitána.
+log.ach_veteran_captain,Earned the achievement Veteran Captain.,Získán úspěch Veterán.
+ach.legend,Legend,Legenda
+ach.legend.desc,Reach captain level 30.,Dosáhni 30. úrovně kapitána.
+log.ach_legend,Earned the achievement Legend.,Získán úspěch Legenda.
+ach.master_of_one,Master of One,Mistr jednoho řemesla
+ach.master_of_one.desc,Raise any skill to rank 3.,Vylepši libovolnou dovednost na 3. stupeň.
+log.ach_master_of_one,Earned the achievement Master of One.,Získán úspěch Mistr jednoho řemesla.
+ach.treasure_hunter,Treasure Hunter,Lovec pokladů
+ach.treasure_hunter.desc,Finish a treasure tour.,Dokonči výpravu za pokladem.
+log.ach_treasure_hunter,Earned the achievement Treasure Hunter.,Získán úspěch Lovec pokladů.
+ach.tour_master,Tour Master,Pán výprav
+ach.tour_master.desc,Finish all six treasure tours.,Dokonči všech šest výprav za pokladem.
+log.ach_tour_master,Earned the achievement Tour Master.,Získán úspěch Pán výprav.
+ach.rival_slayer,Rival Slayer,Zabiják rivalů
+ach.rival_slayer.desc,Defeat a rival captain.,Poraz kapitána-rivala.
+log.ach_rival_slayer,Earned the achievement Rival Slayer.,Získán úspěch Zabiják rivalů.
+custom.title,Customize,Úpravy
+custom.flag,Flag,Vlajka
+custom.emblem,Emblem,Znak
+custom.color,Colour,Barva
+custom.layout,Layout,Rozvržení
+custom.pixel_flag,Pixel flag,Pixelová vlajka
+custom.edit,Edit,Upravit
+custom.save,Save flag,Uložit vlajku
+custom.clear,Clear,Smazat
+custom.sails,Sails,Plachty
+custom.pattern,Pattern,Vzor
+custom.hull,Hull,Trup
+custom.paint,Paint,Barva trupu
+custom.trim,Trim,Lemování
+custom.lanterns,Stern lanterns,Záďové lucerny
+custom.gold_leaf,"Gold leaf (fame 2,000+)",Plátkové zlato (sláva 2 000+)
+custom.toggle,Toggle,Přepnout
+custom.on,on,zap
+custom.off,off,vyp
+custom.figurehead,Figurehead,Přídová figura
+custom.pet,Pet,Mazlíček
+custom.false_colors,False colours,Falešné vlajky
+custom.own_colors,Own colours,Vlastní vlajka
+custom.captain,Captain,Kapitán
+custom.next,Next,Další
+custom.bought,Bought.,Koupeno.
+custom.locked,Not yet owned: earn it or buy it first.,Zatím nevlastníš: získej nebo kup.
+emblem.skull,Skull,Lebka
+emblem.crossbones,Crossbones,Zkřížené kosti
+emblem.cutlass,Cutlass,Šavle
+emblem.anchor,Anchor,Kotva
+emblem.kraken,Kraken,Kraken
+emblem.crown,Crown,Koruna
+emblem.dagger,Dagger,Dýka
+emblem.hourglass,Hourglass,Přesýpací hodiny
+emblem.heart,Heart,Srdce
+emblem.star,Star,Hvězda
+emblem.moon,Moon,Měsíc
+emblem.sun,Sun,Slunce
+emblem.wave,Wave,Vlna
+emblem.wolf,Wolf,Vlk
+emblem.raven,Raven,Havran
+emblem.serpent,Serpent,Had
+emblem.rose,Rose,Růže
+emblem.dice,Dice,Kostky
+emblem.key,Key,Klíč
+emblem.chest,Chest,Truhla
+emblem.compass,Compass,Kompas
+emblem.bell,Bell,Zvon
+emblem.flame,Flame,Plamen
+emblem.trident,Trident,Trojzubec
+layout.plain,Plain,Jednobarevná
+layout.split,Split,Dělená
+layout.cross,Cross,Kříž
+layout.border,Border,Lem
+pattern.plain,Plain,Hladké
+pattern.striped,Striped,Pruhované
+pattern.skull,Skull,S lebkou
+pattern.torn,Torn,Potrhané
+pattern.black,Black,Černé
+paint.natural,Natural,Přírodní
+paint.tarred,Tarred,Dehtovaný
+paint.red,Red,Červený
+paint.blue,Blue,Modrý
+paint.green,Green,Zelený
+paint.white,White,Bílý
+lantern.none,None,Žádné
+lantern.brass,Brass,Mosazné
+lantern.iron,Iron,Železné
+lantern.ghostly,Ghostly,Přízračné
+figurehead.plain,Plain,Bez ozdoby
+figurehead.mermaid,Mermaid,Mořská panna
+figurehead.lion,Lion,Lev
+figurehead.eagle,Eagle,Orel
+figurehead.wolf,Wolf,Vlk
+figurehead.dragon,Dragon,Drak
+figurehead.angel,Angel,Anděl
+figurehead.skeleton,Skeleton,Kostlivec
+figurehead.siren,Siren (+10 morale),Siréna (+10 morálka)
+figurehead.kraken,Kraken (-5% monster damage),Kraken (-5 % poškození od příšer)
+pet.parrot,Parrot (spots ships 10% sooner),Papoušek (loď spatří o 10 % dřív)
+pet.monkey,Monkey (steals 5% extra loot),Opice (ukradne o 5 % víc kořisti)
+pet.cat,Ship's cat (food lasts 5% longer),Lodní kočka (jídlo vydrží o 5 % déle)
+pet.none,None,Žádný
+slot.face,Face,Tvář
+slot.hat,Hat,Klobouk
+slot.coat,Coat,Kabát
+slot.boots,Boots,Boty
+slot.eye_patch,Eye patch,Páska přes oko
+slot.peg_leg,Peg leg,Dřevěná noha
+slot.hook,Hook,Hák
+look.face.weathered,Weathered,Ošlehaná
+look.face.scarred,Scarred,Jizvy
+look.face.bearded,Bearded,Vousatá
+look.face.young,Young,Mladá
+look.hat.tricorn,Tricorn,Třírohý klobouk
+look.hat.bandana,Bandana,Šátek
+look.hat.bicorne,Bicorne (earned),Dvourohý klobouk (zasloužený)
+look.hat.feathered,Feathered (400 g),Péřový (400 g)
+look.hat.none,None,Bez klobouku
+look.coat.plain,Plain,Obyčejný
+look.coat.navy_blue,Navy blue (earned),Námořnická modř (zasloužený)
+look.coat.crimson,Crimson (600 g),Karmínový (600 g)
+look.coat.leather,Leather (earned),Kožený (zasloužený)
+look.coat.gold_trim,"Gold trim (2,500 g)",Zlatě lemovaný (2 500 g)
+look.coat.duelist,Duelist (knife throwing prize),Duelantský (cena za házení nožů)
+look.boots.worn,Worn,Obnošené
+look.boots.buckled,Buckled (earned),S přezkami (zasloužené)
+look.boots.tall,Tall (300 g),Vysoké (300 g)
+look.boots.sandals,Sandals,Sandály
+look.eye_patch.off,Off,Bez
+look.eye_patch.on,On,Nasazená
+look.peg_leg.off,Off,Bez
+look.peg_leg.on,On,Nasazená
+look.hook.off,Off,Bez
+look.hook.on,On,Nasazený
+games.title,Games table,Herní stůl
+games.stake,Stake,Sázka
+games.raise_stake,Change stake,Změnit sázku
+games.play,Play,Hrát
+games.dice,Liar's dice,Hra lhářských kostek
+games.dice.desc,bluff a regular out of your stake,přeblufuj štamgasta a získej sázku
+games.bones,Bones,Bones (kostičky)
+games.bones.desc,pirate 21 against the house,pirátská jednadvacítka proti stolu
+games.arm,Arm wrestling,Přetlačování rukou
+games.arm.desc,win and the loser may join your crew,vyhraj a poražený se může přidat k posádce
+games.drinking,Drinking contest,Pití o závod
+games.drinking.desc,stay steady as the room sways,"udrž rovnováhu, když se místnost houpe"
+games.knife,Knife throwing,Házení nožů
+games.knife.desc,three throws at a spinning board,tři hody na rotující terč
+games.range,Gunnery range,Střelnice
+games.range.desc,hit floating targets for gunnery XP,zasahuj plovoucí terče pro zkušenosti střelce
+games.fishing,Fishing,Rybaření
+games.score,Scores:,Body:
+games.stop,Stop!,Stůj!
+games.mash,Pull! (press fast),Tahej! (mačkej rychle)
+dice.yours,Your dice,Tvé kostky
+dice.theirs,Their dice,Jeho kostky
+dice.kind.cautious,cautious,opatrný
+dice.kind.reckless,reckless,lehkomyslný
+dice.kind.cunning,cunning,vychytralý
+dice.no_bid,No bid yet. Make the first.,Zatím žádná sázka. Začni.
+dice.bid,Standing bid: at least %d x %d (%s),Platná nabídka: alespoň %d x %d (%s)
+dice.by_you,you,ty
+dice.by_them,them,on
+dice.make_bid,Bid,Nabídnout
+dice.call,Call the bluff,Odhalit bluf
+dice.revealed,Revealed: %d dice show %d. %s,Odhaleno: %d kostek ukazuje %d. %s
+dice.you_win_round,You win the round and they lose a die.,Vyhráváš kolo a on ztrácí kostku.
+dice.they_win_round,They win the round and you lose a die.,Vyhrává on kolo a ty ztrácíš kostku.
+dice.they_raise,They raise the bid.,Zvyšuje nabídku.
+dice.won,You win! +%d gold.,Vyhrál jsi! +%d zlata.
+dice.lost,You lose. -%d gold.,Prohrál jsi. -%d zlata.
+dice.fragment,He pays up with a map fragment!,Platí ti kusem mapy!
+bones.yours,Your hand,Tvá ruka
+bones.house,House,Stůl
+bones.hit,Hit,Líznout
+bones.stand,Stand,Stát
+bones.win,You win +%d gold.,Vyhráváš +%d zlata.
+bones.blackjack,Bones! You win +%d gold.,Bones! Vyhráváš +%d zlata.
+bones.lose,You lose -%d gold.,Prohráváš -%d zlata.
+bones.push,A push: stakes returned.,Remíza: sázky se vrací.
+arm.hint,"Stop the bar in the middle, then mash the button!","Zastav pruh uprostřed, pak mačkej tlačítko!"
+arm.opp.dockhand,the dockhand,přístavního dělníka
+arm.opp.sailor,the sailor,námořníka
+arm.opp.brute,the brute,surovce
+arm.won,You pin %s! Crew morale +5.,Přetlačil jsi %s! Morálka posádky +5.
+arm.lost,%s pins you.,%s tě přetlačil.
+arm.recruited,He joins your crew.,Přidává se k tvé posádce.
+drink.hint,Stop the bar near the middle to stay steady. It sways faster each drink.,Zastav pruh poblíž středu. S každým douškem se houpe rychleji.
+drink.round,Drink number %d,Doušek číslo %d
+drink.done,You won %d rounds: %d gold.,Vyhrál jsi %d kol: %d zlata.
+drink.rumour,A drinker whispers a rumour about a rival.,Pijan ti pošeptá zvěst o rivalovi.
+knife.hint,Stop the marker on the middle to hit the bull.,Zastav ukazatel uprostřed a trefíš střed.
+knife.done,Total %d points: %d gold.,Celkem %d bodů: %d zlata.
+knife.outfit,You win the duelist's coat!,Vyhráváš duelantský kabát!
+range.status,Time %d s   Hits %d   Shots %d,Čas %d s   Zásahy %d   Rány %d
+range.done,"Done: %d hits, %d gunnery XP.","Hotovo: %d zásahů, %d zkušeností střelce."
+fish.waiting,Waiting for a bite...,Čekání na záběr...
+fish.bite,"A bite! Hold Reel, but let the line breathe.","Záběr! Drž navíjení, ale nech vlasec dýchat."
+fish.reel,Reel (hold),Navíjet (drž)
+fish.lost,It got away.,Utekla ti.
+fish.caught,"You caught a %s, worth %d gold!",Chytil jsi %s v hodnotě %d zlata!
+fish.bottle,A bottle came up on the line.,Na vlasci se vynořila láhev.
+fish.too_fast,Slow the ship before you fish.,"Zpomal loď, než začneš rybařit."
+fish.sardine,sardine,sardinku
+fish.bass,bass,okouna
+fish.tuna,tuna,tuňáka
+fish.marlin,marlin,marlína

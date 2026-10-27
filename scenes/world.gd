@@ -2,6 +2,7 @@ extends Node3D
 ## M1 sailing scene: ocean, sky, wind, one sloop and a chase camera.
 
 const DOCK_HIT_RADIUS_M: float = 28.0
+const FISH_MAX_KN: float = 2.0
 const SLOOP: ShipStats = preload("res://data/ships/sloop.tres")
 
 var wind := WindModel.new()
@@ -21,6 +22,7 @@ var hud: SailingHud
 var convoys: ConvoyManager
 var tours: TourDirector
 var rivals: RivalDirector
+var progress: ProgressDirector
 var streamer: WorldStreamer
 var debris: DebrisManager
 var _dock_hit_cool: float = 0.0
@@ -168,6 +170,13 @@ func _start_game_layer() -> void:
 	rivals.world = self
 	rivals.state = Session.state
 	add_child(rivals)
+	progress = ProgressDirector.new()
+	progress.ship = ship
+	progress.state = Session.state
+	add_child(progress)
+	tours.step_completed.connect(progress.on_tour_step)
+	tours.tour_completed.connect(progress.on_tour_done)
+	apply_customization()
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
 	tutorial.ship = ship
@@ -480,6 +489,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		open_interior()
 		get_viewport().set_input_as_handled()
 		return
+	for pair: Array in [["skills", "open_skills"], ["captain_log", "open_log"], ["customize", "open_customize"], ["fish", "open_fishing"]]:
+		if Session.has_state() and event.is_action_pressed(pair[0]):
+			call(pair[1])
+			get_viewport().set_input_as_handled()
+			return
 	if Session.has_state() and event.is_action_pressed("rivals"):
 		open_rivals()
 		get_viewport().set_input_as_handled()
@@ -582,7 +596,9 @@ func _seamanship(delta: float) -> void:
 	if g.stuck:
 		var clock: Node = get_node_or_null("/root/GameClock")
 		var hours: float = (float(clock.day) * 24.0 + float(clock.hour)) if clock != null else 0.0
-		var freed: bool = g.kedge(delta, Input.is_action_pressed("kedge")) or g.tide_check(OceanCurrent.tide_m(hours))
+		var freed: bool = g.kedge(delta * Progression.stat(Session.state, "kedge_speed_mult"), Input.is_action_pressed("kedge")) or g.tide_check(OceanCurrent.tide_m(hours))
+		if freed:
+			EventBus.stat_event.emit("kedged_free", 1.0)
 		if Input.is_action_just_pressed("dump_cargo") and Session.has_state():
 			var dumped: Dictionary = g.dump_cargo(Session.state["cargo"])
 			freed = not g.stuck
@@ -648,6 +664,47 @@ func open_interior() -> void:
 	screen.stats = ship.stats
 	layer.add_child(screen)
 	screen.closed.connect(layer.queue_free)
+
+
+func _open_screen(screen: MenuScreen) -> MenuScreen:
+	if get_node_or_null("MapLayer") != null or get_node_or_null("PortLayer") != null:
+		screen.free()
+		return null
+	var layer := CanvasLayer.new()
+	layer.name = "MapLayer"
+	layer.layer = 52
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	layer.add_child(screen)
+	screen.closed.connect(layer.queue_free)
+	return screen
+
+
+func open_skills() -> void:
+	_open_screen(SkillsScreen.new())
+
+
+func open_log() -> void:
+	_open_screen(JournalScreen.new())
+
+
+func open_customize() -> void:
+	var screen: MenuScreen = _open_screen(CustomizeScreen.new())
+	if screen != null:
+		(screen as CustomizeScreen).changed.connect(apply_customization)
+
+
+## Fishing needs a ship that is nearly still.
+func open_fishing() -> void:
+	if ship.speed_knots() > FISH_MAX_KN:
+		EventBus.toast.emit(Loc.t("fish.too_fast"))
+		return
+	_open_screen(FishingScreen.make(int(Session.state["seed"]) + int(Session.state["day"]) * 13 + int(Time.get_ticks_msec() % 991)))
+
+
+## Push the flag, sail, hull and name choices onto the ship's look.
+func apply_customization() -> void:
+	ShipCustom.apply(ship, Customization.get_custom(Session.state))
 
 
 func open_rivals() -> void:

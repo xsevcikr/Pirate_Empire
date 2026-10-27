@@ -38,6 +38,12 @@ var _spawn_clock: Array[float] = [0.0, 0.0]
 func setup(mine: Dictionary, theirs: Dictionary, seed_value: int = 1) -> void:
 	rng.seed = seed_value
 	player = FighterState.make_player(int(mine.get("level", 1)), str(mine.get("melee", "rusty_cutlass")), str(mine.get("ranged", "flintlock")), int(mine.get("shots", 10)))
+	var sk: Dictionary = mine.get("skills", {})
+	player.stamina_max += float(sk.get("stamina_add", 0.0))
+	player.stamina = player.stamina_max
+	player.melee_mult = float(sk.get("melee_damage_mult", 1.0))
+	player.parry_mult = float(sk.get("parry_window_mult", 1.0))
+	player.pistol_reload_mult = float(sk.get("pistol_reload_mult", 1.0))
 	player.pos = Vector2(-4.5, 0.0)
 	player.dir = Vector2.RIGHT
 	_add(player)
@@ -246,6 +252,7 @@ func _melee_strike(att: FighterState) -> void:
 		if behind >= 180.0 - DeckData.BACKSTAB_ARC_DEG * 0.5:
 			dmg *= float(weapon["backstab"])
 	var breaks: bool = heavy and bool(weapon.get("breaks_block_heavy", false))
+	dmg *= att.melee_mult
 	var res: Dictionary = tgt.receive_melee(att, dmg, heavy, breaks, time_s)
 	_after_hit(att, tgt, res)
 

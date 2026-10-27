@@ -264,6 +264,6 @@ func test_save_v10_loads_with_rivals_and_events() -> void:
 		old.erase(k)
 	old["version"] = 10
 	var m: Dictionary = SaveGame.migrate(old)
-	assert_eq(int(m["version"]), 11)
+	assert_eq(int(m["version"]), SaveGame.VERSION)
 	assert_true(m.has("rivals") and m.has("sea_events"))
 	assert_eq(int(m["prizes_taken"]), 0)
