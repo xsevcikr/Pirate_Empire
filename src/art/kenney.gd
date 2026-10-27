@@ -6,6 +6,8 @@ extends RefCounted
 const ROOT: String = "res://assets/kenney/"
 const TOON: Shader = preload("res://shaders/toon.gdshader")
 
+const OUTLINE: Shader = preload("res://shaders/outline.gdshader")
+static var _outline: ShaderMaterial
 static var _scenes: Dictionary = {}
 static var _meshes: Dictionary = {}
 static var _toons: Dictionary = {}
@@ -24,27 +26,27 @@ static func scene(kit: String, model: String) -> PackedScene:
 
 
 ## A fresh copy of the model with the toon surface applied. The root is a plain Node3D wrapper.
-static func spawn(kit: String, model: String) -> Node3D:
+static func spawn(kit: String, model: String, lined: bool = true) -> Node3D:
 	var n: Node3D = scene(kit, model).instantiate() as Node3D
 	n.name = model
-	apply_toon(n)
+	apply_toon(n, lined)
 	return n
 
 
-static func apply_toon(n: Node) -> void:
+static func apply_toon(n: Node, lined: bool = true) -> void:
 	if n is MeshInstance3D:
 		var mi: MeshInstance3D = n as MeshInstance3D
 		if mi.mesh != null:
 			for i in mi.mesh.get_surface_count():
-				mi.set_surface_override_material(i, toon(mi.mesh.surface_get_material(i)))
+				mi.set_surface_override_material(i, toon(mi.mesh.surface_get_material(i), lined))
 	for c in n.get_children():
-		apply_toon(c)
+		apply_toon(c, lined)
 
 
 ## One cached ShaderMaterial per source palette texture or flat colour.
-static func toon(src: Material) -> ShaderMaterial:
+static func toon(src: Material, lined: bool = true) -> ShaderMaterial:
 	_hook_exit()
-	var key: String = "none"
+	var key: String = "none" if lined else "none-"
 	var tex: Texture2D = null
 	var col: Color = Color.WHITE
 	if src is BaseMaterial3D:
@@ -52,6 +54,8 @@ static func toon(src: Material) -> ShaderMaterial:
 		tex = b.albedo_texture
 		col = b.albedo_color
 		key = ("tex%d" % tex.get_instance_id()) if tex != null else ("col" + col.to_html(false))
+		if not lined:
+			key += "-"
 	if not _toons.has(key):
 		var m := ShaderMaterial.new()
 		m.shader = TOON
@@ -61,6 +65,8 @@ static func toon(src: Material) -> ShaderMaterial:
 		else:
 			m.set_shader_parameter("use_tex", false)
 			m.set_shader_parameter("albedo", Vector3(col.r, col.g, col.b))
+		if lined:
+			m.next_pass = outline()
 		_toons[key] = m
 	return _toons[key] as ShaderMaterial
 
@@ -83,9 +89,9 @@ static func mesh(kit: String, model: String) -> Mesh:
 
 
 ## Every mesh of a model merged into one multi-surface mesh (node transforms baked in), cached, for MultiMesh scatter.
-static func merged(kit: String, model: String) -> Mesh:
+static func merged(kit: String, model: String, lined: bool = true) -> Mesh:
 	_hook_exit()
-	var key: String = "m:" + path(kit, model)
+	var key: String = "m:" + path(kit, model) + ("" if lined else "-")
 	if _meshes.has(key):
 		return _meshes[key] as Mesh
 	var root: Node3D = scene(kit, model).instantiate() as Node3D
@@ -108,7 +114,7 @@ static func merged(kit: String, model: String) -> Mesh:
 			arrays[Mesh.ARRAY_NORMAL] = ns
 			arrays[Mesh.ARRAY_TANGENT] = null
 			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-			out.surface_set_material(out.get_surface_count() - 1, toon(mi.mesh.surface_get_material(i)))
+			out.surface_set_material(out.get_surface_count() - 1, toon(mi.mesh.surface_get_material(i), lined))
 	root.free()
 	_meshes[key] = out
 	return out
@@ -154,15 +160,17 @@ static var _plank_mats: Dictionary = {}
 
 
 ## A flat-coloured toon surface, one shared material per colour.
-static func flat(c: Color, emit: float = 0.0) -> ShaderMaterial:
+static func flat(c: Color, emit: float = 0.0, lined: bool = false) -> ShaderMaterial:
 	_hook_exit()
-	var key: String = "%s/%.2f" % [c.to_html(false), emit]
+	var key: String = "%s/%.2f/%s" % [c.to_html(false), emit, lined]
 	if not _flats.has(key):
 		var m := ShaderMaterial.new()
 		m.shader = TOON
 		m.set_shader_parameter("use_tex", false)
 		m.set_shader_parameter("albedo", Vector3(c.r, c.g, c.b))
 		m.set_shader_parameter("emit_amount", emit)
+		if lined:
+			m.next_pass = outline()
 		_flats[key] = m
 	return _flats[key] as ShaderMaterial
 
@@ -224,6 +232,7 @@ static func _hook_exit() -> void:
 
 ## Drops every cached scene, mesh and material, so nothing is still alive when the engine shuts down.
 static func clear_caches() -> void:
+	_outline = null
 	_scenes.clear()
 	_meshes.clear()
 	_toons.clear()
@@ -233,3 +242,11 @@ static func clear_caches() -> void:
 	ShipModel.clear_cache()
 	DeckFighterView.clear_cache()
 	TownBuilder.clear_cache()
+
+
+## The shared dark outline every toon surface draws as its second pass.
+static func outline() -> ShaderMaterial:
+	if _outline == null:
+		_outline = ShaderMaterial.new()
+		_outline.shader = OUTLINE
+	return _outline

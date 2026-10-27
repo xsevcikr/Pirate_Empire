@@ -76,6 +76,18 @@ func _build_hull() -> void:
 	hull.mesh = _parts["hull"] as Mesh
 	hull.material_override = hull_material
 	_model.add_child(hull)
+	# a ring of surf round the waterline
+	var ring := MeshInstance3D.new()
+	var rq := QuadMesh.new()
+	rq.size = Vector2(stats.beam_m * 1.7, stats.length_m * 1.25)
+	rq.orientation = PlaneMesh.FACE_Y
+	ring.mesh = rq
+	var rm := ShaderMaterial.new()
+	rm.shader = preload("res://shaders/foam_ring.gdshader")
+	ring.material_override = rm
+	ring.position = Vector3(0, 0.12, 0)
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(ring)
 	# stern lantern
 	var lamp := MeshInstance3D.new()
 	var sm := SphereMesh.new()

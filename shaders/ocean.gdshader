@@ -101,7 +101,11 @@ void fragment() {
 	ALBEDO = col;
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;
-	EMISSION = col * 0.05;
+	// sun sparkles on the swell: tiny cells that blink on and off
+	vec2 cell = floor(p * 2.5 + vec2(t * 0.5, t * 0.3));
+	float tw = hash(cell) ;
+	float blink = step(0.992, tw) * step(0.0, sin(t * 3.0 + tw * 40.0));
+	EMISSION = col * 0.05 + vec3(1.0, 0.97, 0.85) * blink * near * (1.0 - foam) * 0.9;
 }
 
 

@@ -9,7 +9,7 @@ var ocean: Ocean
 var clouds: CloudLayer
 
 const DAWN: Color = Color(1.0, 0.62, 0.38)
-const NOON: Color = Color(1.0, 0.96, 0.9)
+const NOON: Color = Color(1.0, 0.94, 0.82)
 const NIGHT: Color = Color(0.45, 0.55, 0.85)
 
 
@@ -50,7 +50,7 @@ func apply_hour(hour: float) -> void:
 	if env:
 		env.fog_light_color = horizon
 		env.fog_density = lerpf(0.0006, 0.0016, low)
-		var amb_day: Color = Color(0.5, 0.52, 0.62).lerp(Color(0.62, 0.52, 0.5), low * day_amount * 0.6)
+		var amb_day: Color = Color(0.46, 0.52, 0.72).lerp(Color(0.66, 0.5, 0.52), low * day_amount * 0.6)
 		env.ambient_light_color = Color(0.1, 0.13, 0.28).lerp(amb_day, day_amount)
 		env.ambient_light_energy = lerpf(0.5, 0.78, day_amount)
 	if ocean:

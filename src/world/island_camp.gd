@@ -89,6 +89,12 @@ static func plan_camp(isl: Island, rng: RandomNumberGenerator) -> Dictionary:
 			else:
 				_crate(root, q, rng.randf() * 90.0)
 		_flag(root, Vector3(-4.0, 0.0, 4.0), rng)
+		for k in 6:
+			var fa: float = rng.randf() * TAU
+			var fp := Vector3(cos(fa) * rng.randf_range(6.0, 12.0), 0.0, sin(fa) * rng.randf_range(6.0, 12.0))
+			fp.y = isl.ground_y(at + Vector2(fp.x, fp.z)) - h0
+			if fp.y > -0.3:
+				Kenney.place(root, "nature", ["log_stack", "mushroom_redGroup", "flower_redA", "grass_large", "stone_largeA", "log"][k], fp, rng.randf() * 360.0, 5.0)
 		_boat(root, Vector3(-9.0, -0.3, -5.0), rng.randf() * 360.0))
 	jobs.append(func() -> void: _people(root, rng, big))
 	return {"root": root, "jobs": jobs}

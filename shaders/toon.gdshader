@@ -19,6 +19,13 @@ varying vec4 v_col;
 
 void vertex() {
 	v_col = COLOR;
+	// trees and grass sway: MultiMesh custom data x is the amount (zero for everything else)
+	float amt = INSTANCE_CUSTOM.x;
+	if (amt > 0.0) {
+		float ph = MODEL_MATRIX[3].x * 0.37 + MODEL_MATRIX[3].z * 0.23;
+		VERTEX.x += sin(TIME * 1.7 + ph) * amt * VERTEX.y * 0.035;
+		VERTEX.z += cos(TIME * 1.3 + ph) * amt * VERTEX.y * 0.02;
+	}
 }
 
 vec3 saturate_col(vec3 c, float s) {

@@ -108,6 +108,7 @@ func _build_deck() -> void:
 	ocean.model = WaveModel.new(3.0, Vector2(1, 0))
 	ocean.position = Vector3(0.0, -3.4, 0.0)
 	add_child(ocean)
+	Look.add_vignette(self)
 	var dn := DayNight.new()
 	dn.sun = sun
 	dn.env = env

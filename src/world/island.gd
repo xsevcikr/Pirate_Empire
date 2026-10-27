@@ -203,6 +203,9 @@ const ROCKS: Array = [["pirate", "rocks-a", 0.5], ["pirate", "rocks-b", 0.5], ["
 static func prewarm() -> void:
 	for set in [["pirate", "palm-bend"], ["pirate", "palm-straight"], ["pirate", "palm-detailed-bend"], ["nature", "tree_pineTallA"], ["nature", "tree_pineTallB"], ["nature", "tree_pineSmallA"], ["nature", "tree_oak"], ["nature", "tree_default"], ["nature", "plant_bushLarge"], ["pirate", "rocks-a"], ["pirate", "rocks-b"], ["pirate", "rocks-c"], ["nature", "campfire_logs"]]:
 		Kenney.merged(set[0], set[1])
+	for m in ["flower_redA", "flower_yellowB", "grass_large", "mushroom_redGroup", "log"]:
+		Kenney.merged("nature", m, false)
+	Kenney.merged("nature", "plant_bushLarge", false)
 
 
 func _scatter_vegetation() -> void:
@@ -210,8 +213,9 @@ func _scatter_vegetation() -> void:
 	for v in 3:
 		var xs: Array[Transform3D] = []
 		xs.assign(_palm_sets[v])
-		_scatter(Kenney.merged(models[v][0], models[v][1]), xs, float(models[v][2]))
-	_scatter(Kenney.merged("nature", "plant_bushLarge"), _bushes, 5.0)
+		_scatter(Kenney.merged(models[v][0], models[v][1]), xs, float(models[v][2]), 1.0)
+	_scatter(Kenney.merged("nature", "plant_bushLarge", false), _bushes, 5.0, 0.6)
+	_scatter_small_props()
 	for v in 3:
 		var rs: Array[Transform3D] = []
 		for i in range(v, _rocks.size(), 3):
@@ -219,17 +223,45 @@ func _scatter_vegetation() -> void:
 		_scatter(Kenney.merged(ROCKS[v][0], ROCKS[v][1]), rs, float(ROCKS[v][2]))
 
 
-func _scatter(mesh: Mesh, xf: Array[Transform3D], base_scale: float) -> void:
+## Flowers, grass tufts, mushrooms, logs and stones on the grass: a few hundred small instances in five MultiMeshes.
+func _scatter_small_props() -> void:
+	if biome in ["volcanic", "ice", "ruined"]:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value * 17 + 3
+	var sets: Array = [[], [], [], [], []]
+	var count: int = int(clampf(radius_m * 1.6, 60.0, 420.0))
+	for i in count:
+		var p: Vector2 = Vector2.from_angle(rng.randf() * TAU) * radius_m * sqrt(rng.randf()) * 1.05
+		var h: float = ground_y(p)
+		if h < 1.4 or h > peak_m * 0.5:
+			continue
+		var slope: float = absf(ground_y(p + Vector2(1.5, 0)) - h) + absf(ground_y(p + Vector2(0, 1.5)) - h)
+		if slope > 2.0:
+			continue
+		var b := Basis(Vector3.UP, rng.randf() * TAU)
+		(sets[rng.randi_range(0, 4)] as Array).append(Transform3D(b, Vector3(p.x, h - 0.05, p.y)))
+	var models: Array = [["nature", "flower_redA", 6.0], ["nature", "flower_yellowB", 6.0], ["nature", "grass_large", 6.0], ["nature", "mushroom_redGroup", 5.0], ["nature", "log", 5.0]]
+	for k in 5:
+		var xs: Array[Transform3D] = []
+		xs.assign(sets[k])
+		_scatter(Kenney.merged(models[k][0], models[k][1], false), xs, float(models[k][2]), 1.0 if k < 3 else 0.0)
+
+
+func _scatter(mesh: Mesh, xf: Array[Transform3D], base_scale: float, sway: float = 0.0) -> void:
 	if xf.is_empty():
 		return
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = mesh
+	mm.use_custom_data = sway > 0.0
 	mm.instance_count = xf.size()
 	for i in xf.size():
 		var t: Transform3D = xf[i]
 		t.basis = t.basis.scaled(Vector3.ONE * base_scale)
 		mm.set_instance_transform(i, t)
+		if sway > 0.0:
+			mm.set_instance_custom_data(i, Color(sway, 0, 0, 0))
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
 	mmi.visibility_range_end = 2500.0

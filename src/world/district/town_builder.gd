@@ -36,7 +36,7 @@ static func cyl(parent: Node3D, r_top: float, r_bot: float, h: float, at: Vector
 
 ## One Kenney piece at a position, yaw and (possibly stretched) scale.
 static func piece(parent: Node3D, kit: String, model: String, at: Vector3, yaw_deg: float = 0.0, scl: Vector3 = Vector3.ONE) -> Node3D:
-	var n: Node3D = Kenney.spawn(kit, model)
+	var n: Node3D = Kenney.spawn(kit, model, not model.begins_with("stall") and not model.begins_with("roof"))
 	n.position = at
 	n.rotation_degrees.y = yaw_deg
 	n.scale = scl
@@ -278,7 +278,7 @@ static func castle(parent: Node3D, at: Vector3, flag: Color) -> Node3D:
 static func cobbles(parent: Node3D, half_w: float, half_l: float, rng: RandomNumberGenerator) -> void:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = Kenney.merged("town", "road")
+	mm.mesh = Kenney.merged("town", "road", false)
 	var tile: float = 2.0
 	var cols: int = int(ceil(half_w * 2.0 / tile))
 	var rows: int = int(ceil(half_l * 2.0 / tile))
@@ -308,6 +308,13 @@ static func street_clutter(parent: Node3D, half_w: float, half_l: float, rng: Ra
 		var cz: float = rng.randf_range(-half_l * 0.6, half_l * 0.6)
 		var cart: Node3D = Kenney.place(parent, "town", "cart-high" if k == 0 else "cart", Vector3((-1.0 if k == 0 else 1.0) * (half_w - 2.0), 0.0, cz), rng.randf_range(-15.0, 15.0) + 90.0, 2.4)
 		cart.name = "Cart"
+	for k in 8:  # hedges, banners and flowers along the house fronts
+		var hz: float = -half_l + (k + 0.5) * half_l * 2.0 / 8.0
+		var left: bool = k % 2 == 0
+		piece(parent, "town", "hedge", Vector3((-half_w - 0.4) if left else (half_w + 0.4), 0.0, hz), 0.0 if left else 180.0, Vector3.ONE * 2.5)
+		if k % 3 == 0:
+			piece(parent, "town", "banner-green" if left else "banner-red", Vector3((-half_w - 0.2) if left else (half_w + 0.2), 3.0, hz + 1.2), 0.0 if left else 180.0, Vector3.ONE * 2.5)
+		Kenney.place(parent, "nature", ["flower_redA", "flower_yellowB", "flower_purpleA"][k % 3], Vector3((-half_w + 1.2) if left else (half_w - 1.2), 0.0, hz + 2.0), rng.randf() * 360.0, 5.0)
 	for k in 3:
 		var lz: float = -half_l + (k + 0.5) * half_l * 2.0 / 3.0
 		Kenney.place(parent, "town", "lantern", Vector3(-half_w + 0.4, 0.0, lz), 0.0, 2.0)
