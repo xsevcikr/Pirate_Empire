@@ -14,6 +14,7 @@ Rng="*res://src/core/rng.gd"
 GameClock="*res://src/core/game_clock.gd"
 Settings="*res://src/core/settings.gd"
 Game="*res://src/core/game.gd"
+Audio="*res://src/audio/audio_mixer.gd"
 
 [display]
 

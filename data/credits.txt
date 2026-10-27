@@ -4,4 +4,13 @@ Design, code and build: Rob Sevcik with Claude
 Engine: Godot 4 (MIT licence)
 Physics: Jolt Physics (MIT licence)
 
+Audio: every sound and music file in audio/ was synthesised for this game by tools/gen_audio.py (original, no
+samples or third-party recordings; released under CC0). Sources by folder:
+  audio/music/    layer_*, region_*, boss_*, tavern_band, shanty_*  (tools/gen_audio.py, melodies written for the game)
+  audio/sfx/      cannons, hits, rigging, weapons, steps, coins, monsters, interface  (tools/gen_audio.py)
+  audio/voice/    crew, captain and rival bark murmurs  (tools/gen_audio.py; the spoken line is the subtitle)
+  audio/ambience/ waves, wind, rain loops  (tools/gen_audio.py)
+The shanty titles Drunken Sailor, Leave Her Johnny and Wellerman are traditional sea songs (public domain); the
+tunes here are original sketches in their spirit.
+
 Thanks to everyone who plays.

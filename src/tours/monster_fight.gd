@@ -76,6 +76,7 @@ func tick(delta: float) -> String:
 			lanterns_left = 1
 	if landed == "":
 		return ""
+	Sfx.play(str(AudioData.ROAR_OF.get(id, "roar_kraken")))
 	var dmg: float = float(cfg["dmg"].get(landed, 0.0))
 	if landed == "freezing_breath":
 		sails_slowed_s = 5.0

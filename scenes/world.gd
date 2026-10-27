@@ -23,6 +23,7 @@ var convoys: ConvoyManager
 var tours: TourDirector
 var rivals: RivalDirector
 var progress: ProgressDirector
+var world_audio: WorldAudio
 var streamer: WorldStreamer
 var debris: DebrisManager
 var _dock_hit_cool: float = 0.0
@@ -176,6 +177,9 @@ func _start_game_layer() -> void:
 	add_child(progress)
 	tours.step_completed.connect(progress.on_tour_step)
 	tours.tour_completed.connect(progress.on_tour_done)
+	world_audio = WorldAudio.new()
+	world_audio.world = self
+	add_child(world_audio)
 	apply_customization()
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()

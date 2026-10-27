@@ -31,6 +31,7 @@ func _init() -> void:
 
 
 func start(c: DeckCombat) -> void:
+	add_to_group("deck_fight")
 	combat = c
 	_build_deck()
 	for f in combat.fighters:
@@ -183,6 +184,8 @@ func apply_input(i: Dictionary) -> void:
 		return
 	var move: Vector2 = i.get("move", Vector2.ZERO)
 	p.move_intent = move.normalized() if move.length() > 0.1 else Vector2.ZERO
+	if p.move_intent != Vector2.ZERO:
+		Sfx.play("step_wood")
 	# face the nearest enemy when one is close, otherwise the way we walk
 	var foe: FighterState = combat.nearest_enemy(p)
 	if foe != null and foe.pos.distance_to(p.pos) <= LOCK_ON_M:
@@ -233,11 +236,14 @@ func _on_hit(_a: int, t_id: int, info: Dictionary) -> void:
 		v.flash(str(info.get("result", "hit")))
 	if t_id == combat.player.id:
 		_shake = 1.0
+	var res: String = str(info.get("result", "hit"))
+	Sfx.play("parry_ring" if res == "parried" else "sword_clash")
 	if hud != null:
 		hud.on_hit(info, v.fighter.pos if v != null else Vector2.ZERO)
 
 
 func _on_keg(at: Vector2) -> void:
+	Sfx.play("explosion")
 	for k in _kegs:
 		if absf(k.position.x - at.x) < 0.1 and absf(k.position.z - at.y) < 0.1:
 			k.visible = false
@@ -245,6 +251,7 @@ func _on_keg(at: Vector2) -> void:
 
 
 func _on_shot(_id: int, from_pos: Vector2, to_pos: Vector2) -> void:
+	Sfx.play("blunderbuss" if from_pos.distance_to(to_pos) < 4.0 else ("musket" if _id == combat.player.id else "pistol"))
 	var tracer := MeshInstance3D.new()
 	var b := BoxMesh.new()
 	var d: Vector2 = to_pos - from_pos

@@ -1020,3 +1020,39 @@ fish.sardine,sardine,sardinku
 fish.bass,bass,okouna
 fish.tuna,tuna,tuňáka
 fish.marlin,marlin,marlína
+menu.vol_music,Music volume,Hlasitost hudby
+menu.vol_sfx,Effects volume,Hlasitost efektů
+menu.vol_voice,Voice volume,Hlasitost hlasů
+menu.vol_ambience,Ambience volume,Hlasitost okolí
+tavern.shanty,Sing a shanty,Zazpívat šantu
+tavern.sung_drunken_sailor,"The crew roars out ""Drunken Sailor"".","Posádka řve ""Opilého námořníka""."
+tavern.sung_leave_her_johnny,"The crew sings ""Leave Her, Johnny"".","Posádka zpívá ""Leave Her, Johnny""."
+tavern.sung_wellerman,"The crew sings ""Wellerman"".","Posádka zpívá ""Wellermana""."
+bark.reload.0,"Guns loaded, Captain!","Děla nabitá, kapitáne!"
+bark.reload.1,Ready on the gundeck!,Připraveno na dělové palubě!
+bark.fire.0,"Hold your fire, lads!","Držte palbu, hoši!"
+bark.fire.1,Wait for the order!,Čekejte na rozkaz!
+bark.sail.0,Sail ho!,Plachta na obzoru!
+bark.sail.1,"Ship on the horizon, Captain!","Loď na obzoru, kapitáne!"
+bark.flood.0,We're taking water!,Nabíráme vodu!
+bark.flood.1,"To the pumps, all hands!","K pumpám, všichni!"
+bark.mast.0,Mast's down!,Stožár padl!
+bark.mast.1,Cut her loose!,Odseknout ho!
+bark.grumble.0,Barely a crust to eat on this ship.,Na téhle lodi není ani kůrka chleba.
+bark.grumble.1,We'll see how long this crew stays.,"Uvidíme, jak dlouho tu posádka vydrží."
+bark.grumble.2,The captain's luck has run dry.,Kapitánovi došlo štěstí.
+bark.victory.0,"She's ours, Captain!","Je naše, kapitáne!"
+bark.victory.1,"Well fought, lads!","Dobře bojováno, hoši!"
+bark.level.0,A fine day for a captain!,Skvělý den pro kapitána!
+bark.storm.0,Storm ahead! Reef the sails!,Bouře před námi! Zarefujte plachty!
+bark.storm.1,"Hold fast, here it comes!","Držte se, už to jde!"
+bark.land.0,Land ho!,Země na dohled!
+bark.land.1,Land off the bow!,Země před přídí!
+bark.board.0,Boarders away!,"K útoku, na palubu!"
+bark.board.1,"Steel out, lads!","Tasit, hoši!"
+bark.taunt.molly,"Catch me if you can, darling!","Chyť mě, když můžeš, miláčku!"
+bark.taunt.isabeau,The fog is mine.,Mlha je moje.
+bark.taunt.saltjaw,"The sea is mine, and all in it.",Moře je moje a všechno v něm.
+bark.taunt.vale,"In the Crown's name, strike your colours!","Jménem Koruny, spusťte vlajku!"
+bark.taunt.valcourt,Brass outlasts pirates.,Mosaz přežije piráty.
+bark.taunt.ibrahim,Kneel.,Klekni.
