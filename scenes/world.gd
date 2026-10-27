@@ -20,6 +20,7 @@ var player_controller: PlayerController
 var hud: SailingHud
 var convoys: ConvoyManager
 var tours: TourDirector
+var rivals: RivalDirector
 var streamer: WorldStreamer
 var debris: DebrisManager
 var _dock_hit_cool: float = 0.0
@@ -162,6 +163,11 @@ func _start_game_layer() -> void:
 	tours.world = self
 	tours.state = Session.state
 	add_child(tours)
+	rivals = RivalDirector.new()
+	rivals.ship = ship
+	rivals.world = self
+	rivals.state = Session.state
+	add_child(rivals)
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
 	tutorial.ship = ship
@@ -470,6 +476,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		open_journal()
 		get_viewport().set_input_as_handled()
 		return
+	if Session.has_state() and event.is_action_pressed("rivals"):
+		open_rivals()
+		get_viewport().set_input_as_handled()
+		return
 	if Session.has_state() and event.is_action_pressed("world_map"):
 		open_map()
 		get_viewport().set_input_as_handled()
@@ -602,6 +612,35 @@ func open_journal() -> void:
 	add_child(layer)
 	var screen := TourJournalScreen.new()
 	screen.director = tours
+	layer.add_child(screen)
+	screen.closed.connect(layer.queue_free)
+
+
+## A sea monster out of a tour: the fight panel opens over the sea.
+func open_sea_fight(fight: MonsterFight) -> void:
+	if get_node_or_null("MapLayer") != null or get_node_or_null("PortLayer") != null or tours == null:
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MapLayer"
+	layer.layer = 52
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var screen := TourEncounterScreen.new()
+	screen.director = tours
+	screen.fight = fight
+	layer.add_child(screen)
+	screen.closed.connect(layer.queue_free)
+
+
+func open_rivals() -> void:
+	if get_node_or_null("MapLayer") != null or get_node_or_null("PortLayer") != null:
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MapLayer"
+	layer.layer = 52
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var screen := RivalScreen.new()
 	layer.add_child(screen)
 	screen.closed.connect(layer.queue_free)
 
