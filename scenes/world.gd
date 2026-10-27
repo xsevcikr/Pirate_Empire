@@ -8,6 +8,9 @@ var ocean: Ocean
 var ship: Ship
 var day_night := DayNight.new()
 var rig: CameraRig
+var projectiles: ProjectileManager
+var target: Ship
+var _markers: Array[MeshInstance3D] = []
 var _last_sea_state: float = -1.0
 
 
@@ -51,6 +54,36 @@ func _ready() -> void:
 	add_child(ship)
 	ocean.follow = ship
 
+	projectiles = ProjectileManager.new()
+	projectiles.ocean = ocean.model
+	add_child(projectiles)
+	ship.broadside.projectiles = projectiles
+
+	target = Ship.new()
+	target.stats = load("res://data/ships/brigantine.tres")
+	target.ocean = ocean.model
+	target.wind = wind
+	target.sail_level = 0
+	target.position = Vector3(110, 0.5, -30)
+	target.rotation_degrees.y = 90.0
+	add_child(target)
+	target.broadside.projectiles = projectiles
+
+	for side in 2:
+		var ring := MeshInstance3D.new()
+		var torus := TorusMesh.new()
+		torus.inner_radius = 2.2
+		torus.outer_radius = 2.6
+		ring.mesh = torus
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.albedo_color = Color(0.3, 1.0, 0.4, 0.6)
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		ring.material_override = mat
+		ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(ring)
+		_markers.append(ring)
+
 	var pc := PlayerController.new()
 	pc.ship = ship
 	pc.wind = wind
@@ -69,6 +102,7 @@ func _ready() -> void:
 	var hud := SailingHud.new()
 	hud.ship = ship
 	hud.wind = wind
+	hud.target = target
 	hud.clock = get_node_or_null("/root/GameClock")
 	add_child(hud)
 
@@ -81,7 +115,17 @@ func _physics_process(delta: float) -> void:
 		ocean.set_sea_state(ss, wind.direction)
 
 
+func _update_markers() -> void:
+	for side in 2:
+		var land: Vector3 = ship.broadside.predicted_landing(side)
+		var h: float = ocean.model.height_at(land.x, land.z)
+		_markers[side].global_position = Vector3(land.x, h + 0.15, land.z)
+		var ready: bool = ship.broadside.ready_count(side) == ship.broadside.gun_count()
+		(_markers[side].material_override as StandardMaterial3D).albedo_color = Color(0.3, 1.0, 0.4, 0.6) if ready else Color(1.0, 0.35, 0.2, 0.6)
+
+
 func _process(_delta: float) -> void:
+	_update_markers()
 	var clock: Node = get_node_or_null("/root/GameClock")
 	var hour: float = clock.hour if clock else 10.0
 	if Input.is_action_pressed("time_fast") and clock:
