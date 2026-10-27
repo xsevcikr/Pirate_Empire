@@ -129,6 +129,9 @@ func _ready() -> void:
 	day_night.env = env
 	day_night.sky_material = sky_mat
 	day_night.ocean = ocean
+	var clouds := CloudLayer.new()
+	add_child(clouds)
+	day_night.clouds = clouds
 	add_child(day_night)
 
 	hud = SailingHud.new()

@@ -6,6 +6,7 @@ var sun: DirectionalLight3D
 var env: Environment
 var sky_material: ProceduralSkyMaterial
 var ocean: Ocean
+var clouds: CloudLayer
 
 const DAWN: Color = Color(1.0, 0.62, 0.38)
 const NOON: Color = Color(1.0, 0.96, 0.9)
@@ -52,3 +53,7 @@ func apply_hour(hour: float) -> void:
 		env.ambient_light_energy = lerpf(0.25, 1.25, day_amount)
 	if ocean:
 		ocean.set_sky_color(horizon.lerp(top, 0.7))
+	if clouds:
+		var lit: Color = Color(1.0, 1.0, 1.0).lerp(Color(1.0, 0.62, 0.4), low * day_amount).lerp(Color(0.08, 0.1, 0.18), 1.0 - day_amount)
+		var shade: Color = Color(0.58, 0.68, 0.82).lerp(Color(0.55, 0.38, 0.4), low * day_amount).lerp(Color(0.03, 0.04, 0.09), 1.0 - day_amount)
+		clouds.tint(lit, shade, 0.5)

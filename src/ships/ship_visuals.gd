@@ -47,6 +47,7 @@ func build(owner_ship: Ship) -> void:
 	ship.add_child(root)
 	_build_hull()
 	_build_details()
+	ShipDetail.build(root, stats)
 	_build_rig()
 	_build_wake()
 
@@ -125,6 +126,17 @@ func _build_hull() -> void:
 	root.add_child(mi)
 
 
+## Plank-textured wood for castles, masts and spars.
+func plank_material(tint: Color, width: float) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = load("res://shaders/wood.gdshader")
+	m.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+	m.set_shader_parameter("plank_width", width)
+	m.set_shader_parameter("plank_len", 2.2)
+	m.set_shader_parameter("wear", 0.5)
+	return m
+
+
 func _hull_color(y: float, F: float) -> Color:
 	if y < -0.05:
 		return Color(0.30, 0.10, 0.06)  # copper-red below the waterline
@@ -144,8 +156,9 @@ func _mesh_from(verts: PackedVector3Array, cols: PackedColorArray, idx: PackedIn
 		var n: Vector3 = (b - a).cross(c - a)
 		var centroid: Vector3 = (a + b + c) / 3.0
 		var out: Vector3 = Vector3(centroid.x, centroid.y - ymid, 0.0)
-		if centroid.y > stats.freeboard_m * 0.6 and absf(centroid.x) < stats.beam_m * 0.45:
-			out = Vector3.UP
+		var tt: float = clampf(centroid.z / stats.length_m + 0.5, 0.0, 1.0)
+		if absf(centroid.y - top_height(stats, tt) * 0.88) < 0.06 and absf(centroid.x) < half_width(stats, tt) * 0.95:
+			out = Vector3.UP  # the deck faces up; hull flanks near the bow keep facing outward
 		if absf(centroid.z) > stats.length_m * 0.499:
 			out = Vector3(0, 0, signf(centroid.z))
 		if n.dot(out) < 0.0:
@@ -182,20 +195,8 @@ func _build_details() -> void:
 			port.material_override = port_mat
 			port.position = Vector3(x * 0.995, F - 0.65, z)
 			root.add_child(port)
-			var barrel := MeshInstance3D.new()
-			var cm := CylinderMesh.new()
-			cm.top_radius = 0.09
-			cm.bottom_radius = 0.13
-			cm.height = 0.8
-			barrel.mesh = cm
-			barrel.material_override = gun_mat
-			barrel.rotation_degrees = Vector3(0, 0, 90)
-			barrel.position = Vector3(x + (0.2 if side == 1 else -0.2), F - 0.65, z)
-			root.add_child(barrel)
 	# Castles
-	var wood := StandardMaterial3D.new()
-	wood.albedo_color = Color(0.30, 0.18, 0.09)
-	wood.roughness = 0.85
+	var wood: Material = plank_material(Color(1.0, 0.82, 0.62), 0.22)
 	var big: bool = stats.length_m > 30.0
 	if big:
 		var stern := MeshInstance3D.new()
@@ -275,9 +276,7 @@ func _build_rig() -> void:
 	var L: float = stats.length_m
 	var B: float = stats.beam_m
 	var F: float = stats.freeboard_m
-	var wood := StandardMaterial3D.new()
-	wood.albedo_color = Color(0.32, 0.20, 0.10)
-	wood.roughness = 0.85
+	var wood: Material = plank_material(Color(0.85, 0.7, 0.55), 0.8)
 	var n: int = stats.mast_count
 	for m in n:
 		var group := Node3D.new()
@@ -416,6 +415,17 @@ func _build_shrouds(wood: Material) -> void:
 				var off: float = (k - 1.5) * 0.9
 				st.add_vertex(Vector3(side * stats.beam_m * 0.42, F * 0.9, base.z + off))
 				st.add_vertex(top + Vector3(0, 0, off * 0.05))
+		# ratlines: rope rungs between neighbouring shrouds, climbing the lower 60% of the mast
+		for side2 in [-1.0, 1.0]:
+			for r in range(1, 12):
+				var f: float = float(r) / 12.0 * 0.6
+				for k2 in 3:
+					var o1: float = (k2 - 1.5) * 0.9
+					var o2: float = (k2 + 1 - 1.5) * 0.9
+					var p1: Vector3 = Vector3(side2 * stats.beam_m * 0.42, F * 0.9, base.z + o1).lerp(top + Vector3(0, 0, o1 * 0.05), f)
+					var p2: Vector3 = Vector3(side2 * stats.beam_m * 0.42, F * 0.9, base.z + o2).lerp(top + Vector3(0, 0, o2 * 0.05), f)
+					st.add_vertex(p1)
+					st.add_vertex(p2)
 		st.add_vertex(top)
 		st.add_vertex(Vector3(0, F * 1.2, -stats.length_m * 0.5))
 		st.add_vertex(top)

@@ -7,7 +7,9 @@ uniform float flutter : hint_range(0.0, 1.0) = 0.0;
 uniform float damage : hint_range(0.0, 1.0) = 0.0;
 uniform vec3 bulge_dir = vec3(0.0, 0.0, -1.0);
 uniform float bulge_depth = 2.0;
-uniform vec3 canvas_color : source_color = vec3(0.80, 0.72, 0.55);
+uniform vec3 canvas_color : source_color = vec3(0.80, 0.76, 0.64);
+uniform vec3 trim_color : source_color = vec3(0.42, 0.05, 0.04);
+uniform float trim_width = 0.045;
 uniform vec3 stain_color : source_color = vec3(0.55, 0.45, 0.32);
 uniform float time_offset = 0.0;
 
@@ -56,6 +58,11 @@ void fragment() {
 	// Seams between canvas panels
 	float seam = smoothstep(0.02, 0.0, abs(fract(v_uv.x * 7.0) - 0.5) - 0.48);
 	col *= 1.0 - 0.18 * seam;
+	// red bolt-rope border and a reef band, like the sails in the reference pictures
+	float edge_d = min(min(v_uv.x, 1.0 - v_uv.x), min(v_uv.y, 1.0 - v_uv.y));
+	float trim = smoothstep(trim_width, trim_width - 0.012, edge_d);
+	float reef = smoothstep(0.012, 0.0, abs(v_uv.y - 0.82) - 0.01) * 0.35;
+	col = mix(col, trim_color * (0.9 + 0.2 * weave), max(trim, reef));
 	float hole = fbm(v_uv * 9.0 + 7.0);
 	if (hole < damage * 0.55) {
 		discard;
@@ -64,5 +71,5 @@ void fragment() {
 	col = mix(vec3(0.1, 0.07, 0.04), col, edge);
 	ALBEDO = col;
 	ROUGHNESS = 0.95;
-	BACKLIGHT = col * 0.9;
+	BACKLIGHT = col * 0.3;
 }
