@@ -26,6 +26,17 @@ func _process(_d: float) -> bool:
 	_frames += 1
 	if _frames == 5 and _pos != Vector3.INF:
 		current_scene.ship.position = _pos
+	if _frames == 6 and OS.get_environment("SHOT_SHIP") != "":
+		var st: ShipStats = load("res://data/ships/%s.tres" % OS.get_environment("SHOT_SHIP"))
+		var o: Ship = Ship.new()
+		o.stats = st
+		o.ocean = current_scene.ocean.model
+		o.wind = current_scene.wind
+		o.position = _pos + Vector3(75, 0, -26)
+		o.rotation_degrees.y = -90.0
+		o.sail_level = 3
+		o.faction = "navy"
+		current_scene.add_child(o)
 	if _frames == 30 and current_scene.get("ship") != null:
 		current_scene.ship.sail_level = 3
 		current_scene.ship.crew.count = 12

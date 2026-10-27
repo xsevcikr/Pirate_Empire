@@ -50,6 +50,9 @@ void fragment() {
 		c = v_col.rgb * clamp(m, 0.45, 1.5);
 	}
 	ALBEDO = c * tint;
+	if (use_vertex_color) {
+		EMISSION = c * tint * 0.14;  // shaded flanks and the transom keep their colour
+	}
 	ROUGHNESS = rough - 0.15 * grain;
 	SPECULAR = 0.25;
 }

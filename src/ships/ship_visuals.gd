@@ -94,7 +94,7 @@ func _build_hull() -> void:
 	verts.append(Vector3(sw * 0.93, stop, zc))
 	verts.append(Vector3(-sw * 0.93, stop, zc))
 	for v in 4:
-		cols.append(Color(0.24, 0.14, 0.08))
+		cols.append(Color(0.5, 0.3, 0.16))
 	idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
 	# Deck
 	var deck_y: float = F * 0.78
@@ -130,7 +130,7 @@ func _hull_color(y: float, F: float) -> Color:
 		return Color(0.30, 0.10, 0.06)  # copper-red below the waterline
 	if y > F - 1.05 and y < F - 0.35:
 		return Color(0.78, 0.58, 0.16)  # gun-row stripe
-	return Color(0.26, 0.15, 0.085)
+	return Color(0.36, 0.21, 0.115)
 
 
 ## Builds an ArrayMesh with outward-facing, consistent normals (winding is fixed per triangle).
