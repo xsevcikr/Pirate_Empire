@@ -52,7 +52,7 @@ func buy_price(good: String) -> float:
 
 ## Price the player receives per unit (port buys).
 func sell_price(good: String) -> float:
-	return mid_price(good) * (1.0 - margin * 0.5)
+	return mid_price(good) * (1.0 - margin * 0.5) * (1.0 + rep_mod)
 
 
 ## Returns gold spent, or -1.0 if the purchase is impossible.

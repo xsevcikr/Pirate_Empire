@@ -248,3 +248,38 @@ weapon.rusty_cutlass,Rusty cutlass,Rezavá šavle
 weapon.club,Club,Pálka
 weapon.bayonet,Bayonet,Bajonet
 weapon.captains_cutlass,Captain's cutlass,Kapitánova šavle
+faction.navy,Navy,Námořnictvo
+faction.merchant,Merchants,Obchodníci
+faction.pirate,Pirates,Piráti
+faction.reef_folk,Reef Folk,Lidé útesu
+faction.iron_dominion,Iron Dominion,Železné panství
+rep.tier_hated,Hated,Nenáviděný
+rep.tier_hostile,Hostile,Nepřátelský
+rep.tier_neutral,Neutral,Neutrální
+rep.tier_friendly,Friendly,Přátelský
+rep.tier_allied,Allied,Spojenec
+trade.standing,%s: %s (prices %+d%%),%s: %s (ceny %+d%%)
+trade.fence,Fence / black market buys contraband at %d%% of base price.,Překupník / černý trh vykupuje kontraband za %d %% základní ceny.
+trade.blockade,%s is blockaded! Goods cost 50% more.,%s je v blokádě! Zboží je o 50 % dražší.
+trade.dock_fee,Docking fee paid: %d g.,Zaplacen poplatek za přístav: %d g.
+inspect.title,Harbour inspection,Přístavní prohlídka
+inspect.found,Patrol officers search your hold at %s. Contraband worth %d g found.,Hlídka prohlíží tvůj podpalubí v %s. Nalezen kontraband v hodnotě %d g.
+inspect.pay,Pay the fine,Zaplatit pokutu
+inspect.bribe,Bribe the officer,Podplatit důstojníka
+inspect.fight,Fight your way out,Probojovat se
+inspect.result_fined,The contraband is confiscated and the fine paid. The port thinks less of you.,Kontraband zabaven a pokuta zaplacena. Přístav si o tobě myslí méně.
+inspect.result_kept,The officer looks the other way. You keep your cargo.,Důstojník se dívá jinam. Náklad ti zůstává.
+inspect.result_fight,Steel is drawn. The port is hostile and your bounty rises.,Zbraně jsou venku. Přístav je nepřátelský a tvá odměna roste.
+port.bank,Bank,Banka
+bank.balance,"Balance: %d g (interest %d%% a week, safe if you are sunk)","Zůstatek: %d g (úrok %d %% týdně, v bezpečí při potopení)"
+bank.deposit,Deposit,Vložit
+bank.withdraw,Withdraw,Vybrat
+bank.all_in,Deposit everything,Vložit vše
+insure.label,Insure your ship,Pojistit loď
+insure.buy,Insure,Pojistit
+insure.active,Your ship is insured.,Tvá loď je pojištěná.
+insure.bought,Ship insured. It survives one sinking.,Loď pojištěna. Přežije jedno potopení.
+defeat.title,Sunk!,Potopen!
+defeat.body,You wash up at %s. You lost %d g and %d crew.,Vyplaveš v %s. Ztratil jsi %d g a %d členů posádky.
+defeat.ship_kept,The insurers pay out: your ship is salvaged.,Pojišťovna vyplácí: tvá loď je zachráněna.
+defeat.ship_lost,Your ship is lost. You start again with a cutter.,Loď je ztracena. Začínáš znovu s kutrem.

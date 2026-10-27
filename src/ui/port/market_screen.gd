@@ -15,6 +15,8 @@ func build() -> void:
 	begin_list()
 	var s: Dictionary = state()
 	var m: Market = market()
+	var st: Dictionary = Finance.standing(s, port_id)
+	add_text(Loc.t("trade.standing") % [Loc.t("faction." + st["faction"]), Loc.t("rep.tier_" + st["tier"]), int(st["price_mod"] * 100.0)])
 	add_text(Loc.t("port.supplies"))
 	for id: String in PortData.SUPPLIES:
 		var price: float = PortService.supply_price(s, m, id)
@@ -32,7 +34,22 @@ func build() -> void:
 		add_item_row("%s  %s %.1f / %s %.1f %s   (%s %d)" % [Loc.t("good." + g), Loc.t("port.buy_short"), buy_p, Loc.t("port.sell_short"), sell_p, TREND_ARROW[m.trend(g)], Loc.t("port.owned"), owned], [
 			[Loc.t("port.buy_1"), _buy_good.bind(g, 1)], [Loc.t("port.sell_1"), _sell_good.bind(g, 1)] if owned > 0 else [Loc.t("port.sell_1"), Callable()],
 			[Loc.t("port.sell_all"), _sell_good.bind(g, owned)] if owned > 0 else [Loc.t("port.sell_all"), Callable()]])
+	var mult: float = Smuggling.illegal_buy_mult(port_id)
+	if mult > 0.0:
+		add_text(Loc.t("trade.fence") % int(mult * 100.0))
+		for g in Smuggling.illegal_goods(s["cargo"]):
+			var have: int = int(s["cargo"][g])
+			add_item_row("%s  %.1f g  (%s %d)" % [Loc.t("good." + g), Goods.base_price(g) * mult, Loc.t("port.owned"), have],
+				[[Loc.t("port.sell_1"), _fence.bind(g, 1)], [Loc.t("port.sell_all"), _fence.bind(g, have)]])
 	add_button("menu.back", close)
+
+
+func _fence(g: String, n: int) -> void:
+	var gain: int = Smuggling.sell_illegal(state(), port_id, g, n)
+	if gain > 0:
+		emit_bus("trade_made", ["sell", g, float(n), gain])
+		toast("port.sold", [n, Loc.t("good." + g), gain])
+	_rebuild()
 
 
 func _buy_supply(id: String, n: int) -> void:

@@ -17,8 +17,10 @@ var overlay: GameOverlay
 var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
+var convoys: ConvoyManager
 var _last_market_h: float = -1.0
 var _last_repair_h: float = -1.0
+var _trade_rng := RandomNumberGenerator.new()
 var _dock_world: Vector3 = Vector3(PortData.PORTS[PortData.START_PORT]["dock"].x, 0.0, PortData.PORTS[PortData.START_PORT]["dock"].y)
 
 
@@ -138,6 +140,11 @@ func _start_game_layer() -> void:
 	prizes = PrizeFlow.new()
 	prizes.player = ship
 	add_child(prizes)
+	convoys = ConvoyManager.new()
+	convoys.world = self
+	convoys.prizes = prizes
+	add_child(convoys)
+	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
 	tutorial.ship = ship
 	tutorial.prompt_changed.connect(overlay.set_prompt)
@@ -221,7 +228,11 @@ func _game_tick() -> void:
 		_last_repair_h = now_h
 		return
 	if now_h - _last_market_h >= 1.0:
-		PortService.advance_markets(Session.state, floorf(now_h - _last_market_h))
+		var hours: float = floorf(now_h - _last_market_h)
+		TradeNetwork.spawn_due(Session.state, now_h, _trade_rng)
+		TradeNetwork.advance(Session.state, now_h)
+		PortService.advance_markets(Session.state, hours)
+		_blockade_tick(hours)
 		_last_market_h = now_h
 	if (now_h - _last_repair_h) * 60.0 >= 1.0:
 		_carpenter(( now_h - _last_repair_h) * 60.0)
@@ -229,6 +240,46 @@ func _game_tick() -> void:
 	while GameClock.day > int(Session.state["last_tick_day"]):
 		Session.state["last_tick_day"] = int(Session.state["last_tick_day"]) + 1
 		_daily_crew_tick()
+		Finance.accrue(Session.state, 1.0)
+		Blockade.heal_days(Session.state, 1.0)
+
+
+## Armed ships that are hostile to a port's faction and parked within 1.5 km count towards a blockade.
+func _blockade_tick(hours: float) -> void:
+	var armed: Array[Vector2] = []
+	for n in get_tree().get_nodes_in_group("ships"):
+		var s: Ship = n as Ship
+		if s != null and s != ship and not s.damage.sunk and s.stats.guns_per_side > 0:
+			armed.append(Vector2(s.global_position.x, s.global_position.z))
+	var mine: Vector2 = Vector2(ship.global_position.x, ship.global_position.z)
+	for id: String in PortData.PORTS:
+		var n: int = Blockade.armed_near(id, armed)
+		if mine.distance_to(PortData.PORTS[id]["dock"]) <= TradeData.BLOCKADE_RADIUS_M and ship.stats.guns_per_side > 0:
+			n += 1
+		if Blockade.tick(Session.state, id, n, hours):
+			EventBus.toast.emit(Loc.t("trade.blockade") % PortData.PORTS[id]["name"])
+
+
+func _on_player_sunk() -> void:
+	var at := Vector2(ship.global_position.x, ship.global_position.z)
+	var result: Dictionary = Finance.defeat(Session.state, at)
+	EventBus.player_defeated.emit(result)
+	var layer := CanvasLayer.new()
+	layer.layer = 60
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var screen := DefeatScreen.new()
+	screen.result = result
+	layer.add_child(screen)
+	get_tree().paused = true
+	screen.continued.connect(func() -> void:
+		layer.queue_free()
+		get_tree().paused = false
+		var dock: Vector2 = PortData.PORTS[result["port"]]["dock"]
+		sync_player_ship()
+		ship.global_position = Vector3(dock.x, 0.5, dock.y)
+		ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
+		Session.autosave(self))
 
 
 func _carpenter(minutes: float) -> void:
@@ -316,10 +367,22 @@ func can_dock() -> bool:
 	return ship.global_position.distance_to(_dock_world) <= PortData.DOCK_RADIUS_M and ship.speed_knots() <= PortData.DOCK_MAX_SPEED_KN
 
 
+## Tonnage in the hold times the fee, at lawful ports only.
+func _docking_fee(port_id: String) -> int:
+	if not bool(PortData.PORTS[port_id]["lawful"]):
+		return 0
+	return mini(int(PortService.cargo_used(Session.state) * PortData.DOCK_FEE_PER_TONNE), int(Session.state["gold"]))
+
+
 func open_port() -> void:
 	if get_node_or_null("PortLayer") != null:
 		return
 	var menu := PortMenu.new()
+	var inspect: bool = Smuggling.rolled(Session.state, menu.port_id, _trade_rng)
+	var fee: int = _docking_fee(menu.port_id)
+	if fee > 0:
+		Session.state["gold"] = int(Session.state["gold"]) - fee
+		EventBus.toast.emit(Loc.t("trade.dock_fee") % fee)
 	var layer := CanvasLayer.new()
 	layer.name = "PortLayer"
 	layer.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -333,6 +396,16 @@ func open_port() -> void:
 		layer.queue_free())
 	Session.state["docked_at"] = menu.port_id
 	EventBus.port_docked.emit(menu.port_id)
+	if inspect:
+		var screen := InspectionScreen.new()
+		screen.port_id = menu.port_id
+		screen.rng = _trade_rng
+		screen.leadership_rank = int(CrewEffects.compute(Session.state["roster"]).get("leadership_rank", 0))
+		layer.add_child(screen)
+		screen.resolved.connect(func(choice: int, _o: Dictionary) -> void:
+			EventBus.inspection_resolved.emit(menu.port_id, choice)
+			if choice == Smuggling.Choice.FIGHT:
+				menu.close())
 
 
 func _unhandled_input(event: InputEvent) -> void:

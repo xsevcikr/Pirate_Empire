@@ -16,6 +16,11 @@ func build() -> void:
 	add_text("%s: %s \"%s\"   %s %d%%" % [Loc.t("port.your_ship"), Loc.t("ship." + s["ship_class"]), s["ship_name"], Loc.t("hud.hull"), int(float(s["ship_hull"]) * 100.0)])
 	var repair_cost: int = PortService.repair_cost(s)
 	add_item_row(Loc.t("port.repair") + (" (%d g)" % repair_cost if repair_cost > 0 else ""), [[Loc.t("port.repair_do"), _repair if repair_cost > 0 else Callable()]])
+	var prem: int = Finance.insurance_premium(s)
+	if bool(s["insured"]):
+		add_text(Loc.t("insure.active"))
+	else:
+		add_item_row("%s (%d g)" % [Loc.t("insure.label"), prem], [[Loc.t("insure.buy"), _insure if prem <= int(s["gold"]) else Callable()]])
 	add_text(Loc.t("port.ships_for_sale"))
 	for class_id in PortData.CLASS_ORDER:
 		if class_id == s["ship_class"] or not PortData.can_sell_class(port_id, class_id):
@@ -38,6 +43,12 @@ func build() -> void:
 		add_item_row("%s  %s %d/%d  (%d g)" % [Loc.t("upg." + line), Loc.t("port.tier"), tier, Upgrades.TIERS, cost],
 			[[Loc.t("port.install"), _upgrade.bind(line, level) if cost <= int(s["gold"]) else Callable()]])
 	add_button("menu.back", close)
+
+
+func _insure() -> void:
+	if Finance.buy_insurance(state()):
+		toast("insure.bought")
+	_rebuild()
 
 
 func _repair() -> void:
