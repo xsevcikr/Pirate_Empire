@@ -162,6 +162,6 @@ func test_campaign_acts_1_to_3_complete_in_order() -> void:
 	while not c.is_done() and guard < 50:
 		assert_true(c.complete(c.current_beat()))
 		guard += 1
-	assert_eq(c.finished_acts, 3)
-	assert_true(c.unlocked.has("act4"))
-	assert_eq(c.done_beats.size(), 12)
+	assert_eq(c.finished_acts, 5)
+	assert_true(c.unlocked.has("act4") and c.unlocked.has("act5"))
+	assert_eq(c.done_beats.size(), 20)
