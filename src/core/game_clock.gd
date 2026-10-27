@@ -6,7 +6,7 @@ signal hour_changed(day: int, hour: float)
 const DAY_LENGTH_S: float = 2880.0
 
 var day: int = 1
-var hour: float = 8.0
+var hour: float = 10.0
 var time_scale: float = 1.0
 var paused: bool = false
 

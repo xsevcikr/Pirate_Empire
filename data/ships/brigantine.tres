@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ShipStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/ships/ship_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+class_id = "brigantine"
+display_name = "Brigantine"
+mass_kg = 280000.0
+length_m = 31.0
+beam_m = 7.5
+draft_m = 2.1
+freeboard_m = 2.6
+max_speed_kn = 13.0
+turn_rate_deg_s = 10.0
+square_rig = false
+accel_tau_s = 18.0
+mast_count = 2
+hull_hp = 3400.0
+sail_hp = 900.0
+rudder_hp = 700.0
+armor = 25.0
+guns_per_side = 9
+section_count = 8
+crew_min = 24
+crew_max = 90
+cargo_t = 150.0
+price = 22000
+upkeep_per_day = 90
+infamy_required = 900

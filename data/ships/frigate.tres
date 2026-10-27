@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ShipStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/ships/ship_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+class_id = "frigate"
+display_name = "Frigate"
+mass_kg = 650000.0
+length_m = 42.0
+beam_m = 10.0
+draft_m = 3.0
+freeboard_m = 3.4
+max_speed_kn = 12.5
+turn_rate_deg_s = 7.5
+square_rig = true
+accel_tau_s = 22.0
+mast_count = 3
+hull_hp = 6000.0
+sail_hp = 1500.0
+rudder_hp = 900.0
+armor = 40.0
+guns_per_side = 16
+section_count = 8
+crew_min = 60
+crew_max = 200
+cargo_t = 250.0
+price = 55000
+upkeep_per_day = 220
+infamy_required = 2000
