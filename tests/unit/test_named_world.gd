@@ -111,7 +111,7 @@ func test_migration_from_v6_adds_chart_state() -> void:
 	s.erase("course")
 	s["version"] = 6
 	var m: Dictionary = SaveGame.migrate(s)
-	assert_eq(m["version"], 7)
+	assert_eq(m["version"], SaveGame.VERSION)
 	assert_true(m["streams_known"] is Array and m["course"] is Array)
 
 

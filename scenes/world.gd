@@ -1,6 +1,7 @@
 extends Node3D
 ## M1 sailing scene: ocean, sky, wind, one sloop and a chase camera.
 
+const DOCK_HIT_RADIUS_M: float = 28.0
 const SLOOP: ShipStats = preload("res://data/ships/sloop.tres")
 
 var wind := WindModel.new()
@@ -19,6 +20,8 @@ var player_controller: PlayerController
 var hud: SailingHud
 var convoys: ConvoyManager
 var streamer: WorldStreamer
+var debris: DebrisManager
+var _dock_hit_cool: float = 0.0
 var discovery: Discovery
 var _discover_accum: float = 99.0
 var _drift_log: Dictionary = {}
@@ -59,7 +62,9 @@ func _ready() -> void:
 	add_child(ocean)
 
 	streamer = WorldStreamer.new()
+	streamer.world = self
 	add_child(streamer)
+	streamer.building_destroyed.connect(_on_building_destroyed)
 
 	ship = Ship.new()
 	ship.stats = Session.player_stats()
@@ -70,6 +75,12 @@ func _ready() -> void:
 	add_child(ship)
 	ocean.follow = ship
 	streamer.player = ship
+	debris = DebrisManager.new()
+	debris.ocean = ocean.model
+	debris.player = ship
+	debris.picked_up.connect(_on_debris_picked_up)
+	add_child(debris)
+	EventBus.ship_sunk.connect(_on_ship_sunk)
 	streamer.load_all_near(Vector2(ship.position.x, ship.position.z))
 
 	projectiles = ProjectileManager.new()
@@ -240,6 +251,17 @@ func _game_tick() -> void:
 		_daily_crew_tick()
 		Finance.accrue(Session.state, 1.0)
 		Blockade.heal_days(Session.state, 1.0)
+		_rebuild_tick()
+
+
+## Buildings destroyed three or more days ago are rebuilt.
+func _rebuild_tick() -> void:
+	var now: int = int(Session.state["day"])
+	for id: String in Session.state["destroyed"].keys():
+		if float(now - int(Session.state["destroyed"][id])) >= DestructionData.REBUILD_DAYS:
+			Session.state["destroyed"].erase(id)
+	for id: String in streamer.ports:
+		streamer.ports[id].rebuild_due()
 
 
 ## Armed ships that are hostile to a port's faction and parked within 1.5 km count towards a blockade.
@@ -474,6 +496,72 @@ static func _compass(v: Vector2) -> String:
 	return names[int(round(fposmod(v.angle(), TAU) / (TAU / 8.0))) % 8]
 
 
+## A fort part or harbour building fell: the owner's standing drops, a harbour building thins the port's stock.
+func _on_building_destroyed(b: DestructibleBuilding, by_player: bool) -> void:
+	EventBus.building_destroyed.emit(b.port_id, b.kind, by_player)
+	if not by_player or not Session.has_state() or not PortData.PORTS.has(b.port_id):
+		return
+	var faction: String = PortData.PORTS[b.port_id]["faction"]
+	Session.state["rep"][faction] = clampf(float(Session.state["rep"][faction]) + DestructionData.rep_cost(b.kind), -100.0, 100.0)
+	if not DestructionData.is_fort_part(b.kind):
+		Blockade.building_destroyed(Session.state, b.port_id)
+	EventBus.toast.emit(Loc.t("destroy.fell") % [Loc.t("building." + b.kind), PortData.PORTS[b.port_id]["name"]])
+
+
+func _on_ship_sunk(pos: Vector2, class_id: String) -> void:
+	if not Session.has_state():
+		return
+	var wrecks: Array = Session.state["wrecks"]
+	wrecks.append({"x": pos.x, "y": pos.y, "class": class_id, "day": int(Session.state["day"])})
+	while wrecks.size() > 60:
+		wrecks.pop_front()
+
+
+func _on_debris_picked_up(kind: String, payload: Dictionary) -> void:
+	var s: Dictionary = Session.state
+	if payload.has("cargo"):
+		for g: String in payload["cargo"]:
+			var room: float = PortService.cargo_free(s)
+			var units: float = minf(float(payload["cargo"][g]), floorf(maxf(room, 0.0) / Goods.DATA[g]["weight"]))
+			if units > 0.0:
+				s["cargo"][g] = float(s["cargo"].get(g, 0.0)) + units
+				EventBus.toast.emit(Loc.t("destroy.salvaged") % [int(units), Loc.t("good." + g)])
+	if payload.has("supplies"):
+		for k: String in payload["supplies"]:
+			s["supplies"][k] = float(s["supplies"][k]) + float(payload["supplies"][k])
+		EventBus.toast.emit(Loc.t("destroy.barrel"))
+
+
+## Kedging, tide and dumping cargo free a ship that is aground; a fast arrival at the pier costs a fine.
+func _seamanship(delta: float) -> void:
+	var g: Grounding = ship.grounding
+	if g.stuck:
+		var clock: Node = get_node_or_null("/root/GameClock")
+		var hours: float = (float(clock.day) * 24.0 + float(clock.hour)) if clock != null else 0.0
+		var freed: bool = g.kedge(delta, Input.is_action_pressed("kedge")) or g.tide_check(OceanCurrent.tide_m(hours))
+		if Input.is_action_just_pressed("dump_cargo") and Session.has_state():
+			var dumped: Dictionary = g.dump_cargo(Session.state["cargo"])
+			freed = not g.stuck
+			if not dumped.is_empty():
+				EventBus.toast.emit(Loc.t("ship.dumped"))
+		if freed:
+			ship.global_position += Vector3(g.normal.x, 0.0, g.normal.y) * 12.0
+			EventBus.toast.emit(Loc.t("ship.freed"))
+	_dock_hit_cool = maxf(_dock_hit_cool - delta, 0.0)
+	var port: String = PortData.port_near(Vector2(ship.global_position.x, ship.global_position.z), DOCK_HIT_RADIUS_M)
+	if port != "" and _dock_hit_cool <= 0.0 and ship.speed_knots() > CollisionModel.DOCK_MAX_KN:
+		_dock_hit_cool = 6.0
+		var hit: Dictionary = CollisionModel.dock_hit(ship.speed_knots(), ship.stats.mass_kg)
+		ship.damage.apply_impact(0, float(hit["bow_damage"]), 0.0, false)
+		if PortData.PORTS[port]["lawful"] and Session.has_state():
+			Session.state["gold"] = maxi(int(Session.state["gold"]) - int(hit["fine"]), 0)
+			EventBus.toast.emit(Loc.t("ship.dock_fine") % int(hit["fine"]))
+		for b in streamer.ports[port].buildings if streamer.ports.has(port) else []:
+			if b.kind == "dock" and b.is_alive():
+				b.hurt(float(hit["dock_damage"]), true)
+				break
+
+
 func open_map() -> void:
 	if get_node_or_null("MapLayer") != null or get_node_or_null("PortLayer") != null:
 		return
@@ -495,6 +583,7 @@ func _physics_process(delta: float) -> void:
 	if Session.has_state():
 		_game_tick()
 	_navigate(delta)
+	_seamanship(delta)
 	if overlay != null:
 		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else "")
 		var st: Dictionary = Session.state

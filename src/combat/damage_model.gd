@@ -211,6 +211,38 @@ func apply_hit(hit: HitInfo) -> Dictionary:
 	return result
 
 
+## Applies a collision of `dmg` hull damage to the section that touched, spilling into neighbours like a cannonball.
+## `leak_t_per_s` is added to that section when the hit was big enough to open one. Returns what happened.
+func apply_impact(section: int, dmg: float, leak_t_per_s: float, breaks_mast: bool) -> Dictionary:
+	var result: Dictionary = {"hull": dmg, "breached": false, "mast_fell": -1}
+	var remaining: float = dmg
+	var target: int = clampi(section, 0, section_count - 1)
+	for _hop in section_count:
+		var before: float = section_hp[target]
+		var taken: float = minf(before, remaining)
+		section_hp[target] = before - taken
+		remaining -= taken
+		if before > 0.0 and section_hp[target] <= 0.0:
+			leak_rate[target] = maxf(leak_rate[target] * 3.0, BREACH_MIN_LEAK_T_PER_S)
+			section_breached.emit(target)
+			result["breached"] = true
+		if remaining <= 0.0:
+			break
+		target = neighbours(target)[rng.randi() % 2]
+	if leak_t_per_s > 0.0:
+		leak_rate[section] += leak_t_per_s
+	if breaks_mast:
+		for i in mast_hp.size():
+			if not mast_down[i]:
+				mast_hp[i] = 0.0
+				mast_down[i] = true
+				result["mast_fell"] = i
+				mast_fell.emit(i)
+				break
+	_check_sunk()
+	return result
+
+
 func ignite(section: int) -> void:
 	if fire_level[section] == 0:
 		fire_level[section] = 1

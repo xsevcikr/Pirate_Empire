@@ -308,3 +308,19 @@ dock.sign_outfitter,Outfitter,Zbrojnice
 dock.sign_quests,Quest board,Zakázky
 dock.sign_bank,Bank,Banka
 dock.sign_pier,Back to the ship,Zpět na loď
+building.wall,fort wall,hradba pevnosti
+building.tower,cannon tower,dělová věž
+building.gate,fort gate,brána pevnosti
+building.dock,dock,molo
+building.warehouse,warehouse,skladiště
+building.crane,crane,jeřáb
+building.house,house,dům
+building.lighthouse,lighthouse,maják
+destroy.fell,The %s of %s has fallen.,%s v přístavu %s padl.
+destroy.salvaged,Salvaged %d %s from the wreckage.,Z vraku zachráněno %d %s.
+destroy.barrel,You haul a floating barrel aboard.,Vytahuješ plovoucí sud na palubu.
+ship.aground,"Aground! Hold X to kedge off, wait for the tide, or press B to dump cargo.","Na mělčině! Drž X pro vyvazení, počkej na příliv, nebo stiskni B pro vyhození nákladu."
+ship.overboard,%d of the crew were thrown overboard!,%d členů posádky spadlo přes palubu!
+ship.dumped,Cargo thrown overboard. The ship floats free.,Náklad vyhozen přes palubu. Loď je volná.
+ship.freed,The ship comes free.,Loď je volná.
+ship.dock_fine,You hit the pier. The harbour guard fines you %d gold.,Narazil jsi do mola. Přístavní stráž ti dává pokutu %d zlata.
