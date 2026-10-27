@@ -11,6 +11,8 @@ var player: Ship
 var targets: Array[Ship] = []
 var _controllers: Dictionary = {}  ## Ship -> BoardingController
 var _busy: bool = false
+## Play boardings as a 3D deck fight. Off in headless runs, where the scripted tests use the crew-pool fight.
+var use_deck_view: bool = DisplayServer.get_name() != "headless"
 
 
 func add_target(ship: Ship) -> void:
@@ -42,10 +44,24 @@ func _physics_process(delta: float) -> void:
 		bc.target = t
 		bc.stance = BoardingController.Stance.FULL_ASSAULT
 		bc.seed_value = int(Session.state.get("seed", 1)) + int(t.get_meta("loot_seed", 7))
+		bc.game_state = Session.state
+		bc.use_deck = use_deck_view
+		bc.deck_started.connect(_on_deck_started.bind(bc))
 		add_child(bc)
 		bc.finished.connect(_on_boarding_finished.bind(t))
 		_controllers[t] = bc
 	(_controllers[t] as BoardingController).process_grapple(Input.is_action_pressed("grapple"), delta)
+
+
+func _on_deck_started(deck: DeckCombat, bc: BoardingController) -> void:
+	var scene := DeckFightScene.new()
+	bc.deck_driven = true
+	get_tree().current_scene.add_child(scene)
+	scene.start(deck)
+	get_tree().paused = true
+	scene.fight_over.connect(func(_r: Dictionary) -> void:
+		get_tree().paused = false
+		bc.complete_deck_fight())
 
 
 func _on_boarding_finished(won: bool, ship: Ship) -> void:
@@ -76,6 +92,7 @@ func _on_boarding_finished(won: bool, ship: Ship) -> void:
 		lines.append(Loc.t("prize.map_fragment"))
 	var screen := PrizeScreen.new()
 	screen.summary_lines = lines
+	screen.can_capture = FateEffects.prize_crew_available(Session.state) > 0
 	var layer := CanvasLayer.new()
 	layer.layer = 60
 	layer.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -88,11 +105,22 @@ func _on_fate(fate: int, ship: Ship, loot: Dictionary, layer: CanvasLayer) -> vo
 	layer.queue_free()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(Session.state["seed"]) + int(Session.state["day"])
-	var effects: Dictionary = CaptureFate.resolve(fate as CaptureFate.Fate, {"ship_value": ship.stats.price, "cargo_value": 0.0, "equipment_value": 0.0}, rng)
 	var faction: String = str(ship.get_meta("rep_faction", "merchant"))
+	var info: Dictionary = FateEffects.fate_info(Session.state, ship.stats.price, ship.crew.count, faction == "merchant")
+	var effects: Dictionary = CaptureFate.resolve(fate as CaptureFate.Fate, info, rng)
 	Session.state["rep"][faction] = clampf(float(Session.state["rep"][faction]) + float(effects["reputation"]), -100.0, 100.0)
+	var applied: Dictionary = FateEffects.apply(Session.state, effects, ship.stats.class_id, str(ship.display_label))
+	var bus: Node = Svc.node("EventBus")
+	if applied["gold"] > 0:
+		bus.toast.emit(Loc.t("prize.fate_gold") % applied["gold"])
+	if applied["recruits"] > 0:
+		bus.toast.emit(Loc.t("prize.fate_recruits") % applied["recruits"])
+	if applied["ship_added"]:
+		bus.toast.emit(Loc.t("prize.fate_ship"))
+	if applied["rescue_fleet"]:
+		bus.toast.emit(Loc.t("prize.fate_rescue"))
 	finish_prize(ship, loot, fate)
-	if fate == CaptureFate.Fate.STRIP_AND_SINK:
+	if fate != CaptureFate.Fate.RELEASE and fate != CaptureFate.Fate.RANSOM:
 		ship.queue_free()
 	_busy = false
 

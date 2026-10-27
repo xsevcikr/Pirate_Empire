@@ -3,6 +3,7 @@ extends Node
 ## Runs a boarding between two ships: grapple, pull together, crew fight, then the fate of the prize.
 
 signal finished(player_won: bool)
+signal deck_started(deck: DeckCombat)
 
 enum Stance { FULL_ASSAULT, BALANCED, HOLD_BACK }
 ## The captain on deck is worth this many ordinary men in the crew-pool fight (PLAYER_KILL_VALUE precedent).
@@ -17,7 +18,15 @@ var sim: BoardingSim
 var seed_value: int = 1
 var active: bool = false
 var player_won: bool = false
+## Fight the boarding as a real-time deck battle (M14) instead of the crew-pool abstraction. With `deck_driven`
+## false the captain plays himself through DeckBridge.autopilot; a DeckFightScene sets it true and ticks the deck.
+var use_deck: bool = false
+var deck_driven: bool = false
+var deck: DeckCombat
+var deck_result: Dictionary = {}
+var game_state: Dictionary = {}
 var _start_gap: float = 20.0
+var _committed: int = 0
 
 
 func relative_speed_kn() -> float:
@@ -53,6 +62,10 @@ func _physics_process(delta: float) -> void:
 		grapple.tick(delta)
 		if grapple.is_locked():
 			_begin_fight()
+	elif active and deck != null:
+		if not deck_driven:
+			DeckBridge.autopilot(deck, delta)
+			deck.tick(delta)
 	elif active:
 		sim.tick(delta)
 		if sim.outcome != BoardingSim.Outcome.ONGOING:
@@ -61,12 +74,43 @@ func _physics_process(delta: float) -> void:
 
 func _begin_fight() -> void:
 	active = true
+	if use_deck:
+		_begin_deck_fight()
+		return
 	var a_n: int = int(round(attacker.crew.count * STANCE_FRACTION[stance]))
 	var d_n: int = int(round(target.crew.count * (1.0 + target.stats.boarding_defense)))
 	var attack_side := BoardingSide.new(a_n, attacker.crew.quality, attacker.crew.morale)
 	attack_side.pool += attacker.crew.captain_hands * CAPTAIN_FIGHT_VALUE
 	attack_side.start = attack_side.pool
 	sim = BoardingSim.new(attack_side, BoardingSide.new(d_n, target.crew.quality, target.crew.morale), seed_value)
+
+
+func _begin_deck_fight() -> void:
+	_committed = int(round(attacker.crew.count * STANCE_FRACTION[stance]))
+	var d_n: int = int(round(target.crew.count * (1.0 + target.stats.boarding_defense)))
+	deck = DeckBridge.build(_committed, attacker.crew.quality, attacker.crew.morale, target.faction, d_n, target.crew.quality,
+		target.crew.morale, game_state, seed_value)
+	deck.finished.connect(_on_deck_finished)
+	sim = deck.sim
+	deck_started.emit(deck)
+
+
+func _on_deck_finished(result: Dictionary) -> void:
+	active = false
+	player_won = bool(result["player_won"])
+	deck_result = result
+	var reserve: int = attacker.crew.count - _committed
+	attacker.crew.count = maxi(int(result["crew_left"]) + reserve, 1)  # the captain is not counted in the crew
+	if player_won:
+		target.crew.count = maxi(int(result["enemy_left"]), 0)
+		target.surrender()
+	if not deck_driven:
+		finished.emit(player_won)
+
+
+## A DeckFightScene calls this once its result banner is gone.
+func complete_deck_fight() -> void:
+	finished.emit(player_won)
 
 
 func _end_fight() -> void:
