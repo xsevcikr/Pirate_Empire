@@ -115,8 +115,27 @@ func _ready() -> void:
 	hud.clock = get_node_or_null("/root/GameClock")
 	add_child(hud)
 
+	Session.apply(self)
+	Game.change_state(Game.State.PLAYING)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause") and get_node_or_null("PauseMenu") == null:
+		var menu := PauseMenu.new()
+		menu.name = "PauseMenu"
+		menu.world = self
+		var layer := CanvasLayer.new()
+		layer.name = "PauseMenu"
+		layer.process_mode = Node.PROCESS_MODE_ALWAYS
+		layer.layer = 50
+		add_child(layer)
+		layer.add_child(menu)
+		menu.closed.connect(layer.queue_free)
+		get_viewport().set_input_as_handled()
+
 
 func _physics_process(delta: float) -> void:
+	Session.playtime_s += delta
 	wind.update(delta)
 	var ss: float = snappedf(wind.sea_state(), 0.1)
 	if absf(ss - _last_sea_state) > 0.05:

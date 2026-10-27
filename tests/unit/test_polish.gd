@@ -46,7 +46,7 @@ func test_save_file_write_read() -> void:
 func test_migration_from_v1_fixture() -> void:
 	var v1: String = '{"version": 1, "money": 4200, "reputation": -12, "hour": 9.5, "crew": 18}'
 	var s: Dictionary = SaveGame.from_json(v1)
-	assert_eq(s["version"], 2)
+	assert_eq(s["version"], SaveGame.VERSION)
 	assert_eq(s["gold"], 4200)
 	assert_near(s["rep"]["navy"], -12.0, 0.001)
 	assert_near(s["rep"]["pirate"], 20.0, 0.001)
