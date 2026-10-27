@@ -1,0 +1,11 @@
+keys,en,cs
+ui.play,Play,Hrát
+ui.quit,Quit,Konec
+ui.save,Save,Uložit
+ui.load,Load,Načíst
+hud.hull,Hull,Trup
+hud.crew,Crew,Posádka
+hud.wind,Wind,Vítr
+hud.grapple,Hold to grapple,Podrž pro přichycení
+boarding.victory,Victory! The ship is yours.,Vítězství! Loď je tvoje.
+mutiny.warning,The crew is close to mutiny.,Posádka se blíží vzpouře.

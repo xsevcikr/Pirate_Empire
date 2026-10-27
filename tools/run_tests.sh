@@ -8,3 +8,4 @@ godot --headless --path . -s res://tests/test_runner.gd
 for scenario in tests/integration/*.gd; do
 	godot --headless --path . --fixed-fps 60 -s "res://$scenario"
 done
+godot --headless --path . --fixed-fps 60 -s res://tools/soak.gd

@@ -15,3 +15,18 @@ func change_state(new_state: State) -> void:
 
 func _ready() -> void:
 	change_state(State.MENU)
+
+
+var crashed_last_session: bool = false
+
+
+func _enter_tree() -> void:
+	crashed_last_session = CrashLog.begin()
+	get_tree().set_auto_accept_quit(false)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		CrashLog.flush()
+		CrashLog.end()
+		get_tree().quit()
