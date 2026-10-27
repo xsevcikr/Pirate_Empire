@@ -13,6 +13,7 @@ const POINT_COLUMNS: int = 4
 const POINT_ROWS: int = 4
 
 signal sank_signal
+signal surrendered
 signal hit_taken(result: Dictionary)
 
 @export var stats: ShipStats
@@ -34,6 +35,10 @@ var crew: CrewState
 var broadside: Broadside
 var projectiles: ProjectileManager
 var display_label: String = ""
+var faction: String = "pirate"
+var last_attacker: Node = null
+var has_surrendered: bool = false
+var ai: ShipAI
 
 var _points: PackedVector3Array = PackedVector3Array()
 var _k_point: float = 0.0
@@ -48,6 +53,7 @@ func _ready() -> void:
 	mass = stats.mass_kg
 	collision_layer = 2
 	collision_mask = 2
+	add_to_group("ships")
 	damage = DamageModel.new(stats)
 	crew = CrewState.new(stats)
 	damage.mast_fell.connect(_on_mast_fell)
@@ -236,6 +242,10 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 	info.gun_id = gun_id
 	info.ammo_id = ammo_id
 	info.damage = GunData.damage_at_range(gun_id, distance, ammo_id)
+	if faction == "player":
+		info.damage *= float(Difficulty.value("damage_taken"))
+	if source != null and source != self:
+		last_attacker = source
 	info.source = source
 	var water_y: float = ocean.height_at(world_pos.x, world_pos.z) if ocean else 0.0
 	info.below_waterline = world_pos.y < water_y
@@ -280,3 +290,17 @@ func _update_damage_visuals() -> void:
 func _process(delta: float) -> void:
 	if visuals:
 		visuals.update(delta)
+
+
+func strength_rating() -> float:
+	var gun_damage: float = GunData.GUNS[broadside.gun_id]["damage"]
+	return AiLogic.strength(damage.hull_fraction(), stats.guns_per_side, gun_damage,
+		float(crew.count) / float(stats.crew_max), stats.armor)
+
+
+func surrender() -> void:
+	if has_surrendered:
+		return
+	has_surrendered = true
+	sail_level = 0
+	surrendered.emit()
