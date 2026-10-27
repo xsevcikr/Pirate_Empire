@@ -336,5 +336,5 @@ func test_save_migrates_to_v9_with_tours() -> void:
 	old.erase("tours")
 	var m: Dictionary = SaveGame.migrate(old)
 	assert_eq(m["version"], SaveGame.VERSION)
-	assert_eq(SaveGame.VERSION, 12)
+	assert_true(SaveGame.VERSION >= 9, "the tours record exists from v9 on")
 	assert_true(m.has("tours"))
