@@ -42,16 +42,13 @@ func _ready() -> void:
 			_buoys(8)
 
 
-func _mat(c: Color, emit: float = 0.0, alpha: float = 1.0) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
+func _mat(c: Color, emit: float = 0.0, alpha: float = 1.0) -> Material:
+	if alpha >= 1.0:
+		return Kenney.flat(Look.cartoon(c), minf(emit * 0.3, 0.7))
+	var m := StandardMaterial3D.new()  # see-through pieces stay flat-coloured and unlit
 	m.albedo_color = Color(c.r, c.g, c.b, alpha)
-	m.roughness = 0.8
-	if alpha < 1.0:
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	if emit > 0.0:
-		m.emission_enabled = true
-		m.emission = c
-		m.emission_energy_multiplier = emit
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	return m
 
 
@@ -71,7 +68,7 @@ func _ring() -> void:
 	post.top_radius = 1.0
 	post.bottom_radius = 1.4
 	post.height = 14.0
-	var mat: StandardMaterial3D = _mat(Color(0.9, 0.35, 0.2), 1.2)
+	var mat: Material = _mat(Color(0.9, 0.35, 0.2), 1.2)
 	for i in n:
 		var a: float = TAU * float(i) / float(n)
 		_mesh(post, mat, Vector3(cos(a), 0.0, sin(a)) * radius + Vector3(0, 5.0, 0))

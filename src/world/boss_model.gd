@@ -38,17 +38,13 @@ func _ready() -> void:
 			_leviathan()
 
 
-func _mat(c: Color, rough: float = 0.6, emit: float = 0.0, alpha: float = 1.0, metal: float = 0.0) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
+func _mat(c: Color, _rough: float = 0.6, emit: float = 0.0, alpha: float = 1.0, _metal: float = 0.0) -> Material:
+	if alpha >= 1.0:
+		return Kenney.flat(Look.cartoon(c), minf(emit * 0.3, 0.7))
+	var m := StandardMaterial3D.new()  # ghostly pieces stay flat-coloured, unlit and see-through
 	m.albedo_color = Color(c.r, c.g, c.b, alpha)
-	m.roughness = rough
-	m.metallic = metal
-	if alpha < 1.0:
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	if emit > 0.0:
-		m.emission_enabled = true
-		m.emission = c
-		m.emission_energy_multiplier = emit
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	return m
 
 
@@ -111,8 +107,8 @@ func _arm(parent: Node3D, base: Vector3, yaw: float, length: float, thick: float
 	var seg_len: float = length / float(segs)
 	var cur := Node3D.new()
 	root.add_child(cur)
-	var skin_m: StandardMaterial3D = _mat(skin, 0.45)
-	var sucker_m: StandardMaterial3D = _mat(skin.lightened(0.45), 0.3)
+	var skin_m: Material = _mat(skin, 0.45)
+	var sucker_m: Material = _mat(skin.lightened(0.45), 0.3)
 	for i in segs:
 		var r0: float = thick * (1.0 - float(i) / float(segs) * 0.85)
 		var r1: float = thick * (1.0 - float(i + 1) / float(segs) * 0.85)
@@ -206,17 +202,13 @@ func _shell_king() -> void:
 
 
 func _ghost_ship() -> void:
-	var bone := Color(0.55, 0.85, 0.75)
-	var hull: StandardMaterial3D = _mat(bone.darkened(0.55), 0.7, 0.4, 0.78)
-	_part(self, _box(Vector3(24, 14, 90)), hull, Vector3(0, 6, 0))
-	_part(self, _box(Vector3(20, 12, 24)), hull, Vector3(0, 18, -34))
-	for i in 10:
-		var z: float = -38.0 + float(i) * 8.0
-		for s in [-1.0, 1.0]:
-			_part(self, _cyl(0.6, 0.6, 12.0), _mat(Color(0.8, 0.9, 0.85), 0.5, 0.6, 0.85), Vector3(s * 12.2, 17.0, z), Vector3(0, 0, s * 12.0))
-	for mz in [-22.0, 6.0, 30.0]:
-		_part(self, _cyl(1.0, 1.3, 70.0), _mat(Color(0.3, 0.35, 0.33), 0.8, 0.0, 0.9), Vector3(0, 44, mz))
-		_part(self, _box(Vector3(34, 26, 0.4)), _mat(bone, 0.9, 0.9, 0.4), Vector3(0, 52, mz + 1.0))
+	var parts: Dictionary = ShipModel.parts("ship-ghost")
+	var sc: float = 90.0 / float(parts["length"])
+	var ship: Node3D = Kenney.spawn("pirate", "ship-ghost")
+	ship.rotation.y = PI
+	ship.scale = Vector3.ONE * sc
+	ship.position.y = -ShipModel.WATER_Y * sc
+	add_child(ship)
 	_part(self, _sphere(3.0), _mat(Color(0.9, 0.95, 0.9), 0.5, 0.8), Vector3(0, 28, -40))
 	_eye(self, Vector3(-1.2, 28.5, -37.0), 0.7, Color(0.3, 1.0, 0.7))
 	_eye(self, Vector3(1.2, 28.5, -37.0), 0.7, Color(0.3, 1.0, 0.7))
@@ -257,7 +249,7 @@ func _colossus() -> void:
 
 func _leviathan() -> void:
 	var ice := Color(0.62, 0.82, 0.95)
-	var m: StandardMaterial3D = _mat(ice, 0.2, 0.0, 0.92)
+	var m: Material = _mat(ice, 0.2, 0.0, 0.92)
 	m.metallic = 0.2
 	for i in 8:
 		var r: float = 9.0 - float(i) * 0.5

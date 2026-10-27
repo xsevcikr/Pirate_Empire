@@ -12,7 +12,7 @@ var hits: int = 0
 var misses: int = 0
 var _pool: Array[MeshInstance3D] = []
 var _mesh: SphereMesh
-var _material: StandardMaterial3D
+var _material: ShaderMaterial
 
 
 func _ready() -> void:
@@ -21,10 +21,7 @@ func _ready() -> void:
 	_mesh.height = 0.28
 	_mesh.radial_segments = 8
 	_mesh.rings = 4
-	_material = StandardMaterial3D.new()
-	_material.albedo_color = Color(0.08, 0.08, 0.09)
-	_material.metallic = 0.6
-	_material.roughness = 0.4
+	_material = Kenney.flat(Color(0.31, 0.32, 0.38))
 	_mesh.material = _material
 
 

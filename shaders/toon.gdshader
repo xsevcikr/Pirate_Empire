@@ -13,6 +13,13 @@ uniform float paint_mix : hint_range(0.0, 1.0) = 0.0;  // hull paint: recolours 
 uniform float emit_amount : hint_range(0.0, 4.0) = 0.0;
 uniform float saturation : hint_range(0.5, 2.0) = 1.12;
 uniform vec4 flash : source_color = vec4(0.0);
+uniform bool vcol = false;  // multiply by the vertex or MultiMesh instance colour
+
+varying vec4 v_col;
+
+void vertex() {
+	v_col = COLOR;
+}
 
 vec3 saturate_col(vec3 c, float s) {
 	float l = dot(c, vec3(0.299, 0.587, 0.114));
@@ -23,6 +30,9 @@ void fragment() {
 	vec3 c = albedo * tint;
 	if (use_tex) {
 		c *= texture(albedo_tex, UV).rgb;
+	}
+	if (vcol) {
+		c *= pow(v_col.rgb, vec3(1.6));
 	}
 	c = saturate_col(c, saturation);
 	c = mix(c, paint * (dot(c, vec3(0.299, 0.587, 0.114)) / 0.45), paint_mix);

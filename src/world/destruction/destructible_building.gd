@@ -49,7 +49,7 @@ func _ready() -> void:
 	cs.shape = box
 	cs.position.y = size.y * 0.5
 	add_child(cs)
-	_material = _toon(wall_color)
+	_material = _toon(Look.cartoon(wall_color))
 	_body = MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size
@@ -63,7 +63,7 @@ func _ready() -> void:
 		var prism := PrismMesh.new()
 		prism.size = Vector3(size.x + 1.2, size.y * 0.45, size.z + 1.2)
 		_roof.mesh = prism
-		_roof.material_override = Kenney.flat(roof_color)
+		_roof.material_override = Kenney.flat(Look.cartoon(roof_color))
 		_roof.position.y = size.y + prism.size.y * 0.5
 		add_child(_roof)
 	if is_ruin:
@@ -116,7 +116,7 @@ func _apply_cracks() -> void:
 	if stage == _stage or stage >= 3:
 		return
 	_stage = stage
-	_set_wall(wall_color.darkened(0.18 * float(stage)))
+	_set_wall(Look.cartoon(wall_color).darkened(0.18 * float(stage)))
 	# a dark crack slab on the front face for each stage reached
 	var crack := MeshInstance3D.new()
 	var cm := BoxMesh.new()
@@ -163,7 +163,7 @@ func rebuild() -> void:
 	hp = max_hp
 	_stage = 0
 	collision_layer = 4
-	_set_wall(wall_color)
+	_set_wall(Look.cartoon(wall_color))
 	if _body != null:
 		_body.visible = true
 	if _roof != null:

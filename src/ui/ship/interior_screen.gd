@@ -35,10 +35,10 @@ func build() -> void:
 	cont.add_child(_vp)
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.03, 0.02, 0.02)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.45, 0.38, 0.32)
-	env.ambient_light_energy = 1.8
+	env.background_color = Color(0.16, 0.14, 0.2)
+	Look.apply_environment(env)
+	env.ambient_light_color = Color(0.8, 0.7, 0.62)
+	env.ambient_light_energy = 1.2
 	var we := WorldEnvironment.new()
 	we.environment = env
 	_vp.add_child(we)

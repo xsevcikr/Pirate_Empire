@@ -27,3 +27,8 @@ static func apply_sun(sun: DirectionalLight3D, max_distance: float) -> void:
 	sun.shadow_opacity = 0.9
 	sun.shadow_blur = 1.6
 	sun.directional_shadow_max_distance = max_distance
+
+
+## Lifts a realistic colour towards the bright, clean tones of the Kenney palette.
+static func cartoon(c: Color) -> Color:
+	return Color.from_hsv(c.h, clampf(c.s * 1.15 + 0.08, 0.0, 1.0), clampf(c.v * 0.6 + 0.45, 0.0, 1.0))

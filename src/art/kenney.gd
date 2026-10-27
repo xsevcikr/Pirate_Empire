@@ -163,6 +163,19 @@ static func flat(c: Color, emit: float = 0.0) -> ShaderMaterial:
 	return _flats[key] as ShaderMaterial
 
 
+static var _vcol: ShaderMaterial
+
+
+## A white toon material that takes its colour from vertex or MultiMesh instance colours.
+static func vcol() -> ShaderMaterial:
+	if _vcol == null:
+		_vcol = ShaderMaterial.new()
+		_vcol.shader = TOON
+		_vcol.set_shader_parameter("use_tex", false)
+		_vcol.set_shader_parameter("vcol", true)
+	return _vcol
+
+
 const PLANKS: Shader = preload("res://shaders/planks.gdshader")
 
 
