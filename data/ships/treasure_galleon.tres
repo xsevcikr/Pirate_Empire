@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="ShipStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/ships/ship_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+class_id = "treasure_galleon"
+display_name = "Treasure Galleon"
+mass_kg = 2600000.0
+length_m = 66.0
+beam_m = 16.0
+draft_m = 4.8
+freeboard_m = 5.6
+max_speed_kn = 8.5
+turn_rate_deg_s = 4.2
+square_rig = true
+accel_tau_s = 34.0
+mast_count = 4
+hull_hp = 17000.0
+sail_hp = 3200.0
+rudder_hp = 1400.0
+armor = 80.0
+guns_per_side = 24
+section_count = 8
+crew_min = 120
+crew_max = 420
+cargo_t = 1300.0
+price = 250000
+upkeep_per_day = 800
+infamy_required = 6000
+boarding_defense = 0.3
+giant = true

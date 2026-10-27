@@ -1,7 +1,7 @@
 class_name WorldStreamer
 extends Node
-## Keeps the islands (and the harbours on them) near the player in the scene and frees the rest. At most one
-## slice of one island is built per frame, so sailing across the map never stalls a frame.
+## Keeps the islands (and the harbours and landings on them) near the player in the scene and frees the rest. At most
+## one slice of one island is built per frame, so sailing across the map never stalls a frame.
 
 const LOAD_RADIUS_M: float = 3200.0
 const UNLOAD_RADIUS_M: float = 4200.0
@@ -15,6 +15,7 @@ var loaded: Dictionary = {}  ## island index -> Island
 var _unload_due: Array[int] = []
 var _forts_due: Array[PortScene] = []
 var _ports_due: Array[String] = []
+var _landings_due: Array[int] = []
 var ports: Dictionary = {}  ## port id -> PortScene
 var peak_loaded: int = 0
 var loads: int = 0
@@ -68,6 +69,11 @@ func pump() -> void:
 	if not _ports_due.is_empty():
 		_build_port(_ports_due.pop_front())
 		return
+	if not _landings_due.is_empty():
+		var li: int = _landings_due.pop_front()
+		if loaded.has(li):
+			LandingSite.build(loaded[li], gen, li)
+		return
 	if _building != null:
 		if not is_instance_valid(_building) or not _building.build_next_stage():
 			_building = null
@@ -89,6 +95,8 @@ func pump() -> void:
 	peak_loaded = maxi(peak_loaded, loaded.size())
 	if isl["city"] != "":
 		_ports_due.append(IslandData.port_id_of(isl["city"]))
+	elif Landings.has_landing(isl):
+		_landings_due.append(i)
 
 
 ## The harbour's buildings are a frame of work of their own, so a port is built the pump after its island.
@@ -110,6 +118,7 @@ func _unload(i: int) -> void:
 	node.queue_free()
 	loaded.erase(i)
 	unloads += 1
+	_landings_due.erase(i)
 	var city: String = gen.islands[i]["city"]
 	if city != "":
 		var id: String = IslandData.port_id_of(city)

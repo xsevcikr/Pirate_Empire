@@ -29,3 +29,5 @@ extends Resource
 @export var infamy_required: int = 0
 @export var gun_id: String = "6pdr"  ## gun type in each battery (see GunData.GUNS)
 @export var boarding_defense: float = 0.0  ## fraction added to the defending crew (high castles)
+## Late-game giant: sold only at grand shipyards, and too big for a village pier.
+@export var giant: bool = false

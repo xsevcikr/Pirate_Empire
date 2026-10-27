@@ -19,7 +19,7 @@ func _check(cond: bool, msg: String) -> void:
 func _initialize() -> void:
 	GameInput.register()
 	Session.begin_new("Test", 1, 1)
-	for cls in ["cutter", "sloop", "schooner", "brigantine", "frigate", "galleon", "man_o_war", "lugger", "revenant", "sovereign"]:
+	for cls in PortData.CLASS_ORDER + PackedStringArray(["lugger", "revenant", "sovereign"]):
 		var stats: ShipStats = load("res://data/ships/%s.tres" % cls)
 		var state: Dictionary = SaveGame.new_state()
 		state["gold"] = 3000

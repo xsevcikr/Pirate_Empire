@@ -37,7 +37,11 @@ static func apply(ship: Ship, custom: Dictionary) -> void:
 	var sail: Dictionary = custom["sail"]
 	var canvas: Color = CustomizationData.SAIL_COLORS[int(sail["color"])]
 	var pattern: int = int(sail["pattern"])
-	for m: ShaderMaterial in v.sail_materials:
+	# a variant's own colours show until the captain picks something else
+	var livery: bool = ShipLivery.has_livery(ship.stats.class_id)
+	if livery:
+		ShipLivery.paint(v)
+	for m: ShaderMaterial in v.sail_materials if not livery or int(sail["color"]) != 0 or pattern != 0 else []:
 		m.set_shader_parameter("custom", int(sail["color"]) != 0 or pattern != 0)
 		m.set_shader_parameter("canvas_color", Vector3(canvas.r, canvas.g, canvas.b))
 		m.set_shader_parameter("pattern", pattern)
@@ -45,7 +49,7 @@ static func apply(ship: Ship, custom: Dictionary) -> void:
 		m.set_shader_parameter("mark_color", Vector3(ink.r, ink.g, ink.b))
 	var hull: Dictionary = custom["hull"]
 	var paint: Color = CustomizationData.HULL_PAINT_COLORS[int(hull["paint"])]
-	if v.hull_material != null:
+	if v.hull_material != null and not (livery and int(hull["paint"]) == 0):
 		v.hull_material.set_shader_parameter("paint", Vector3(paint.r, paint.g, paint.b))
 		v.hull_material.set_shader_parameter("paint_mix", 0.0 if int(hull["paint"]) == 0 else 0.85)
 	_rebuild_extras(ship, custom)
