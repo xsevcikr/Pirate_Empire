@@ -16,3 +16,7 @@ The full design spec lives in `docs/SPEC.md`.
 - `tools/qa.sh` runs the full suite and fails on any ERROR line.
 - `tools/soak.gd` runs a sailing and firing bot; pass `-- --minutes=240` for the 4-hour soak.
 - `tools/export.sh` exports Windows, Linux and macOS (needs Godot export templates installed).
+
+## Art
+
+The game uses the CC0 Kenney kits in `assets/kenney/` (licences in each folder) with a shared toon shader (`shaders/toon.gdshader`) and look (`src/art/look.gd`). Everything the kits do not cover (sea, sky, bosses, effects) is built in code in the same flat-colour style.

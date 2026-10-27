@@ -3,5 +3,7 @@ PIRATE EMPIRE
 Design, code and build: Rob Sevcik with Claude
 Engine: Godot 4 (MIT licence)
 Physics: Jolt Physics (MIT licence)
+Art: Kenney (kenney.nl), CC0: Pirate Kit, Blocky Characters, Fantasy Town Kit, Castle Kit, Nature Kit,
+  Mini Forest, Mini Dungeon, Mini Arena
 
 Thanks to everyone who plays.
