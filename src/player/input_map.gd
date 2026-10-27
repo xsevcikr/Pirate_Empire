@@ -22,6 +22,8 @@ const ACTIONS: Dictionary = {
 	"world_map": [KEY_M],
 	"kedge": [KEY_X],
 	"dump_cargo": [KEY_B],
+	"tour_journal": [KEY_N],
+	"shanty": [KEY_H],
 	"ammo_1": [KEY_1],
 	"ammo_2": [KEY_2],
 	"ammo_3": [KEY_3],

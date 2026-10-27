@@ -22,6 +22,16 @@ const DEFS: Dictionary = {
 		"actions": [["tentacle_slam", "grab_and_crush"], ["pull_into_whirlpool", "ink_cloud"], ["head_emerges", "ram_it"]],
 		"untargetable_phases": [], "captain_hp": 0.0, "reward": "Kraken Ink",
 	},
+	"shell_king": {
+		"name": "The Shell King", "hp": 1200.0, "phases": 3, "thresholds": [1.0, 0.6, 0.3],
+		"actions": [["pincer_sweep", "burrow_burst"], ["shell_spin", "pincer_sweep"], ["burrow_burst", "shell_spin"]],
+		"untargetable_phases": [], "captain_hp": 0.0, "reward": "The Drowned Purse",
+	},
+	"sea_serpent": {
+		"name": "The Sea Serpent", "hp": 4000.0, "phases": 3, "thresholds": [1.0, 0.66, 0.33],
+		"actions": [["coil", "head_strike"], ["tail_sweep", "coil"], ["head_strike", "coil"]],
+		"untargetable_phases": [], "captain_hp": 0.0, "reward": "Song of the Sirens",
+	},
 	"black_ibrahim": {
 		"name": "Black Ibrahim", "hp": 20000.0, "phases": 3, "thresholds": [1.0, 0.6, 0.3],
 		"actions": [["fleet_duel", "frigate_formation"], ["mortar_rain", "bombard_bases"], ["burning_deck_duel", "attack_pattern_three"]],
