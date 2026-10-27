@@ -1,0 +1,28 @@
+extends SceneTree
+## xvfb-run godot --path . --rendering-method gl_compatibility -s res://tools/shot_world.gd -- out.png [frames]
+
+var _frames: int = 0
+var _out: String = "user://world.png"
+var _at: int = 200
+
+
+func _initialize() -> void:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if args.size() > 0:
+		_out = args[0]
+	if args.size() > 1:
+		_at = int(args[1])
+	Session.begin_new("Rob", 1, 7)
+	root.size = Vector2i(1280, 720)
+	var w: Node = load("res://scenes/world.tscn").instantiate()
+	root.add_child(w)
+	current_scene = w
+
+
+func _process(_d: float) -> bool:
+	_frames += 1
+	if _frames == _at:
+		root.get_texture().get_image().save_png(_out)
+		print("saved ", _out)
+		quit()
+	return false

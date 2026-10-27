@@ -6,8 +6,8 @@ extends Node3D
 signal fight_over(result: Dictionary)
 
 const ARENA_ORIGIN: Vector3 = Vector3(0.0, 400.0, 0.0)
-const CAM_BACK_M: float = 10.0
-const CAM_UP_M: float = 9.5
+const CAM_BACK_M: float = 11.0
+const CAM_UP_M: float = 6.5
 const LOCK_ON_M: float = 5.0
 const RESULT_HOLD_S: float = 2.5
 const FIGHTER_HEIGHT_M: float = 1.8
@@ -16,7 +16,7 @@ var combat: DeckCombat
 var hud: DeckHud
 var camera: Camera3D
 var _men: Dictionary = {}  ## fighter id -> DeckFighterView
-var _kegs: Array[MeshInstance3D] = []
+var _kegs: Array[Node3D] = []
 var _prev_camera: Camera3D
 var _hold_left: float = -1.0
 var _announced: bool = false
@@ -76,58 +76,53 @@ func _box(size: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
 
 
 func _build_deck() -> void:
-	var hw: float = DeckData.DECK_HALF_WIDTH_M
-	var hl: float = DeckData.DECK_HALF_LENGTH_M
-	_box(Vector3(hw * 2.0, 0.4, hl * 2.0), Vector3(0.0, -0.2, 0.0), Color(0.45, 0.31, 0.18))
-	for side in [-1.0, 1.0]:
-		_box(Vector3(0.25, 1.1, hl * 2.0), Vector3(side * hw, 0.55, 0.0), Color(0.32, 0.21, 0.12))
-	_box(Vector3(hw * 2.0, 1.1, 0.25), Vector3(0.0, 0.55, -hl), Color(0.32, 0.21, 0.12))
-	_box(Vector3(hw * 2.0, 1.1, 0.25), Vector3(0.0, 0.55, hl), Color(0.32, 0.21, 0.12))
-	for cover in combat.covers:
-		var r: float = float(cover["radius"])
-		var p: Vector2 = cover["pos"]
-		if r < 0.8:
-			var mast := MeshInstance3D.new()
-			var cyl := CylinderMesh.new()
-			cyl.top_radius = r * 0.8
-			cyl.bottom_radius = r
-			cyl.height = 9.0
-			mast.mesh = cyl
-			var mat := StandardMaterial3D.new()
-			mat.albedo_color = Color(0.5, 0.36, 0.2)
-			mast.material_override = mat
-			mast.position = Vector3(p.x, 4.5, p.y)
-			add_child(mast)
-		else:
-			_box(Vector3(r * 1.6, 1.0, r * 1.6), Vector3(p.x, 0.5, p.y), Color(0.55, 0.42, 0.25))
+	DeckArt.build_ship_side(self, -1.0, combat.covers)
+	var none: Array[Dictionary] = []
+	DeckArt.build_ship_side(self, 1.0, none)
 	for k in combat.kegs:
-		var keg := MeshInstance3D.new()
-		var cyl := CylinderMesh.new()
-		cyl.top_radius = 0.35
-		cyl.bottom_radius = 0.35
-		cyl.height = 0.7
-		keg.mesh = cyl
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = Color(0.2, 0.12, 0.08)
-		keg.material_override = mat
-		keg.position = Vector3(k["pos"].x, 0.35, k["pos"].y)
+		var keg := Node3D.new()
+		keg.position = Vector3(k["pos"].x, 0.0, k["pos"].y)
 		add_child(keg)
+		DeckArt._barrel(keg, Vector3.ZERO)
+		var fuse := MeshInstance3D.new()
+		fuse.mesh = DeckArt.cyl(0.02, 0.02, 0.25, 4)
+		fuse.material_override = DeckArt.plain(Color(1.0, 0.6, 0.2), 0.6)
+		fuse.position = Vector3(0.0, 1.05, 0.0)
+		keg.add_child(fuse)
 		_kegs.append(keg)
 	for r in combat.ropes:
-		_box(Vector3(0.08, 4.0, 0.08), Vector3(r["pos"].x, 2.0, r["pos"].y), Color(0.75, 0.65, 0.4))
+		DeckArt._rope(self, Vector3(r["pos"].x, 0.1, r["pos"].y), Vector3(r["pos"].x, 9.5, r["pos"].y), 0.03, DeckArt.plain(Color(0.7, 0.58, 0.35), 0.95))
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-55.0, -30.0, 0.0)
-	sun.light_energy = 1.2
+	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 60.0
+	sun.light_angular_distance = 0.5
 	add_child(sun)
-	var env := WorldEnvironment.new()
-	var e := Environment.new()
-	e.background_mode = Environment.BG_COLOR
-	e.background_color = Color(0.42, 0.62, 0.78)
-	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.7, 0.75, 0.85)
-	e.ambient_light_energy = 0.6
-	env.environment = e
-	add_child(env)
+	var env := Environment.new()
+	var sky := Sky.new()
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky.sky_material = sky_mat
+	env.sky = sky
+	env.background_mode = Environment.BG_SKY
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.glow_enabled = true
+	env.glow_intensity = 0.5
+	env.fog_enabled = true
+	env.ssao_enabled = true
+	var we := WorldEnvironment.new()
+	we.environment = env
+	add_child(we)
+	var ocean := Ocean.new()
+	ocean.model = WaveModel.new(3.0, Vector2(1, 0))
+	ocean.position = Vector3(0.0, -3.4, 0.0)
+	add_child(ocean)
+	var dn := DayNight.new()
+	dn.sun = sun
+	dn.env = env
+	dn.sky_material = sky_mat
+	dn.ocean = ocean
+	add_child(dn)
+	dn.apply_hour(10.5)
 
 
 func _add_view(f: FighterState) -> void:
