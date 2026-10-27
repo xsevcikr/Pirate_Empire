@@ -43,6 +43,7 @@ static func apply_toon(n: Node) -> void:
 
 ## One cached ShaderMaterial per source palette texture or flat colour.
 static func toon(src: Material) -> ShaderMaterial:
+	_hook_exit()
 	var key: String = "none"
 	var tex: Texture2D = null
 	var col: Color = Color.WHITE
@@ -83,6 +84,7 @@ static func mesh(kit: String, model: String) -> Mesh:
 
 ## Every mesh of a model merged into one multi-surface mesh (node transforms baked in), cached, for MultiMesh scatter.
 static func merged(kit: String, model: String) -> Mesh:
+	_hook_exit()
 	var key: String = "m:" + path(kit, model)
 	if _meshes.has(key):
 		return _meshes[key] as Mesh
@@ -153,6 +155,7 @@ static var _plank_mats: Dictionary = {}
 
 ## A flat-coloured toon surface, one shared material per colour.
 static func flat(c: Color, emit: float = 0.0) -> ShaderMaterial:
+	_hook_exit()
 	var key: String = "%s/%.2f" % [c.to_html(false), emit]
 	if not _flats.has(key):
 		var m := ShaderMaterial.new()
@@ -169,6 +172,7 @@ static var _vcol: ShaderMaterial
 
 ## A white toon material that takes its colour from vertex or MultiMesh instance colours.
 static func vcol() -> ShaderMaterial:
+	_hook_exit()
 	if _vcol == null:
 		_vcol = ShaderMaterial.new()
 		_vcol.shader = TOON
@@ -182,6 +186,7 @@ const PLANKS: Shader = preload("res://shaders/planks.gdshader")
 
 ## Planks that run along z (or along x): one shared material per colour and width.
 static func planks(c: Color, width: float = 0.4, along_x: bool = false) -> ShaderMaterial:
+	_hook_exit()
 	var key: String = "%s/%.2f/%s" % [c.to_html(false), width, along_x]
 	if not _plank_mats.has(key):
 		var m := ShaderMaterial.new()
