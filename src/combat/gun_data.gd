@@ -9,6 +9,7 @@ const GUNS: Dictionary = {
 	"24pdr": {"damage": 120.0, "velocity": 300.0, "effective": 320.0, "max": 600.0, "reload": 11.0, "spread": 1.3, "weight": 2.6, "price": 2400},
 	"32pdr": {"damage": 160.0, "velocity": 290.0, "effective": 340.0, "max": 640.0, "reload": 13.5, "spread": 1.5, "weight": 3.2, "price": 4000},
 	"carronade": {"damage": 150.0, "velocity": 220.0, "effective": 140.0, "max": 280.0, "reload": 7.5, "spread": 2.6, "weight": 1.2, "price": 1800},
+	"swivel": {"damage": 15.0, "velocity": 300.0, "effective": 120.0, "max": 250.0, "reload": 4.0, "spread": 2.2, "weight": 0.1, "price": 80},
 	"long9": {"damage": 55.0, "velocity": 360.0, "effective": 380.0, "max": 700.0, "reload": 7.0, "spread": 0.9, "weight": 1.4, "price": 1500},
 }
 

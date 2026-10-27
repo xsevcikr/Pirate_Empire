@@ -17,6 +17,7 @@ var crew_max: int = 30
 var focus: Focus = Focus.BALANCED
 var quality: float = 1.0
 var morale: float = 70.0
+var captain_hands: int = 0  ## the captain works a gun or a sheet when the crew is thin (player ship only)
 
 
 func _init(stats: ShipStats = null) -> void:
@@ -27,15 +28,15 @@ func _init(stats: ShipStats = null) -> void:
 
 
 func guns_crew() -> float:
-	return count * SPLITS[focus][0]
+	return (count + captain_hands) * SPLITS[focus][0]
 
 
 func sails_crew() -> float:
-	return count * SPLITS[focus][1]
+	return (count + captain_hands) * SPLITS[focus][1]
 
 
 func repair_crew() -> float:
-	return count * SPLITS[focus][2]
+	return (count + captain_hands) * SPLITS[focus][2]
 
 
 ## Guns efficiency: crew at guns relative to half the class minimum, clamped.

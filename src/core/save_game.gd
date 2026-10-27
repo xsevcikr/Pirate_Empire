@@ -2,17 +2,21 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 3
+const VERSION: int = 4
 const SLOT_PATH: String = "user://save_%d.json"
 
 
 static func new_state() -> Dictionary:
 	return {
-		"version": VERSION, "gold": 2000, "hour": 17.3, "day": 0, "ship_class": "sloop", "ship_hull": 1.0,
-		"crew": 12, "morale": 70.0, "cargo": {}, "upgrades": {}, "officers": [],
+		"version": VERSION, "gold": 100, "hour": 9.0, "day": 0, "ship_class": "cutter", "ship_name": "The Driftwood",
+		"ship_hull": 0.7, "crew": 0, "roster": [], "morale": 70.0, "cargo": {}, "upgrades": {}, "officers": [],
+		"supplies": PortData.START_SUPPLIES.duplicate(), "ammo": {"round": WeaponData.SWIVEL_START_SHOTS, "chain": 0, "grape": 0, "heated": 0, "explosive": 0},
+		"captain_hp": 100, "melee": "rusty_cutlass", "pistol": "flintlock", "pistol_shots": WeaponData.PISTOL_START_SHOTS,
+		"owned_weapons": ["rusty_cutlass", "flintlock"], "fame": 0, "docked_at": PortData.START_PORT, "starter_exchange": true,
+		"tutorial": "leave_dock", "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
 		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "act": 0, "beat": 0,
 		"fleet": [], "bases": [], "marque": "", "seed": 1, "difficulty": 1,
-		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 3, "playtime": 0.0, "saved_at": 0,
+		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
 	}
 
 
@@ -54,6 +58,9 @@ static func migrate(d: Dictionary) -> Dictionary:
 	if v < 3:
 		# v3 adds the world position and slot metadata; the defaults below fill them in.
 		d["version"] = 3
+	if v < 4:
+		# v4 adds the port-and-supplies layer. Old saves keep their own ship, gold and crew; the rest takes defaults.
+		d["version"] = 4
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

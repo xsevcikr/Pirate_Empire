@@ -57,12 +57,22 @@ static func capture(world: Node) -> void:
 		state["ship_hull"] = ship.damage.hull_fraction()
 		state["crew"] = ship.crew.count
 		state["sail_level"] = ship.sail_level
+		state["morale"] = ship.crew.morale
+		for k: String in ship.broadside.ammo:
+			state["ammo"][k] = int(ship.broadside.ammo[k])
 	var clock: Node = _clock()
 	if clock != null:
 		state["day"] = clock.day
 		state["hour"] = clock.hour
 	state["playtime"] = playtime_s
 	state["saved_at"] = int(Time.get_unix_time_from_system())
+
+
+## Stats of the player's ship with upgrades applied; the old sloop demo when no game is running.
+static func player_stats() -> ShipStats:
+	if state.is_empty():
+		return load("res://data/ships/sloop.tres")
+	return UpgradeEffects.apply(PortService.ship_stats(state["ship_class"]), state["upgrades"])
 
 
 ## Put saved values back into a freshly built world.
@@ -76,10 +86,20 @@ static func apply(world: Node) -> void:
 	ship.position = Vector3(float(pos[0]), 0.0, float(pos[1]))
 	ship.rotation_degrees.y = float(state.get("yaw", START_YAW_DEG))
 	ship.crew.count = int(state["crew"])
-	ship.sail_level = int(state.get("sail_level", 3))
+	ship.crew.captain_hands = 1
+	ship.crew.morale = float(state["morale"])
+	ship.display_label = str(state["ship_name"])
+	for k: String in state["ammo"]:
+		ship.broadside.ammo[k] = int(state["ammo"][k])
+	ship.sail_level = int(state.get("sail_level", 0))
 	var frac: float = clampf(float(state["ship_hull"]), 0.05, 1.0)
 	for i in ship.damage.section_hp.size():
 		ship.damage.section_hp[i] = ship.damage.section_max * frac
+
+
+## Written to the autosave slot whenever the player leaves port.
+static func autosave(world: Node) -> void:
+	save_to(world, AUTOSAVE_SLOT)
 
 
 static func save_to(world: Node, slot: int) -> bool:

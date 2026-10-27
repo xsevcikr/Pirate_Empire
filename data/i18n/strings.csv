@@ -53,3 +53,128 @@ menu.subtitles,Subtitles,Titulky
 menu.colorblind,Colorblind markers,Značky pro barvoslepé
 menu.reset_keys,Reset keys to default,Obnovit výchozí klávesy
 menu.press_key,Press a key...,Stiskni klávesu...
+tut.leave_dock,Press W to raise the sail and sail out of the harbour.,Stiskni W pro vytažení plachet a vypluj z přístavu.
+tut.into_wind,Turn the bow into the wind (see the wind arrow). Watch your speed drop.,Natoč příď proti větru (viz šipka větru). Sleduj jak klesá rychlost.
+tut.compass,The compass shows your heading. Sail with the wind on your beam for top speed.,Kompas ukazuje tvůj kurz. S větrem z boku plují nejrychleji.
+tut.back_to_dock,Sail back to the dock and slow under 3 knots. Press Space to dock.,Vrať se k molu a zpomal pod 3 uzly. Mezerníkem zakotvíš.
+tut.find_finn,Visit the tavern and talk to Old Finn.,Navštiv hospodu a promluv si se starým Finnem.
+tut.hunt_lugger,Old Finn spotted a fishing lugger south-west. Fire the swivels (Q/E) then hold G alongside to board.,Starý Finn zahlédl rybářský lugr na jihozápadě. Střílej z otočných děl (Q/E) a u boku drž G pro nalodění.
+tut.return_port,Back to Blackwater with your loot. Dock with Space.,Zpět do Blackwateru s kořistí. Zakotvi mezerníkem.
+tut.sell_fish,Open the market and sell the fish.,Otevři trh a prodej ryby.
+tut.hire_crew,Hire four deckhands at the tavern. Crew eat every day.,Najmi v hospodě čtyři lodníky. Posádka jí každý den.
+tut.buy_food,Buy food at the market. One unit feeds four crew for a day.,Kup na trhu jídlo. Jedna jednotka nasytí čtyři muže na den.
+tut.quest_board,Take a job from the quest board.,Vezmi si zakázku z nástěnky.
+hud.dock_hint,Press Space to dock,Mezerníkem zakotvíš
+hud.status,Gold %d   Food %.1f days   Cargo %.2f / %.1f t,Zlato %d   Jídlo %.1f dne   Náklad %.2f / %.1f t
+port.header,Gold %d   Cargo %.2f / %.1f t   Food %.1f days,Zlato %d   Náklad %.2f / %.1f t   Jídlo %.1f dne
+port.market,Market,Trh
+port.shipyard,Shipyard,Loděnice
+port.tavern,Tavern,Hospoda
+port.outfitter,Outfitter,Zbrojnice
+port.quests,Quest board,Nástěnka zakázek
+port.set_sail,Set sail,Vyplout
+port.supplies,Supplies,Zásoby
+port.goods,Trade goods,Zboží
+port.owned,owned,máš
+port.buy_1,Buy 1,Koupit 1
+port.buy_10,Buy 10,Koupit 10
+port.sell_1,Sell 1,Prodat 1
+port.sell_all,Sell all,Prodat vše
+port.buy_short,buy,nákup
+port.sell_short,sell,prodej
+port.cannot_buy,Cannot buy that (gold or cargo space).,Nelze koupit (zlato nebo místo v nákladu).
+port.sold,Sold %d %s for %d gold.,Prodáno %d %s za %d zlaťáků.
+port.your_ship,Your ship,Tvoje loď
+port.repair,Repair hull,Opravit trup
+port.repair_do,Repair,Opravit
+port.ships_for_sale,Ships for sale (price after trade-in),Lodě k prodeji (cena po výměně)
+port.after_trade_in,after trade-in,po výměně
+port.speed,speed,rychlost
+port.cargo,cargo,náklad
+port.fame_needed,needs fame %d,vyžaduje slávu %d
+port.buy_ship,Buy,Koupit
+port.ship_bought,You now sail a %s.,Nyní plují na lodi %s.
+port.upgrades,Upgrades,Vylepšení
+port.tier,tier,stupeň
+port.install,Install,Nainstalovat
+port.crew,Crew,Posádka
+port.wage,wage,mzda
+port.day,day,den
+port.hire,Hire,Najmout
+port.hired,A new hand signs on.,Nový námořník se přihlásil.
+port.roster,Your crew,Tvoje posádka
+port.rumours,Rumours,Zvěsti
+port.old_finn,Old Finn (tavern drunk),Starý Finn (hospodský opilec)
+port.talk,Talk,Promluvit
+port.finn_says,"Finn: ""A fishing lugger lies south-west of the harbour, three men and no guns. Easy pickings.""","Finn: ""Jihozápadně od přístavu leží rybářský lugr, tři muži a žádná děla. Snadná kořist."""
+port.ammo,Ammunition,Střelivo
+port.weapons,Weapons,Zbraně
+port.buy_10_shots,Buy 10,Koupit 10
+port.pistol_shots,pistol shots,pistolové náboje
+port.load,Load,Nabít
+port.no_quests,No jobs posted right now.,Teď nejsou žádné zakázky.
+port.accept,Accept,Přijmout
+port.active,active,aktivní
+port.quest_taken,Job accepted. Check the sea near the marked island.,Zakázka přijata. Hledej na moři u ostrova.
+port.quest_done,Job done: +%d gold.,Zakázka splněna: +%d zlaťáků.
+port.quests_locked,Finish your first lessons before taking jobs.,Dokonči první lekce než přijmeš zakázku.
+quest.gallows_raid.title,Raid a merchant sloop near Gallows Key,Přepadni obchodní šalupu u Gallows Key
+quest.gallows_raid.text,"A small merchant sloop works the waters off Gallows Key. Sink her or board her.","Malá obchodní šalupa pluje u Gallows Key. Potop ji nebo se nalodi."
+prize.title,Prize taken,Kořist
+prize.gold,Gold: %d,Zlato: %d
+prize.map_fragment,A torn piece of a treasure map!,Roztržený kus mapy pokladu!
+prize.release,Take it and let the ship go,Vzít a loď nechat odplout
+prize.sink,Sink the ship,Potopit loď
+prize.repelled,The boarding party was driven back.,Nalodění bylo odraženo.
+prize.barrels,Barrels from the wreck: %d gold.,Sudy z vraku: %d zlaťáků.
+supply.food,Food,Jídlo
+supply.water,Water,Voda
+supply.rum,Rum,Rum
+supply.small_arms,Small-arms shot,Střelivo do ručních zbraní
+supply.timber,Repair timber,Dříví na opravy
+supply.medicine,Medicine,Léky
+good.fish,Fish and salt meat,Ryby a nasolené maso
+good.sugar,Sugar,Cukr
+good.rum,Rum,Rum
+good.tobacco,Tobacco,Tabák
+good.timber,Timber and pitch,Dřevo a smola
+good.gunpowder,Gunpowder,Střelný prach
+good.iron,Iron and cannon parts,Železo a dělové díly
+good.spices,Spices,Koření
+good.silk,Silk and cloth,Hedvábí a látky
+good.tea,Tea and coffee,Čaj a káva
+good.gems,Gems,Drahokamy
+good.contraband,Contraband,Kontraband
+ship.cutter,Cutter,Kutr
+ship.sloop,Sloop,Šalupa
+ship.schooner,Schooner,Škuner
+ship.brigantine,Brigantine,Briga
+ship.frigate,Frigate,Fregata
+ship.galleon,Galleon,Galeona
+ship.man_o_war,Man-o-War,Bitevní loď
+upg.hull,Hull,Trup
+upg.armor,Armor,Pancíř
+upg.sails,Sails,Plachty
+upg.rudder,Rudder,Kormidlo
+upg.cannons,Cannons,Děla
+upg.ram,Ram,Beran
+upg.quarters,Quarters,Ubikace
+upg.specialty,Specialty,Speciální vybavení
+crew.green,Deckhand,Lodník
+crew.seasoned,Seasoned deckhand,Zkušený lodník
+ammo.round,Round shot,Plná koule
+ammo.chain,Chain shot,Řetězová koule
+ammo.grape,Grape shot,Kartáč
+ammo.heated,Heated shot,Rozžhavená koule
+ammo.explosive,Explosive shell,Výbušná střela
+weapon.cutlass,Cutlass,Šavle
+weapon.rapier,Rapier,Rapír
+weapon.boarding_axe,Boarding axe,Sekera na nalodění
+weapon.dagger,Dagger,Dýka
+weapon.flintlock,Flintlock pistol,Křesadlová pistole
+weapon.musket,Musket,Mušketa
+weapon.blunderbuss,Blunderbuss,Hákovnice
+weapon.grenado,Grenado,Granát
+rumour.0,"They say a map piece changes hands for a bottle of rum in Gallows Cove.","Říká se, že v Gallows Cove se kus mapy vymění za láhev rumu."
+rumour.1,"Convoys leave Merchant's Reach every twelve hours. Sink one and sugar gets dear in Blackwater.","Z Merchant's Reach vyplouvají konvoje každých dvanáct hodin. Potop jeden a cukr v Blackwateru zdraží."
+rumour.2,"The Navy buys fish by the barrel. Pirates buy rum by the ocean.","Námořnictvo kupuje ryby po sudech. Piráti kupují rum po oceánech."

@@ -18,6 +18,7 @@ const ACTIONS: Dictionary = {
 	"crew_focus": [KEY_TAB],
 	"grapple": [KEY_G],
 	"photo_mode": [KEY_P],
+	"interact": [KEY_SPACE],
 	"ammo_1": [KEY_1],
 	"ammo_2": [KEY_2],
 	"ammo_3": [KEY_3],
@@ -46,3 +47,7 @@ static func register() -> void:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = key as Key
 			InputMap.action_add_event(action, ev)
+		if action == "interact":
+			var pad := InputEventJoypadButton.new()
+			pad.button_index = JOY_BUTTON_A
+			InputMap.action_add_event(action, pad)
