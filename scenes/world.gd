@@ -127,7 +127,7 @@ func _update_markers() -> void:
 func _process(_delta: float) -> void:
 	_update_markers()
 	var clock: Node = get_node_or_null("/root/GameClock")
-	var hour: float = clock.hour if clock else 10.0
+	var hour: float = clock.hour if clock else 17.3
 	if Input.is_action_pressed("time_fast") and clock:
 		clock.time_scale = 40.0
 	elif clock:

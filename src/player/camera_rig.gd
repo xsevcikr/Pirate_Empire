@@ -47,7 +47,10 @@ func _process(delta: float) -> void:
 		_orbit_pitch = lerpf(_orbit_pitch, 0.0, 1.0 - exp(-1.5 * delta))
 	var yaw: float = _yaw + _orbit_yaw
 	var back := Vector3(-sin(yaw), 0.0, -cos(yaw))
-	var height: float = HEIGHT + _orbit_pitch * 25.0
-	var pos: Vector3 = target.global_position + back * DISTANCE + Vector3.UP * height
+	var scale: float = 1.0
+	if target is Ship:
+		scale = clampf((target as Ship).stats.length_m / 18.0, 1.0, 3.2)
+	var height: float = (HEIGHT + _orbit_pitch * 25.0) * scale
+	var pos: Vector3 = target.global_position + back * DISTANCE * scale + Vector3.UP * height
 	global_position = pos
 	camera.look_at(target.global_position + Vector3(0, 3.0, 0) + (-back) * 6.0, Vector3.UP)

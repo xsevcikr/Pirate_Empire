@@ -35,15 +35,20 @@ func apply_hour(hour: float) -> void:
 	var top_night := Color(0.01, 0.02, 0.07)
 	var horizon_night := Color(0.04, 0.06, 0.14)
 	var top: Color = top_night.lerp(top_day, day_amount)
-	var horizon: Color = horizon_night.lerp(horizon_day, day_amount).lerp(DAWN * 0.9, low * day_amount * 0.6)
+	var sunset: Color = Color(1.0, 0.5, 0.22)
+	var horizon: Color = horizon_night.lerp(horizon_day, day_amount).lerp(sunset, low * day_amount * 0.85)
+	top = top.lerp(Color(0.22, 0.26, 0.5), low * day_amount * 0.7)
 	if sky_material:
 		sky_material.sky_top_color = top
 		sky_material.sky_horizon_color = horizon
 		sky_material.ground_horizon_color = horizon
 		sky_material.ground_bottom_color = top_night.lerp(Color(0.1, 0.2, 0.3), day_amount)
 		sky_material.sun_angle_max = 30.0
+		sky_material.sky_curve = 0.12
+		sky_material.sky_energy_multiplier = 1.1
 	if env:
 		env.fog_light_color = horizon
-		env.ambient_light_energy = lerpf(0.25, 1.0, day_amount)
+		env.fog_density = lerpf(0.0006, 0.0016, low)
+		env.ambient_light_energy = lerpf(0.25, 1.25, day_amount)
 	if ocean:
 		ocean.set_sky_color(horizon.lerp(top, 0.7))

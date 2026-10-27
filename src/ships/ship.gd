@@ -13,6 +13,7 @@ const POINT_COLUMNS: int = 4
 const POINT_ROWS: int = 4
 
 signal sank_signal
+signal surrendered
 signal hit_taken(result: Dictionary)
 
 @export var stats: ShipStats
@@ -34,6 +35,10 @@ var crew: CrewState
 var broadside: Broadside
 var projectiles: ProjectileManager
 var display_label: String = ""
+var faction: String = "pirate"
+var last_attacker: Node = null
+var has_surrendered: bool = false
+var ai: ShipAI
 
 var _points: PackedVector3Array = PackedVector3Array()
 var _k_point: float = 0.0
@@ -48,6 +53,7 @@ func _ready() -> void:
 	mass = stats.mass_kg
 	collision_layer = 2
 	collision_mask = 2
+	add_to_group("ships")
 	damage = DamageModel.new(stats)
 	crew = CrewState.new(stats)
 	damage.mast_fell.connect(_on_mast_fell)
@@ -184,63 +190,9 @@ func pitch_deg() -> float:
 
 
 func _build_visuals() -> void:
-	var wood := StandardMaterial3D.new()
-	wood.albedo_color = Color(0.36, 0.22, 0.12)
-	wood.roughness = 0.85
-	var deck_mat := StandardMaterial3D.new()
-	deck_mat.albedo_color = Color(0.55, 0.40, 0.25)
-	deck_mat.roughness = 0.9
-	var cloth := StandardMaterial3D.new()
-	cloth.albedo_color = Color(0.92, 0.88, 0.78)
-	cloth.roughness = 1.0
-	cloth.cull_mode = BaseMaterial3D.CULL_DISABLED
-
-	_hull_material = wood
-	var hull := MeshInstance3D.new()
-	var hull_mesh := BoxMesh.new()
-	hull_mesh.size = Vector3(stats.beam_m, stats.draft_m + stats.freeboard_m, stats.length_m * 0.8)
-	hull.mesh = hull_mesh
-	hull.material_override = wood
-	hull.position = Vector3(0, (stats.freeboard_m - stats.draft_m) * 0.5, stats.length_m * 0.1)
-	add_child(hull)
-
-	var bow := MeshInstance3D.new()
-	var prism := PrismMesh.new()
-	prism.size = Vector3(stats.beam_m, stats.length_m * 0.2, stats.draft_m + stats.freeboard_m)
-	bow.mesh = prism
-	bow.material_override = wood
-	bow.rotation_degrees = Vector3(-90, 0, 0)
-	bow.position = Vector3(0, (stats.freeboard_m - stats.draft_m) * 0.5, -stats.length_m * 0.4)
-	add_child(bow)
-
-	var deck := MeshInstance3D.new()
-	var deck_mesh := BoxMesh.new()
-	deck_mesh.size = Vector3(stats.beam_m * 0.9, 0.1, stats.length_m * 0.85)
-	deck.mesh = deck_mesh
-	deck.material_override = deck_mat
-	deck.position = Vector3(0, stats.freeboard_m + 0.05, 0)
-	add_child(deck)
-
-	for i in stats.mast_count:
-		var z: float = lerpf(-0.15, 0.15, 0.5 if stats.mast_count == 1 else i / float(stats.mast_count - 1)) * stats.length_m
-		var mast := MeshInstance3D.new()
-		var mast_mesh := CylinderMesh.new()
-		mast_mesh.top_radius = 0.12
-		mast_mesh.bottom_radius = 0.2
-		mast_mesh.height = stats.length_m * 0.75
-		mast.mesh = mast_mesh
-		mast.material_override = wood
-		mast.position = Vector3(0, stats.freeboard_m + mast_mesh.height * 0.5, z)
-		add_child(mast)
-		_mast_nodes.append(mast)
-		var sail := MeshInstance3D.new()
-		var sail_mesh := BoxMesh.new()
-		sail_mesh.size = Vector3(0.05, mast_mesh.height * 0.7, stats.length_m * 0.4)
-		sail.mesh = sail_mesh
-		sail.material_override = cloth
-		sail.position = Vector3(0, stats.freeboard_m + mast_mesh.height * 0.45, z + stats.length_m * 0.2)
-		add_child(sail)
-		_sail_nodes.append(sail)
+	visuals = ShipVisuals.new()
+	visuals.build(self)
+	_hull_material = visuals.hull_material
 
 
 func _physics_process(delta: float) -> void:
@@ -260,8 +212,6 @@ func _physics_process(delta: float) -> void:
 
 
 var _fire_fx_timer: float = 0.0
-var _mast_nodes: Array[MeshInstance3D] = []
-var _sail_nodes: Array[MeshInstance3D] = []
 
 
 func section_center(i: int) -> Vector3:
@@ -292,6 +242,10 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 	info.gun_id = gun_id
 	info.ammo_id = ammo_id
 	info.damage = GunData.damage_at_range(gun_id, distance, ammo_id)
+	if faction == "player":
+		info.damage *= float(Difficulty.value("damage_taken"))
+	if source != null and source != self:
+		last_attacker = source
 	info.source = source
 	var water_y: float = ocean.height_at(world_pos.x, world_pos.z) if ocean else 0.0
 	info.below_waterline = world_pos.y < water_y
@@ -309,11 +263,11 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 
 
 func _on_mast_fell(index: int) -> void:
-	if index < _mast_nodes.size():
-		_mast_nodes[index].visible = false
-		_sail_nodes[index].visible = false
-		Vfx.splinters(get_parent(), _mast_nodes[index].global_position)
-		Vfx.splinters(get_parent(), _mast_nodes[index].global_position + Vector3.UP * 3.0)
+	if visuals and index < visuals.mast_groups.size():
+		var g: Node3D = visuals.mast_groups[index]
+		Vfx.splinters(get_parent(), g.global_position + Vector3.UP * 4.0)
+		Vfx.splinters(get_parent(), g.global_position + Vector3.UP * 9.0)
+		visuals.set_mast_visible(index, false)
 
 
 func _on_sank() -> void:
@@ -323,10 +277,30 @@ func _on_sank() -> void:
 
 
 var sink_started: bool = false
+var visuals: ShipVisuals
 var _hull_material: StandardMaterial3D
 
 
 func _update_damage_visuals() -> void:
 	if _hull_material:
 		var f: float = damage.hull_fraction()
-		_hull_material.albedo_color = Color(0.36, 0.22, 0.12).lerp(Color(0.12, 0.08, 0.06), 1.0 - f)
+		_hull_material.albedo_color = Color.WHITE.lerp(Color(0.35, 0.3, 0.3), 1.0 - f)
+
+
+func _process(delta: float) -> void:
+	if visuals:
+		visuals.update(delta)
+
+
+func strength_rating() -> float:
+	var gun_damage: float = GunData.GUNS[broadside.gun_id]["damage"]
+	return AiLogic.strength(damage.hull_fraction(), stats.guns_per_side, gun_damage,
+		float(crew.count) / float(stats.crew_max), stats.armor)
+
+
+func surrender() -> void:
+	if has_surrendered:
+		return
+	has_surrendered = true
+	sail_level = 0
+	surrendered.emit()
