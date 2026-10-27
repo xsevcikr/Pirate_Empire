@@ -7,7 +7,7 @@ extends RefCounted
 static func apply_environment(env: Environment) -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.5, 0.52, 0.62)
-	env.ambient_light_energy = 1.0
+	env.ambient_light_energy = 0.8
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = true
 	env.glow_intensity = 0.45
@@ -22,6 +22,7 @@ static func apply_environment(env: Environment) -> void:
 
 
 static func apply_sun(sun: DirectionalLight3D, max_distance: float) -> void:
+	sun.light_energy = 0.85
 	sun.shadow_enabled = true
 	sun.shadow_opacity = 0.9
 	sun.shadow_blur = 1.6

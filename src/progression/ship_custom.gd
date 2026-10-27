@@ -38,6 +38,7 @@ static func apply(ship: Ship, custom: Dictionary) -> void:
 	var canvas: Color = CustomizationData.SAIL_COLORS[int(sail["color"])]
 	var pattern: int = int(sail["pattern"])
 	for m: ShaderMaterial in v.sail_materials:
+		m.set_shader_parameter("custom", int(sail["color"]) != 0 or pattern != 0)
 		m.set_shader_parameter("canvas_color", Vector3(canvas.r, canvas.g, canvas.b))
 		m.set_shader_parameter("pattern", pattern)
 		var ink: Color = Color(0.08, 0.08, 0.08) if canvas.get_luminance() > 0.35 else Color(0.9, 0.9, 0.85)
@@ -45,20 +46,13 @@ static func apply(ship: Ship, custom: Dictionary) -> void:
 	var hull: Dictionary = custom["hull"]
 	var paint: Color = CustomizationData.HULL_PAINT_COLORS[int(hull["paint"])]
 	if v.hull_material != null:
-		v.hull_material.set_shader_parameter("tint", Vector3(paint.r, paint.g, paint.b) * 2.2)
+		v.hull_material.set_shader_parameter("paint", Vector3(paint.r, paint.g, paint.b))
+		v.hull_material.set_shader_parameter("paint_mix", 0.0 if int(hull["paint"]) == 0 else 0.85)
 	_rebuild_extras(ship, custom)
 
 
-static func _mat(c: Color, emit: float = 0.0, metal: float = 0.0) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = c
-	m.roughness = 0.5
-	m.metallic = metal
-	if emit > 0.0:
-		m.emission_enabled = true
-		m.emission = c
-		m.emission_energy_multiplier = emit
-	return m
+static func _mat(c: Color, emit: float = 0.0, _metal: float = 0.0) -> ShaderMaterial:
+	return Kenney.flat(c, minf(emit * 0.2, 0.45))
 
 
 static func _rebuild_extras(ship: Ship, custom: Dictionary) -> void:

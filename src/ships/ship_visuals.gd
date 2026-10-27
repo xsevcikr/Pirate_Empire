@@ -82,11 +82,7 @@ func _build_hull() -> void:
 	sm.radius = 0.28
 	sm.height = 0.56
 	lamp.mesh = sm
-	var lm := StandardMaterial3D.new()
-	lm.albedo_color = Color(1.0, 0.82, 0.4)
-	lm.emission_enabled = true
-	lm.emission = Color(1.0, 0.7, 0.25)
-	lm.emission_energy_multiplier = 2.5
+	var lm: ShaderMaterial = Kenney.flat(Color(1.0, 0.75, 0.3), 0.35)
 	lamp.material_override = lm
 	lamp.position = Vector3(0, 4.7 * _sy - ShipModel.WATER_Y * _sy, stats.length_m * 0.5 - 0.3)
 	root.add_child(lamp)

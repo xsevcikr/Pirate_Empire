@@ -39,10 +39,7 @@ func _mesh_node(size: Vector3, color: Color) -> MeshInstance3D:
 	var b := BoxMesh.new()
 	b.size = size
 	mi.mesh = b
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.roughness = 0.9
-	mi.material_override = m
+	mi.material_override = Kenney.flat(color)
 	return mi
 
 

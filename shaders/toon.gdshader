@@ -8,6 +8,8 @@ uniform bool use_tex = true;
 uniform vec3 albedo : source_color = vec3(1.0);
 uniform vec3 tint : source_color = vec3(1.0);
 uniform float rim_amount : hint_range(0.0, 1.0) = 0.22;
+uniform vec3 paint : source_color = vec3(1.0);
+uniform float paint_mix : hint_range(0.0, 1.0) = 0.0;  // hull paint: recolours but keeps the shading detail
 uniform float emit_amount : hint_range(0.0, 4.0) = 0.0;
 uniform float saturation : hint_range(0.5, 2.0) = 1.12;
 uniform vec4 flash : source_color = vec4(0.0);
@@ -23,6 +25,7 @@ void fragment() {
 		c *= texture(albedo_tex, UV).rgb;
 	}
 	c = saturate_col(c, saturation);
+	c = mix(c, paint * (dot(c, vec3(0.299, 0.587, 0.114)) / 0.45), paint_mix);
 	ALBEDO = c;
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;

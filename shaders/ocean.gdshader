@@ -83,40 +83,34 @@ void fragment() {
 	vec3 cam = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	float dist = distance(v_world.xz, cam.xz);
 	float near = 1.0 - smoothstep(40.0, 700.0, dist);
-	// small ripples on top of the big swell, scrolling with the wind
 	vec2 p = v_world.xz;
 	float t = ocean_time;
-	vec2 e = vec2(0.12, 0.0);
-	vec2 q = p * 0.33 + vec2(t * 0.35, t * 0.12);
-	float h0 = fbm(q);
-	vec2 g = vec2(fbm(q + e.xy) - h0, fbm(q + e.yx) - h0) / e.x;
-	vec2 q2 = p * 1.1 - vec2(t * 0.5, -t * 0.3);
-	float h2 = fbm(q2);
-	g += vec2(fbm(q2 + e.xy) - h2, fbm(q2 + e.yx) - h2) / e.x * 0.2;
-	vec3 wn = (INV_VIEW_MATRIX * vec4(normalize(NORMAL), 0.0)).xyz;
-	wn = normalize(wn + vec3(-g.x, 0.0, -g.y) * 0.07 * near);
-	NORMAL = normalize((VIEW_MATRIX * vec4(wn, 0.0)).xyz);
-	float ndv = clamp(dot(NORMAL, normalize(VIEW)), 0.0, 1.0);
-	float fresnel = 0.02 + 0.98 * pow(1.0 - ndv, 5.0);
+	// cartoon sea: three flat blue bands picked by wave height and a slow noise, white crisp foam on the crests
+	float h0 = fbm(p * 0.05 + vec2(t * 0.08, t * 0.03));
+	float h1 = fbm(p * 0.22 - vec2(t * 0.12, -t * 0.07));
 	float crest = clamp(v_height / v_amp_scale * 0.5 + 0.5, 0.0, 1.0);
-	vec3 water = mix(deep_color, shallow_color, crest * 0.55 + 0.15 * h0);
-	// foam: crest lines broken up by noise, plus streaks in the troughs of the ripple field
-	float breakup = fbm(p * 0.8 + vec2(t * 0.15, 0.0));
-	float foam = clamp(v_foam * (0.4 + 1.2 * breakup) + smoothstep(0.8, 0.95, h2) * crest * 0.25 * near, 0.0, 1.0);
-	vec3 col = mix(water, foam_color, foam);
+	float level = crest * 0.55 + h0 * 0.35 + h1 * 0.2;
+	vec3 deep = vec3(0.05, 0.36, 0.62);
+	vec3 mid = vec3(0.09, 0.52, 0.78);
+	vec3 light_c = vec3(0.22, 0.7, 0.9);
+	vec3 col = mix(deep, mid, step(0.5, level));
+	col = mix(col, light_c, step(0.8, level));
+	float breakup = fbm(p * 0.7 + vec2(t * 0.15, 0.0));
+	float foam = step(0.55, v_foam * (0.4 + 1.2 * breakup)) + step(0.9, h1) * step(0.55, crest) * near;
+	col = mix(col, foam_color, clamp(foam, 0.0, 1.0));
 	ALBEDO = col;
-	ROUGHNESS = mix(0.06, 0.85, foam);
-	SPECULAR = 0.6;
-	METALLIC = 0.0;
-	EMISSION = 0.5 * fresnel * sky_color * (1.0 - foam) + shallow_color * 0.2 * crest * crest * (1.0 - foam);
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.0;
+	EMISSION = col * 0.05;
 }
 
 
-// Light travelling through the thin crest of a wave and out towards the eye: the bright green-blue glow of a swell
-// with the sun behind it. Strongest at the crest, with the sun opposite the camera.
+// Soft two-band light on the swell, with a hard little sun glint on the facing slopes.
 void light() {
-	float through = pow(clamp(dot(VIEW, -LIGHT + NORMAL * 0.35), 0.0, 1.0), 3.0);
-	float thin = smoothstep(0.45, 1.0, v_crest);
-	vec3 glow = mix(shallow_color, vec3(0.25, 0.95, 0.75), 0.6);
-	DIFFUSE_LIGHT += glow * LIGHT_COLOR * ATTENUATION * through * thin * 1.6;
+	float nl = dot(NORMAL, LIGHT);
+	float lit = mix(0.7, 1.0, smoothstep(-0.05, 0.1, nl));
+	DIFFUSE_LIGHT += LIGHT_COLOR * ATTENUATION * lit / PI * 0.9;
+	vec3 h = normalize(LIGHT + VIEW);
+	float glint = step(0.992, dot(NORMAL, h));
+	SPECULAR_LIGHT += LIGHT_COLOR * ATTENUATION * glint * 0.8;
 }
