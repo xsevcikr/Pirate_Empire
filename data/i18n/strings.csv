@@ -1056,3 +1056,58 @@ bark.taunt.saltjaw,"The sea is mine, and all in it.",Moře je moje a všechno v 
 bark.taunt.vale,"In the Crown's name, strike your colours!","Jménem Koruny, spusťte vlajku!"
 bark.taunt.valcourt,Brass outlasts pirates.,Mosaz přežije piráty.
 bark.taunt.ibrahim,Kneel.,Klekni.
+cat.title,Catalogue,Katalog
+cat.ships,Ships,Lodě
+cat.upgrades,Upgrades,Vylepšení
+cat.services,Yard services,Služby loděnice
+cat.weapons,Weapons,Zbraně
+cat.ammo,Cannon shot,Dělové střelivo
+cat.supplies,Small arms,Ruční zbraně
+cat.buy,Buy,Koupit
+cat.cannot,You cannot buy that yet.,Tohle zatím koupit nemůžeš.
+cat.bought,Bought: %s.,Koupeno: %s.
+cat.gold,%s g,%s zl
+cat.owned,Owned,Vlastníš
+cat.maxed,Fully upgraded,Plně vylepšeno
+cat.free,Free,Zdarma
+cat.stat_speed,Speed,Rychlost
+cat.stat_cargo,Cargo,Náklad
+cat.stat_guns,Guns,Děla
+cat.stat_crew,Crew,Posádka
+cat.stat_hull,Hull,Trup
+cat.stat_turn,Turning,Otáčení
+cat.stat_rudder,Rudder,Kormidlo
+cat.kn,%.1f kn,%.1f uzlů
+cat.tons,%d t,%d t
+cat.legendary,"Legendary ship, yours to command","Legendární loď, je tvoje"
+cat.trade_in,"List %s g, your ship trades in for %s g","Cena %s zl, tvoje loď se započte za %s zl"
+cat.pct_now,+%d%% (now +%d%%),+%d%% (teď +%d%%)
+cat.needs_yard,Needs a level %d shipyard,Vyžaduje loděnici úrovně %d
+cat.upg_desc.hull,Thicker planking: more hull points.,Silnější obšívka: víc bodů trupu.
+cat.upg_desc.armor,Iron plates turn aside light shot.,Železné pláty odrazí lehké koule.
+cat.upg_desc.sails,New canvas: faster and nimbler.,Nové plátno: rychlejší a obratnější.
+cat.upg_desc.rudder,A stronger rudder that turns quicker.,"Silnější kormidlo, rychlejší obraty."
+cat.upg_desc.cannons,Better guns for heavier broadsides.,Lepší děla pro těžší boční salvy.
+cat.upg_desc.ram,A reinforced bow for ramming.,Zesílená příď na taranování.
+cat.upg_desc.quarters,More bunks: room for more crew.,Víc kavalců: místo pro víc posádky.
+cat.upg_desc.specialty,Rare fittings from the master shipwright.,Vzácné vybavení od mistra loďaře.
+cat.repair_desc,Patch every hole in the hull.,Zalátat všechny díry v trupu.
+cat.insure_desc,Lose the ship and get most of it back.,"Když loď ztratíš, většinu dostaneš zpět."
+cat.kind.melee,Blade,Čepel
+cat.kind.offhand,Off-hand blade,Čepel do druhé ruky
+cat.kind.pistol,Pistol,Pistole
+cat.kind.long,Long gun,Dlouhá zbraň
+cat.kind.grenade,Throwing bomb,Vrhací bomba
+cat.stat_damage,Damage,Poškození
+cat.stat_reload,Reload,Nabíjení
+cat.stat_range,Range,Dostřel
+cat.stat_swing,Swing,Úder
+cat.seconds,%.1f s,%.1f s
+cat.metres,%d m,%d m
+cat.per_10,"10 shots per order, you have %d","10 ran v balení, máš %d"
+cat.stat_vs_hull,vs hull,na trup
+cat.stat_vs_sails,vs sails,na plachty
+cat.stat_vs_crew,vs crew,na posádku
+cat.stat_units,Crates,Bedny
+cat.small_arms_desc,Each crate of small-arms shot loads %d pistol shots.,Každá bedna střeliva nabije %d pistolových ran.
+cat.no_small_arms,Buy small-arms shot at the market first,Nejdřív kup střelivo na trhu
