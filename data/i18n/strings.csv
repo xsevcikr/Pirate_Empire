@@ -1056,3 +1056,44 @@ bark.taunt.saltjaw,"The sea is mine, and all in it.",Moře je moje a všechno v 
 bark.taunt.vale,"In the Crown's name, strike your colours!","Jménem Koruny, spusťte vlajku!"
 bark.taunt.valcourt,Brass outlasts pirates.,Mosaz přežije piráty.
 bark.taunt.ibrahim,Kneel.,Klekni.
+supply.canvas,Canvas,Plátno
+supply.tools,Carpenter's tools,Tesařské nářadí
+dmg.breach_toast,A %s hole: %s! All hands to damage control!,%s díra: %s! Všichni k opravám!
+dmg.size.1,small,Malá
+dmg.size.2,big,Velká
+dmg.size.3,gaping,Obrovská
+dmg.sec.bow,bow,příď
+dmg.sec.stern,stern,záď
+dmg.sec.port,port side,levobok
+dmg.sec.starboard,starboard side,pravobok
+dmg.sec.fore_port,fore port side,přední levobok
+dmg.sec.fore_starboard,fore starboard side,přední pravobok
+dmg.sec.mid_port,port side amidships,levobok uprostřed
+dmg.sec.mid_starboard,starboard side amidships,pravobok uprostřed
+dmg.sec.aft_port,aft port side,zadní levobok
+dmg.sec.aft_starboard,aft starboard side,zadní pravobok
+dmg.done_patched,Hole planked over (%s).,Díra zatlučená prkny (%s).
+dmg.done_fothered,A sail is drawn over the hole (%s). The leak slows.,Přes díru je přetažená plachta (%s). Voda teče pomaleji.
+dmg.done_stuffed,Hammocks and oakum rammed into the hole (%s). Half the water still gets in.,Do díry nacpali houpací sítě a koudel (%s). Polovina vody pořád teče dovnitř.
+dmg.done_jury,"A jury mast is up, with half sail on it.","Nouzový stožár stojí, nese polovinu plachet."
+dmg.no_timber,No repair timber left! The crew can only fother holes with canvas or stuff them with oakum.,Došlo dříví na opravy! Posádka může díry jen překrýt plátnem nebo ucpat koudelí.
+dmg.title,Hull %d%%   Water %d%%,Trup %d%%   Voda %d%%
+dmg.holes,"Holes: %d open, %d patched   Leak %.2f t/s","Díry: %d otevřené, %d opravené   Únik %.2f t/s"
+dmg.stores,Timber %d   Canvas %d   Tools %.1f,Dříví %d   Plátno %d   Nářadí %.1f
+dmg.hands,Hands: %s,Ruce: %s
+dmg.idle,idle,nic
+dmg.patching,Patching the worst hole: %d%%,Ucpávání nejhorší díry: %d%%
+dmg.open_hint,Z: damage control,Z: opravy lodi
+dmg.auto_on,Orders: the bosun decides (click to take over),Rozkazy: rozhoduje loďmistr (klikni a převezmi je)
+dmg.auto_off,Orders: yours (click to hand them to the bosun),Rozkazy: tvoje (klikni a předej je loďmistrovi)
+dmg.job.pump,Pumps,Pumpy
+dmg.job.patch,Holes,Díry
+dmg.job.fire,Fire,Oheň
+dmg.job.rig,Rigging,Takeláž
+dmg.job.hull,Hull,Trup
+dmg.nothing,nothing to do,nic k práci
+bark.breach.0,She's holed!,Máme díru v trupu!
+bark.breach.1,Plug that hole!,Ucpěte tu díru!
+bark.breach.2,Water below decks!,Voda v podpalubí!
+bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
+bark.patched.1,That'll hold her!,To vydrží!

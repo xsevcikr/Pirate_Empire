@@ -84,3 +84,58 @@ static func dock_hit(speed_kn: float, ship_mass_kg: float) -> Dictionary:
 	var v: float = speed_kn * 0.5144
 	var e: float = impact_energy(ship_mass_kg, 0.0, v)
 	return {"hit": true, "dock_damage": hull_damage(e, "dock"), "bow_damage": hull_damage(e, "dock") * 0.5, "fine": DOCK_FINE_GOLD}
+
+
+# ---- ship against ship: angle, scraping and hull breaches ------------------------------------------------------
+
+## Where a ship is struck changes how much its hull gives. The stem and sternpost are the strongest timbers; the
+## long flat side between them is where a ram goes through.
+const ANGLE_BOW: float = 0.6  ## struck on the stem, as when ramming head-on
+const ANGLE_BEAM: float = 1.3  ## struck square on the side (T-bone)
+const SCRAPE_SHARE: float = 0.12  ## share of the sliding energy that a sideswipe turns into hull damage
+const SCRAPE_MIN_MS: float = 1.0
+## Breach sizes by the share of hull HP one impact took: none, small, medium, large.
+const BREACH_SHARE: Array[float] = [0.0, 0.05, 0.16, 0.32]
+## Water a breach lets in, tonnes per second, by size. A large hole sinks a sloop in about two minutes if nobody bails.
+const BREACH_LEAK_T_PER_S: Array[float] = [0.0, 0.07, 0.17, 0.34]
+
+
+## Hull factor for a ship struck along the local direction `toward_hit` (ship space, from its centre to the contact).
+## 0.6 on the stem or stern, rising smoothly to 1.3 square on the side.
+static func angle_factor(toward_hit: Vector3) -> float:
+	var flat := Vector2(toward_hit.x, toward_hit.z)
+	if flat.length() < 0.001:
+		return 1.0
+	var side: float = absf(flat.normalized().x)  # 0 = dead ahead or astern, 1 = abeam
+	return lerpf(ANGLE_BOW, ANGLE_BEAM, side * side)
+
+
+## Hull damage from two hulls grinding past each other at `v_slide` m/s along the contact.
+static func scrape_damage(m1: float, m2: float, v_slide: float) -> float:
+	if v_slide < SCRAPE_MIN_MS:
+		return 0.0
+	return impact_energy(m1, m2, v_slide) * SCRAPE_SHARE / ENERGY_PER_DAMAGE_J * float(MATERIAL["ship"])
+
+
+## 0 = no breach, 1 small, 2 medium, 3 large, from the damage one impact did against the whole hull.
+static func breach_size(damage: float, hull_hp: float) -> int:
+	if hull_hp <= 0.0 or damage < MIN_DAMAGE:
+		return 0
+	var share: float = damage / hull_hp
+	for size in range(BREACH_SHARE.size() - 1, 0, -1):
+		if share >= BREACH_SHARE[size]:
+			return size
+	return 0
+
+
+static func breach_leak(size: int) -> float:
+	return BREACH_LEAK_T_PER_S[clampi(size, 0, BREACH_LEAK_T_PER_S.size() - 1)]
+
+
+## Splits a contact into the push straight into the other hull and the slide along it. `rel` is our velocity
+## relative to the other body and `n` the unit normal from us toward it (both flat).
+static func split_contact(rel: Vector3, n: Vector3) -> Dictionary:
+	var closing: float = maxf(rel.dot(n), 0.0)
+	var slide: Vector3 = rel - n * rel.dot(n)
+	slide.y = 0.0
+	return {"closing": closing, "slide": slide.length()}

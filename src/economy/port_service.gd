@@ -244,6 +244,7 @@ static func buy_ship(state: Dictionary, new_class: String, port_id: String) -> b
 		state["starter_exchange"] = false
 	state["ship_class"] = new_class
 	state["ship_hull"] = 1.0
+	state["ship_damage"] = {"repaired": true}
 	state["upgrades"] = {}
 	state["crew"] = mini(int(state["crew"]), stats.crew_max)
 	return true
@@ -261,4 +262,5 @@ static func repair(state: Dictionary) -> bool:
 		return false
 	state["gold"] = int(state["gold"]) - cost
 	state["ship_hull"] = 1.0
+	state["ship_damage"] = {"repaired": true}  # the shipyard plugs every hole and steps new masts too
 	return true

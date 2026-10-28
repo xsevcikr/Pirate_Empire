@@ -88,6 +88,9 @@ func _ready() -> void:
 	add_child(shape)
 	_build_points()
 	_build_visuals()
+	breach_visuals = BreachVisuals.new()
+	add_child(breach_visuals)
+	breach_visuals.setup(self)
 	var vmax: float = MathUtils.knots_to_ms(stats.max_speed_kn)
 	_k_drag = stats.mass_kg / (stats.accel_tau_s * vmax)
 	_f_ref = _k_drag * vmax * vmax
@@ -183,6 +186,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		for i in damage.section_count:
 			heavy += damage.water_t[i] * (1.0 if damage.section_is_starboard(i) else -1.0)
 		state.apply_torque(forward * heavy * 9.81 * stats.beam_m * 0.15)
+		# ...and trim her down by the head or the stern
+		var trim: float = 0.0
+		for i in damage.section_count:
+			trim += damage.water_t[i] * section_center(i).z / (stats.length_m * 0.5)
+		state.apply_torque(right * trim * 9.81 * stats.length_m * 0.08)
 
 	# Roll and pitch damping (local axes)
 	var local_av: Vector3 = xf.basis.inverse() * state.angular_velocity
@@ -230,6 +238,10 @@ func _physics_process(delta: float) -> void:
 				debris.spawn_spar(global_position + global_transform.basis.x * _mast_side * stats.beam_m, stats.length_m * 0.5)
 	var rc: float = crew.repair_crew()
 	damage.tick(delta, rc)
+	if damage.control != null:
+		damage.control.tick(delta, rc)
+		if ai == null and damage.control.hands_on["pump"] > 0.0:
+			Sfx.play("pump", global_position)
 	_fire_fx_timer += delta
 	if _fire_fx_timer >= 0.5:
 		_fire_fx_timer = 0.0
@@ -309,8 +321,10 @@ func _on_mast_fell(index: int) -> void:
 		visuals.set_mast_visible(index, false)
 
 
-## Two bodies touched. Turns the closing speed into hull damage, leaks, a broken mast, men overboard,
-## floating crates and (on sand) running aground.
+## Two bodies touched. Splits the contact into the push straight into the other hull and the slide along it.
+## The push makes impact damage from the reduced mass, scaled by where each hull was struck (the stem shrugs it
+## off, the flat side caves in); the slide scrapes. Big enough blows tear a breach at the contact point, which lets
+## water in until the crew patch it. Also: a broken mast, men overboard, floating crates and running aground.
 func _on_contact(body: Node) -> void:
 	if damage == null or damage.sunk or _bump_cool > 0.0:
 		return
@@ -328,44 +342,121 @@ func _on_contact(body: Node) -> void:
 	away.y = 0.0
 	var n: Vector3 = (-away).normalized()  # from us towards the other body
 	var rel: Vector3 = prev_velocity - v2
-	var closing: float = maxf(rel.dot(n), 0.0)
+	rel.y = 0.0
+	var parts: Dictionary = CollisionModel.split_contact(rel, n)
+	var closing: float = parts["closing"]
 	if closing < 0.6:
 		return
 	_bump_cool = 0.5
 	var player: bool = ai == null
-	var rams: bool = player and Session.has_state() and int(Session.state["upgrades"].get("ram", 0)) > 0 and (-global_transform.basis.z).dot(n) > 0.8
+	var rams: bool = _has_ram() and (-global_transform.basis.z).dot(n) > 0.8
 	var e: float = CollisionModel.impact_energy(mass, other_mass, closing)
-	var dmg: float = CollisionModel.hull_damage(e, material, rams, false)
-	if body is Ship:
-		var theirs: Ship = body as Ship
-		var their_ram: bool = theirs.ai == null and Session.has_state() and int(Session.state["upgrades"].get("ram", 0)) > 0
-		dmg = CollisionModel.hull_damage(e, material, rams, their_ram)
+	var toward_hit: Vector3 = global_transform.basis.inverse() * n
+	var dmg: float = CollisionModel.hull_damage(e, material, false, rams)
+	var scrape: float = 0.0
+	var other: Ship = body as Ship
+	if other != null:
+		var their_ram: bool = other._has_ram() and (-other.global_transform.basis.z).dot(-n) > 0.8
+		dmg = CollisionModel.hull_damage(e, material, their_ram, rams) * CollisionModel.angle_factor(toward_hit)
+		scrape = CollisionModel.scrape_damage(mass, other_mass, parts["slide"])
 	var verdict: String = "bump"
 	if material in ["sand", "rock", "ice", "reef"]:
 		var tide: float = OceanCurrent.tide_m(_game_hours())
 		verdict = grounding.touch(material, MathUtils.ms_to_knots(closing), tide, Vector2(away.x, away.z).normalized())
 		if verdict == "stuck":
 			EventBus_toast("ship.aground" if player else "")
-	var local_contact: Vector3 = to_local(global_position + n * stats.length_m * 0.45)
+	var local_contact: Vector3 = hull_point(toward_hit)
 	var section: int = damage.section_for(local_contact)
 	var cons: Dictionary = CollisionModel.consequences(dmg, stats.hull_hp, crew.count, stats.cargo_t if player else 0.0, damage.rng)
-	var res: Dictionary = damage.apply_impact(section, dmg, CollisionModel.LEAK_T_PER_S if cons["leak"] else (CollisionModel.hole_leak() if verdict == "hole" else 0.0), cons["mast_breaks"])
+	var res: Dictionary = damage.apply_impact(section, dmg + scrape, 0.0, cons["mast_breaks"])
+	var size: int = CollisionModel.breach_size(dmg, stats.hull_hp)
+	if size == 0 and cons["leak"]:
+		size = 1
+	if verdict == "hole":
+		size = maxi(size, 2)
+	if size == 0 and CollisionModel.breach_size(scrape * 2.0, stats.hull_hp) > 0:
+		size = 1  # a hard sideswipe springs a plank
+	var breach: int = -1
+	if size > 0:
+		breach = damage.open_breach(section, local_contact, size, CollisionModel.breach_leak(size))
 	if int(cons["overboard"]) > 0:
 		crew.kill(int(cons["overboard"]))
 		if player:
 			EventBus_toast("ship.overboard", int(cons["overboard"]))
 	_drop_crates(int(cons["crates"]), player)
-	Vfx.splinters(get_parent(), global_position + n * stats.length_m * 0.4 + Vector3.UP)
-	if body is Ship:  # the other ship feels it too, scaled by who has the ram
-		var other: Ship = body as Ship
-		var their: float = CollisionModel.hull_damage(e, "ship", false, rams)
-		if rams:
-			their = CollisionModel.hull_damage(e, "ship", true, false)
-		var their_section: int = other.damage.section_for(other.to_local(other.global_position - n * other.stats.length_m * 0.45))
-		other.damage.apply_impact(their_section, their, CollisionModel.LEAK_T_PER_S if their / other.stats.hull_hp > CollisionModel.LEAK_FRACTION else 0.0, false)
-		other._bump_cool = 0.5
-	hit_taken.emit({"collision": true, "hull": dmg, "section": section, "verdict": verdict, "mast": res["mast_fell"]})
+	var contact_world: Vector3 = to_global(local_contact) + Vector3.UP
+	Vfx.splinters(get_parent(), contact_world)
+	if dmg + scrape > stats.hull_hp * 0.04:
+		Vfx.splinters(get_parent(), contact_world + Vector3.UP * 0.6)
+		Vfx.splash(get_parent(), contact_world - Vector3.UP, clampf((dmg + scrape) / stats.hull_hp * 6.0, 0.6, 2.0))
+	Sfx.play("hull_crash" if dmg + scrape > stats.hull_hp * 0.03 else "wood_impact", contact_world)
+	if player:
+		_crash_feedback(dmg + scrape, breach, section)
+	if other != null:  # the other ship feels the same blow, scaled by its own build, where it was struck and the ram
+		other._take_blow(e, scrape, -n, rams)
+	hit_taken.emit({"collision": true, "hull": dmg + scrape, "section": section, "verdict": verdict, "mast": res["mast_fell"], "breach": breach})
 	_update_damage_visuals()
+
+
+func _has_ram() -> bool:
+	return ai == null and Session.has_state() and int(Session.state["upgrades"].get("ram", 0)) > 0
+
+
+## The point on our hull, in ship space just under the waterline, in the flat direction `toward_hit`.
+func hull_point(toward_hit: Vector3) -> Vector3:
+	var d := Vector2(toward_hit.x, toward_hit.z)
+	if d.length() < 0.001:
+		d = Vector2(0, -1)
+	d = d.normalized()
+	var hb: float = stats.beam_m * 0.5
+	var hl: float = stats.length_m * 0.5
+	var t: float = minf(hb / maxf(absf(d.x), 0.001), hl / maxf(absf(d.y), 0.001))
+	var p: Vector2 = d * t
+	# the hull narrows to the stem and stern: pull the point in toward the centreline near the ends
+	var along: float = absf(p.y) / hl
+	if along > 0.6:
+		p.x *= lerpf(1.0, 0.25, (along - 0.6) / 0.4)
+	return Vector3(p.x, -0.25 * stats.draft_m, p.y)
+
+
+## The other half of a ship-to-ship collision. `n` points from this ship toward the one that hit it.
+func _take_blow(energy: float, scrape: float, n: Vector3, they_ram: bool) -> void:
+	if damage == null or damage.sunk:
+		return
+	_bump_cool = 0.5
+	var toward_hit: Vector3 = global_transform.basis.inverse() * n
+	var mine: bool = _has_ram() and (-global_transform.basis.z).dot(n) > 0.8
+	var dmg: float = CollisionModel.hull_damage(energy, "ship", they_ram, mine) * CollisionModel.angle_factor(toward_hit)
+	var local_contact: Vector3 = hull_point(toward_hit)
+	var section: int = damage.section_for(local_contact)
+	damage.apply_impact(section, dmg + scrape, 0.0, false)
+	var size: int = CollisionModel.breach_size(dmg, stats.hull_hp)
+	if size == 0 and CollisionModel.breach_size(scrape * 2.0, stats.hull_hp) > 0:
+		size = 1
+	var breach: int = -1
+	if size > 0:
+		breach = damage.open_breach(section, local_contact, size, CollisionModel.breach_leak(size))
+	Vfx.splinters(get_parent(), to_global(local_contact) + Vector3.UP)
+	if ai == null:
+		_crash_feedback(dmg + scrape, breach, section)
+	hit_taken.emit({"collision": true, "hull": dmg + scrape, "section": section, "verdict": "bump", "mast": -1, "breach": breach})
+	_update_damage_visuals()
+
+
+## Shake, a groan from the timbers, and word from the crew of where she is holed.
+func _crash_feedback(hull: float, breach: int, section: int) -> void:
+	var share: float = hull / maxf(stats.hull_hp, 1.0)
+	var cam: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	if cam != null and cam.get_parent() is CameraRig:
+		(cam.get_parent() as CameraRig).shake(clampf(share * 6.0, 0.15, 1.0))
+	if share > 0.05:
+		Sfx.play("hull_groan", global_position)
+	if breach >= 0:
+		var size: int = int(damage.breaches[breach]["size"])
+		var bus: Node = Svc.node("EventBus")
+		if bus != null:
+			bus.toast.emit(Loc.t("dmg.breach_toast") % [Loc.t("dmg.size.%d" % size), Loc.t(DamageControl.section_key(damage, section))])
+		Sfx.bark("breach")
 
 
 func _island_material(isl: Island) -> String:
@@ -427,6 +518,7 @@ func _on_sank() -> void:
 
 var sink_started: bool = false
 var visuals: ShipVisuals
+var breach_visuals: BreachVisuals
 var _hull_material: ShaderMaterial
 
 
@@ -453,3 +545,34 @@ func surrender() -> void:
 	has_surrendered = true
 	sail_level = 0
 	surrendered.emit()
+
+
+## Brings every damage display in line with the model: hull tint, masts standing or gone, holes and patches.
+func refresh_damage() -> void:
+	_update_damage_visuals()
+	if visuals:
+		for i in mini(visuals.mast_groups.size(), damage.mast_down.size()):
+			visuals.set_mast_visible(i, not damage.mast_down[i])
+	if breach_visuals:
+		breach_visuals.rebuild()
+
+
+## Word from the damage control parties: a hole closed, a jury mast up, the timber gone.
+func on_damage_control(kind: String, info: Dictionary) -> void:
+	var bus: Node = Svc.node("EventBus")
+	match kind:
+		"patched", "fothered", "stuffed":
+			Sfx.play("hammer", global_position)
+			if kind == "patched":
+				Sfx.bark("patched")
+			if bus != null:
+				bus.toast.emit(Loc.t("dmg.done_" + kind) % Loc.t(DamageControl.section_key(damage, int(info["section"]))))
+		"jury_mast":
+			Sfx.play("hammer", global_position)
+			if visuals and int(info["mast"]) < visuals.mast_groups.size():
+				visuals.set_mast_visible(int(info["mast"]), true)
+			if bus != null:
+				bus.toast.emit(Loc.t("dmg.done_jury"))
+		"no_timber":
+			if bus != null:
+				bus.toast.emit(Loc.t("dmg.no_timber"))

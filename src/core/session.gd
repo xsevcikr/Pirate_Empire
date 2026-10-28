@@ -55,6 +55,7 @@ static func capture(world: Node) -> void:
 		state["pos"] = [ship.global_position.x, ship.global_position.z]
 		state["yaw"] = ship.rotation_degrees.y
 		state["ship_hull"] = ship.damage.hull_fraction()
+		state["ship_damage"] = ship.damage.to_save()
 		reconcile_crew(ship)
 		state["sail_level"] = ship.sail_level
 		state["morale"] = ship.crew.morale
@@ -92,6 +93,10 @@ static func apply(world: Node) -> void:
 	ship.rotation_degrees.y = float(state.get("yaw", START_YAW_DEG))
 	ship.sail_level = int(state.get("sail_level", 0))
 	apply_to_ship(ship)
+	var dmg: Dictionary = state.get("ship_damage", {})
+	if dmg.has("breaches"):
+		ship.damage.load_save(dmg)
+		ship.refresh_damage()
 
 
 ## Push the state's crew, ammunition, hull and morale into the live ship. Called after the player changed
@@ -111,6 +116,27 @@ static func apply_to_ship(ship: Ship) -> void:
 	for k: String in state["ammo"]:
 		ship.broadside.ammo[k] = int(state["ammo"][k])
 	apply_hull(ship)
+	apply_damage_control(ship)
+
+
+## Hands the live ship's damage control the state's stores and carpenters. A shipyard repair since the last
+## look clears every hole, the water and the jury rigs.
+static func apply_damage_control(ship: Ship) -> void:
+	var dc: DamageControl = ship.damage.control
+	if dc == null:
+		dc = DamageControl.new(ship.damage)
+		dc.event.connect(ship.on_damage_control)
+	dc.supplies = state["supplies"]
+	var n: int = 0
+	for m: Dictionary in state["roster"]:
+		if m["type"] == "carpenter":
+			n += 1
+	dc.carpenters = n
+	if bool(state.get("ship_damage", {}).get("repaired", false)):
+		ship.damage.reset_all()
+		state["ship_damage"] = {}
+		apply_hull(ship)
+		ship.refresh_damage()
 
 
 static func apply_hull(ship: Ship) -> void:

@@ -7,6 +7,8 @@ signal mast_fell(index: int)
 signal fire_started(index: int)
 signal magazine_exploded
 signal sank
+signal breach_opened(index: int)
+signal breach_changed(index: int)
 
 const LEAK_BASE_T_PER_S: float = 0.04  # for a 40-damage hit below the waterline
 const BAIL_T_PER_S_PER_4_CREW: float = 0.05
@@ -15,6 +17,10 @@ const FLOOD_CAPACITY_SHARE: float = 0.5  # sinks when water reaches 50% of displ
 const FIRE_HULL_DPS: float = 8.0
 const FIRE_SAIL_DPS: float = 4.0
 const RICOCHET_ANGLE_DEG: float = 25.0
+const HULL_SEA_CAP: float = 0.6  # repairs at sea bring a section back to 60% at most
+const BREACH_MERGE_M: float = 1.6  # a fresh hit this close to an open hole makes the hole bigger instead
+## How much of a breach's water still gets in, by the state of the repair on it.
+const BREACH_LEAK_SHARE: Dictionary = {"open": 1.0, "stuffed": 0.5, "fothered": 0.25, "patched": 0.0}
 
 var stats: ShipStats
 var section_count: int = 4
@@ -33,6 +39,12 @@ var magazine_alive: bool = true
 var sunk: bool = false
 var rain: bool = false
 var rng := RandomNumberGenerator.new()
+## Holes torn by collisions: {section, pos (ship space), size 1-3, leak (t/s when open), state, work}. A patched
+## hole stays on the list (and on the hull, as a plank patch) until a shipyard repairs the ship.
+var breaches: Array[Dictionary] = []
+## Damage control for the player's ship. When set, it does the bailing, patching, fire fighting and repair;
+## without it (AI ships) the older automatic rules in tick() do.
+var control: DamageControl = null
 
 var _fire_timer: float = 0.0
 var _extinguish_progress: float = 0.0
@@ -274,27 +286,21 @@ func tick(dt: float, repair_crew: float) -> void:
 	# Flooding
 	for i in section_count:
 		water_t[i] += leak_rate[i] * dt
-	var bail: float = repair_crew / 4.0 * BAIL_T_PER_S_PER_4_CREW * dt
-	while bail > 0.0:
-		var worst: int = 0
-		for i in section_count:
-			if water_t[i] > water_t[worst]:
-				worst = i
-		if water_t[worst] <= 0.0:
-			break
-		var take: float = minf(bail, water_t[worst])
-		water_t[worst] -= take
-		bail -= take
-	# Patch the biggest leak every 12 s while crew are repairing
-	if repair_crew >= 1.0:
-		_patch_timer += dt
-		if _patch_timer >= 12.0:
-			_patch_timer = 0.0
-			var big: int = 0
-			for i in section_count:
-				if leak_rate[i] > leak_rate[big]:
-					big = i
-			leak_rate[big] = 0.0
+	if control == null:
+		bail(repair_crew / 4.0 * BAIL_T_PER_S_PER_4_CREW * dt)
+		# Patch the biggest leak every 12 s while crew are repairing
+		if repair_crew >= 1.0:
+			_patch_timer += dt
+			if _patch_timer >= 12.0:
+				_patch_timer = 0.0
+				var big: int = 0
+				for i in section_count:
+					if leak_rate[i] > leak_rate[big]:
+						big = i
+				for b in breaches.size():
+					if int(breaches[b]["section"]) == big:
+						set_breach_state(b, "patched")
+				leak_rate[big] = 0.0
 	# Fire
 	var any_fire: bool = false
 	for i in section_count:
@@ -309,20 +315,187 @@ func tick(dt: float, repair_crew: float) -> void:
 		if _fire_timer >= 5.0:
 			_fire_timer = 0.0
 			_spread_fire()
-		_extinguish_progress += repair_crew / 3.0 * dt / 6.0
-		while _extinguish_progress >= 1.0:
-			_extinguish_progress -= 1.0
-			_reduce_one_fire()
-	# Slow repair of hull sections up to 60% by the repair crew
-	_repair_accum += repair_crew / 4.0 * 0.5 * dt
-	if _repair_accum >= 1.0:
-		var amount: float = floorf(_repair_accum)
-		_repair_accum -= amount
-		for i in section_count:
-			if section_hp[i] > 0.0 and section_hp[i] < section_max * 0.6:
-				section_hp[i] = minf(section_hp[i] + amount, section_max * 0.6)
-				break
+		if control == null:
+			fight_fire(repair_crew / 3.0 * dt / 6.0)
+	if control == null:
+		# Slow repair of hull sections up to 60% by the repair crew
+		_repair_accum += repair_crew / 4.0 * 0.5 * dt
+		if _repair_accum >= 1.0:
+			var amount: float = floorf(_repair_accum)
+			_repair_accum -= amount
+			repair_hull(amount)
 	_check_sunk()
+
+
+## Pumps `tonnes` out of the wettest compartments first. Returns what was actually pumped.
+func bail(tonnes: float) -> float:
+	var left: float = tonnes
+	while left > 0.0:
+		var worst: int = 0
+		for i in section_count:
+			if water_t[i] > water_t[worst]:
+				worst = i
+		if water_t[worst] <= 0.0:
+			break
+		var take: float = minf(left, water_t[worst])
+		water_t[worst] -= take
+		left -= take
+	return tonnes - left
+
+
+## Fire fighting: every whole unit of `progress` takes one level off the worst fire.
+func fight_fire(progress: float) -> void:
+	_extinguish_progress += progress
+	while _extinguish_progress >= 1.0:
+		_extinguish_progress -= 1.0
+		_reduce_one_fire()
+
+
+## Puts up to `hp` back into the weakest damaged section, never past the sea cap. Returns HP repaired.
+func repair_hull(hp: float) -> float:
+	var weakest: int = -1
+	for i in section_count:
+		if section_hp[i] > 0.0 and section_hp[i] < section_max * HULL_SEA_CAP:
+			if weakest == -1 or section_hp[i] < section_hp[weakest]:
+				weakest = i
+	if weakest == -1:
+		return 0.0
+	var before: float = section_hp[weakest]
+	section_hp[weakest] = minf(before + hp, section_max * HULL_SEA_CAP)
+	return section_hp[weakest] - before
+
+
+## HP the crew could still put back at sea.
+func hull_repairable() -> float:
+	var t: float = 0.0
+	for i in section_count:
+		if section_hp[i] > 0.0:
+			t += maxf(section_max * HULL_SEA_CAP - section_hp[i], 0.0)
+	return t
+
+
+# ---- breaches -----------------------------------------------------------------------------------------------
+
+## Tears a hole of `size` (1-3) at `pos` (ship space) in `section`. A hole right next to an open one grows it.
+## Returns the breach index.
+func open_breach(section: int, pos: Vector3, size: int, leak: float) -> int:
+	section = clampi(section, 0, section_count - 1)
+	size = clampi(size, 1, 3)
+	for b in breaches.size():
+		var br: Dictionary = breaches[b]
+		if br["state"] != "patched" and int(br["section"]) == section and (br["pos"] as Vector3).distance_to(pos) < BREACH_MERGE_M:
+			var old_leak: float = _breach_flow(br)
+			br["size"] = mini(int(br["size"]) + size, 3)
+			br["leak"] = maxf(float(br["leak"]), leak) + leak * 0.5
+			br["state"] = "open"
+			br["work"] = 0.0
+			leak_rate[section] = maxf(leak_rate[section] - old_leak + _breach_flow(br), 0.0)
+			breach_opened.emit(b)
+			return b
+	breaches.append({"section": section, "pos": pos, "size": size, "leak": leak, "state": "open", "work": 0.0})
+	leak_rate[section] += leak
+	breach_opened.emit(breaches.size() - 1)
+	return breaches.size() - 1
+
+
+## Water still coming in through one breach, by the state of its repair.
+func _breach_flow(br: Dictionary) -> float:
+	return float(br["leak"]) * float(BREACH_LEAK_SHARE[br["state"]])
+
+
+## Moves a breach to "open", "stuffed", "fothered" or "patched" and adjusts its section's leak to match.
+func set_breach_state(index: int, state: String) -> void:
+	var br: Dictionary = breaches[index]
+	var s: int = int(br["section"])
+	var before: float = _breach_flow(br)
+	br["state"] = state
+	br["work"] = 0.0
+	leak_rate[s] = maxf(leak_rate[s] - before + _breach_flow(br), 0.0)
+	breach_changed.emit(index)
+
+
+## Index of the breach letting in the most water, or -1 when every hole is patched.
+func worst_breach() -> int:
+	var worst: int = -1
+	for b in breaches.size():
+		if breaches[b]["state"] == "patched":
+			continue
+		if worst == -1 or _breach_flow(breaches[b]) > _breach_flow(breaches[worst]):
+			worst = b
+	return worst
+
+
+func open_breach_count() -> int:
+	var n: int = 0
+	for br in breaches:
+		if br["state"] != "patched":
+			n += 1
+	return n
+
+
+func leak_total() -> float:
+	var t: float = 0.0
+	for l in leak_rate:
+		t += l
+	return t
+
+
+## A shipyard repair: every section, hole, mast, sail and the rudder as new, and the bilges dry.
+func reset_all() -> void:
+	for i in section_count:
+		section_hp[i] = section_max
+		water_t[i] = 0.0
+		leak_rate[i] = 0.0
+		fire_level[i] = 0
+	for m in mast_hp.size():
+		mast_hp[m] = mast_max
+		sail_hp[m] = sail_max
+		mast_down[m] = false
+	rudder_hp = stats.rudder_hp
+	breaches.clear()
+	breach_changed.emit(-1)
+
+
+## The state of the damage worth keeping in a save (JSON safe). Section HP goes through ship_hull instead.
+func to_save() -> Dictionary:
+	var holes: Array = []
+	for br in breaches:
+		var p: Vector3 = br["pos"]
+		holes.append({"section": br["section"], "pos": [p.x, p.y, p.z], "size": br["size"], "leak": br["leak"], "state": br["state"]})
+	var water: Array = []
+	for w in water_t:
+		water.append(w)
+	var masts: Array = []
+	for d in mast_down:
+		masts.append(d)
+	var sails: Array = []
+	for i in sail_hp.size():
+		sails.append(sail_hp[i] / maxf(sail_max, 0.001))
+	return {"breaches": holes, "water": water, "masts_down": masts, "sails": sails}
+
+
+func load_save(d: Dictionary) -> void:
+	breaches.clear()
+	for i in section_count:
+		leak_rate[i] = 0.0
+	for h: Dictionary in d.get("breaches", []):
+		var p: Array = h["pos"]
+		var br: Dictionary = {"section": clampi(int(h["section"]), 0, section_count - 1), "pos": Vector3(float(p[0]), float(p[1]), float(p[2])),
+			"size": int(h["size"]), "leak": float(h["leak"]), "state": str(h["state"]), "work": 0.0}
+		breaches.append(br)
+		leak_rate[int(br["section"])] += _breach_flow(br)
+	var water: Array = d.get("water", [])
+	for i in mini(water.size(), section_count):
+		water_t[i] = float(water[i])
+	var masts: Array = d.get("masts_down", [])
+	for i in mini(masts.size(), mast_down.size()):
+		mast_down[i] = bool(masts[i])
+		if mast_down[i]:
+			mast_hp[i] = 0.0
+	var sails: Array = d.get("sails", [])
+	for i in mini(sails.size(), sail_hp.size()):
+		sail_hp[i] = sail_max * clampf(float(sails[i]), 0.0, 1.0)
+	breach_changed.emit(-1)
 
 
 func _spread_fire() -> void:
