@@ -16,6 +16,7 @@ var _unload_due: Array[int] = []
 var _forts_due: Array[PortScene] = []
 var _ports_due: Array[String] = []
 var _landings_due: Array[int] = []
+var _landing_jobs: Array[Callable] = []  ## one slice of a landing's props per pump
 var ports: Dictionary = {}  ## port id -> PortScene
 var peak_loaded: int = 0
 var loads: int = 0
@@ -28,6 +29,7 @@ var _accum: float = 99.0
 func _init() -> void:
 	gen = PortData.gen()
 	Island.prewarm()
+	LandingSite.prewarm()
 
 
 func _physics_process(delta: float) -> void:
@@ -69,10 +71,15 @@ func pump() -> void:
 	if not _ports_due.is_empty():
 		_build_port(_ports_due.pop_front())
 		return
+	if not _landing_jobs.is_empty():
+		var job: Callable = _landing_jobs.pop_front()
+		if job.is_valid():
+			job.call()
+		return
 	if not _landings_due.is_empty():
 		var li: int = _landings_due.pop_front()
 		if loaded.has(li):
-			LandingSite.build(loaded[li], gen, li)
+			_landing_jobs.append_array(LandingSite.plan_site(loaded[li], gen, li).get("jobs", []))
 		return
 	if _building != null:
 		if not is_instance_valid(_building) or not _building.build_next_stage():

@@ -8,11 +8,36 @@ const JETTY_SCALE: float = 3.2
 const JETTY_PIECE_M: float = 2.5  ## model length of one Kenney dock piece
 
 
-## Builds the landing on `isl` (an Island already in the tree) for island `index`; returns its root or null.
+const MODELS: Array = [
+	["pirate", "structure-platform-dock-small"], ["pirate", "structure-platform-dock"], ["pirate", "boat-row-small"], ["nature", "sign"],
+	["castle", "tower-square-base"], ["castle", "tower-square-mid-windows"], ["castle", "tower-square-mid"], ["castle", "tower-square-top-roof"],
+	["castle", "tower-square-mid-door"], ["castle", "tower-square-top-roof-high"], ["castle", "wall"], ["castle", "wall-half"], ["castle", "rocks-large"],
+	["nature", "statue_column"], ["nature", "statue_columnDamaged"], ["nature", "statue_head"], ["nature", "statue_obelisk"], ["nature", "tent_smallClosed"],
+	["pirate", "ship-wreck"], ["pirate", "barrel"], ["pirate", "crate"], ["pirate", "chest"], ["pirate", "palm-bend"], ["pirate", "palm-straight"],
+]
+
+
+## Loads every model a landing uses while the world loads, so a landing streaming in never stalls a frame.
+static func prewarm() -> void:
+	for m: Array in MODELS:
+		Kenney.scene(m[0], m[1])
+
+
+## Builds the landing on `isl` (an Island already in the tree) for island `index` at once; returns its root or null.
 static func build(isl: Island, g: WorldGen, index: int) -> Node3D:
+	var plan: Dictionary = plan_site(isl, g, index)
+	if plan.is_empty():
+		return null
+	for job: Callable in plan["jobs"]:
+		job.call()
+	return plan["root"]
+
+
+## The landing's root, already on the island, and the jobs that fill it: the streamer runs one job a frame.
+static func plan_site(isl: Island, g: WorldGen, index: int) -> Dictionary:
 	var info: Dictionary = g.islands[index]
 	if not Landings.has_landing(info):
-		return null
+		return {}
 	var dir: Vector2 = Vector2.from_angle(Landings.angle(g, index))
 	# walk in from the sea to the first dry sand
 	var rad: float = isl.radius_m * 1.25
@@ -29,7 +54,14 @@ static func build(isl: Island, g: WorldGen, index: int) -> Node3D:
 	var ground: Callable = func(local: Vector3) -> float:
 		var w: Vector3 = root.transform * local
 		return maxf(isl.ground_y(Vector2(w.x, w.z)), 0.0)
-	# jetty from the sand out over the water
+	var jobs: Array[Callable] = [_jetty.bind(root, ground), _props.bind(root, ground, Landings.kind_of(info))]
+	return {"root": root, "jobs": jobs}
+
+
+## The jetty from the sand out over the water, the rowboat, the sign and the lantern.
+static func _jetty(root: Node3D, ground: Callable) -> void:
+	if not is_instance_valid(root) or not root.is_inside_tree():  # the island streamed out first
+		return
 	for i in 4:
 		var at := Vector3(0, 0.35, -4.0 + float(i) * JETTY_PIECE_M * JETTY_SCALE)
 		var plank: Node3D = Kenney.place(root, "pirate", "structure-platform-dock-small" if i < 3 else "structure-platform-dock", at, 0.0, JETTY_SCALE)
@@ -41,7 +73,13 @@ static func build(isl: Island, g: WorldGen, index: int) -> Node3D:
 	sign_at.y = ground.call(sign_at)
 	Kenney.place(root, "nature", "sign", sign_at, 200.0, 7.0)
 	_lantern(root, Vector3(-2.6, 0.35 + 1.3 * JETTY_SCALE * 0.5, -4.0 + JETTY_PIECE_M * JETTY_SCALE * 3.4))
-	match Landings.kind_of(info):
+
+
+## What kind of place it is.
+static func _props(root: Node3D, ground: Callable, kind: String) -> void:
+	if not is_instance_valid(root) or not root.is_inside_tree():  # the island streamed out first
+		return
+	match kind:
 		"prison":
 			_stack(root, ground, Vector3(-14.0, 0, -18.0), ["tower-square-base", "tower-square-mid-windows", "tower-square-mid", "tower-square-top-roof"], 6.0)
 			_row(root, ground, "castle", "wall", Vector3(-8.0, 0, -18.0), 3, Vector3(6.0, 0, 0), 6.0)
@@ -73,7 +111,6 @@ static func build(isl: Island, g: WorldGen, index: int) -> Node3D:
 			_piece(root, ground, "pirate", "palm-straight", Vector3(8.0, 0, -10.0), 2.2, 80.0)
 			_piece(root, ground, "pirate", "ship-wreck", Vector3(14.0, 0, -4.0), 1.4, -60.0)
 			_piece(root, ground, "pirate", "chest", Vector3(-3.0, 0, -9.0), 1.6, 15.0)
-	return root
 
 
 static func _piece(root: Node3D, ground: Callable, kit: String, model: String, at: Vector3, s: float, yaw: float) -> Node3D:
