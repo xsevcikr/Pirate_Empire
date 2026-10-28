@@ -179,8 +179,8 @@ static func _farm(root: Node3D, level: int, rng: RandomNumberGenerator) -> void:
 		var z: float = -5.0 + r * (10.0 / float(rows - 1))
 		for k in 5:
 			var x: float = -4.0 + k * 2.0
-			Kenney.place(root, "nature", "crops_dirtRow", Vector3(x, 0.02, z), 0.0, 2.2)
-			Kenney.place(root, "nature", crops[(r + level) % crops.size()], Vector3(x, 0.0, z), rng.randf() * 360.0, 2.6)
+			Kenney.place(root, "nature", "crops_dirtRow", Vector3(x, 0.02, z), 0.0, 3.2)
+			Kenney.place(root, "nature", crops[(r + level) % crops.size()], Vector3(x, 0.0, z), rng.randf() * 360.0, 4.2)
 	for x in [-6.0, 6.0]:
 		for z in [-4.0, -1.0, 2.0, 5.0]:
 			Kenney.place(root, "nature", "fence_simple", Vector3(x, 0, z), 90.0, 3.0)

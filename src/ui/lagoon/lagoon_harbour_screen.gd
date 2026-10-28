@@ -11,6 +11,7 @@ const SHIP_NAMES: PackedStringArray = [
 
 func _init() -> void:
 	super()
+	dim = 0.55
 	_title_key = "lagoon.harbour"
 
 

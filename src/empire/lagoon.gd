@@ -101,6 +101,7 @@ static func demolish(s: Dictionary, c: Vector2i) -> int:
 		spent += LagoonData.cost(b["t"], lv)
 	var refund: int = int(spent * LagoonData.DEMOLISH_REFUND)
 	data(s)["buildings"].erase(b)
+	data(s)["pop"] = mini(int(data(s)["pop"]), beds(s))  # those who lived there move out
 	s["gold"] = int(s["gold"]) + refund
 	return refund
 

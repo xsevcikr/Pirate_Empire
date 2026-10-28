@@ -59,6 +59,7 @@ func _wanted() -> Dictionary:
 		return out
 	var l: Dictionary = Lagoon.data(state)
 	var rank: int = int(l["rank"])
+	out["plaza"] = ["plaza%d" % rank, func() -> Node3D: return _make_plaza(rank)]
 	out["hall"] = ["hall%d" % rank, func() -> Node3D: return _put(LagoonArt.hall(rank, 7), cell_pos(Vector2i.ZERO), LagoonData.facing_yaw())]
 	for b: Dictionary in l["buildings"]:
 		var c := Vector2i(int(b["x"]), int(b["y"]))
@@ -181,6 +182,25 @@ func _anchor_point(k: int) -> Vector3:
 	var r: float = float(LagoonData.island()["radius"])
 	var p: Vector2 = fwd * (r + 170.0 + 40.0 * (k % 2)) + side * ((k - 3.5) * 55.0)
 	return Vector3(p.x, rad_to_deg(atan2(-side.x, -side.y)) + 15.0 * (k % 3), p.y)
+
+
+## Trodden sand under the plots open at this rank, so the lagoon's ground grows with it.
+func _make_plaza(rank: int) -> Node3D:
+	var mi := MeshInstance3D.new()
+	mi.name = "Plaza"
+	mi.set_meta("kind", "lagoon_plaza")
+	var m := CylinderMesh.new()
+	var r: float = (float(LagoonData.rank(rank)["extent"]) + 0.7) * LagoonData.CELL_M
+	m.top_radius = r
+	m.bottom_radius = r + 1.0
+	m.height = 0.3
+	m.radial_segments = 40
+	m.rings = 1
+	mi.mesh = m
+	mi.material_override = Kenney.flat(Color("c49a68"))
+	var c: Vector2 = LagoonData.pad_center()
+	mi.position = Vector3(c.x, LagoonData.PAD_H_M - 0.1, c.y)
+	return mi
 
 
 ## A plank boardwalk from the hall's square down to the foot of every pier, laid on the ground.

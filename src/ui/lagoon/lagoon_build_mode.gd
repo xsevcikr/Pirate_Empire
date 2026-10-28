@@ -26,6 +26,7 @@ var _info: Label
 var _gold: Label
 var _actions: HBoxContainer
 var _ghost_mat: StandardMaterial3D
+var _hidden: Array[CanvasLayer] = []
 
 
 func _ready() -> void:
@@ -40,7 +41,7 @@ func _ready() -> void:
 	_ghost_mat = StandardMaterial3D.new()
 	_ghost_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_ghost_mat.albedo_color = Color(0.4, 1.0, 0.55, 0.45)
+	_ghost_mat.albedo_color = Color(0.45, 1.0, 0.6, 0.7)
 	_grid = MeshInstance3D.new()
 	_grid.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_cursor_mesh = MeshInstance3D.new()
@@ -51,7 +52,18 @@ func _ready() -> void:
 		lagoon.add_child(_grid)
 		lagoon.add_child(_cursor_mesh)
 	_build_ui()
+	_hide_hud()
 	refresh()
+
+
+## The sailing HUD and prompts step aside while building.
+func _hide_hud() -> void:
+	if get_parent() == null:
+		return
+	for n in get_parent().get_children():
+		if n is CanvasLayer and (n as CanvasLayer).visible and (n as CanvasLayer).layer < 50:
+			(n as CanvasLayer).visible = false
+			_hidden.append(n)
 
 
 func _exit_tree() -> void:
@@ -60,6 +72,9 @@ func _exit_tree() -> void:
 			n.queue_free()
 	if _prev_cam != null and is_instance_valid(_prev_cam):
 		_prev_cam.make_current()
+	for l in _hidden:
+		if is_instance_valid(l):
+			l.visible = true
 
 
 func state() -> Dictionary:
@@ -173,7 +188,7 @@ func _update_ghost() -> void:
 	if _ghost != null:
 		_ghost.position = lagoon.cell_pos(cursor)
 		_ghost.rotation_degrees.y = LagoonData.facing_yaw() + 90.0 * rot
-		_ghost_mat.albedo_color = Color(0.4, 1.0, 0.55, 0.45) if Lagoon.place_problem(state(), selected_type, cursor) == "" else Color(1.0, 0.4, 0.35, 0.45)
+		_ghost_mat.albedo_color = Color(0.45, 1.0, 0.6, 0.7) if Lagoon.place_problem(state(), selected_type, cursor) == "" else Color(1.0, 0.4, 0.35, 0.7)
 
 
 # ---- the panel -------------------------------------------------------------------------------
