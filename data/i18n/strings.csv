@@ -1056,6 +1056,49 @@ bark.taunt.saltjaw,"The sea is mine, and all in it.",Moře je moje a všechno v 
 bark.taunt.vale,"In the Crown's name, strike your colours!","Jménem Koruny, spusťte vlajku!"
 bark.taunt.valcourt,Brass outlasts pirates.,Mosaz přežije piráty.
 bark.taunt.ibrahim,Kneel.,Klekni.
+pcrew.title,Pirate crews,Pirátské posádky
+pcrew.league,The pirate league,Pirátská liga
+pcrew.you,You,Ty
+pcrew.renown,renown,sláva
+pcrew.captain,captain,kapitán
+pcrew.gone,Finished. Their lagoon is empty and their flag is yours.,Je po nich. Jejich laguna je prázdná a jejich vlajka je tvoje.
+pcrew.ships,Ships,Lodě
+pcrew.holds,Holds,Ovládá
+pcrew.style,Known for,"Proslulí tím, že"
+pcrew.style.raider,raiding the trade lanes,přepadají obchodní trasy
+pcrew.style.treasure,hunting treasure and stealing maps,hledají poklady a kradou mapy
+pcrew.style.plunderer,plundering ports and bases,plení přístavy a základny
+pcrew.style.hunter,hunting other captains,loví jiné kapitány
+pcrew.lagoon_unknown,Their lagoon: nobody will say where.,Jejich laguna: nikdo neprozradí kde.
+pcrew.lagoon_at,Their lagoon: somewhere in the middle of %s.,Jejich laguna: někde uprostřed oblasti %s.
+pcrew.claims,Islands claimed,Zabrané ostrovy
+pcrew.has_maps,They hold %d of your treasure map pieces.,Mají %d kusů tvých map k pokladu.
+pcrew.mood.calm,"They leave you be, for now.",Zatím tě nechávají být.
+pcrew.mood.angry,They want a word with you.,Chtějí si to s tebou vyřídit.
+pcrew.mood.hunting,They are hunting you.,Jdou po tobě.
+pcrew.news,Word on the water,Zprávy z moře
+pcrew.day,Day,Den
+pcrew.news.raid_trade,%s raided a merchant convoy in %s.,%s přepadli obchodní konvoj v oblasti %s.
+pcrew.news.raid_port,%s raided %s and burned the warehouses.,%s přepadli %s a vypálili sklady.
+pcrew.news.claim,%s buried a chest on %s and left guards.,%s zakopali truhlu na ostrově %s a nechali tam stráže.
+pcrew.news.expand,%s are spreading into %s.,%s se rozpínají do oblasti %s.
+pcrew.news.hunt,%s are out looking for you.,%s tě vyhlížejí.
+pcrew.news.clash,%s beat %s in a fight over %s.,%s porazili %s v boji o oblast %s.
+pcrew.news.king,You top the pirate league. Every crew wants your head now.,Vedeš pirátskou ligu. Teď chce tvou hlavu každá posádka.
+pcrew.news.threat,%s are sailing to raid %s!,%s plují vyplenit %s!
+pcrew.news.raided_you,%s raided %s and took %d gold.,%s vyplenili %s a vzali %d zlaťáků.
+pcrew.news.beat_you,%s beat you and took %d gold.,%s tě porazili a vzali %d zlaťáků.
+pcrew.news.eliminated,%s are finished.,Je konec s posádkou %s.
+pcrew.warband,%s: %d ships are coming for you!,%s: %d lodí si jde pro tebe!
+pcrew.guards,%s guard their chest on %s.,%s hlídají svou truhlu na ostrově %s.
+pcrew.lagoon_found,You found the lagoon of %s. Their flagship is here.,Našel jsi lagunu posádky %s. Je tu jejich vlajková loď.
+pcrew.boarding,%s are coming over the rail! Fight!,%s šplhají přes zábradlí! Bojuj!
+pcrew.repelled,You threw %s off your deck. Their ship strikes its colours.,Shodil jsi %s ze své paluby. Jejich loď stahuje vlajku.
+pcrew.plundered,%s beat your crew and took %d gold.,%s porazili tvou posádku a vzali %d zlaťáků.
+pcrew.map_stolen,%s took one of your treasure map pieces!,%s ti vzali kus mapy k pokladu!
+pcrew.map_back,You took back a stolen map piece.,Získal jsi zpět ukradený kus mapy.
+pcrew.eliminated,%s are finished! Their chest held %d gold.,Je konec s posádkou %s! Jejich truhla skrývala %d zlaťáků.
+pcrew.stash,The guards of %s are beaten. Their chest held %d gold.,Stráže na ostrově %s jsou poraženy. Jejich truhla skrývala %d zlaťáků.
 cat.title,Catalogue,Katalog
 cat.ships,Ships,Lodě
 cat.upgrades,Upgrades,Vylepšení
@@ -1327,3 +1370,4 @@ land.kind.atoll,"The shore party combs the beach of %s and finds:","Výsadek pro
 cat.giant,Giant ship.,Obří loď.
 cat.giant_title,Giant ships,Obří lodě
 cat.giant_desc,"Treasure galleons, dreadnoughts and leviathans.","Pokladové galeony, dreadnoughty a leviatani."
+pcrew.news.repelled_at_lagoon,Your lagoon's guns drove off %s.,Děla tvé laguny zahnala posádku %s.
