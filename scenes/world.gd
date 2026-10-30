@@ -185,6 +185,7 @@ func _start_game_layer() -> void:
 	orders.name = "SeaOrderBar"
 	orders.controller = player_controller
 	orders.drink_pressed.connect(drink_rum)
+	orders.hail_pressed.connect(prizes.hail)
 	add_child(orders)
 	world_audio = WorldAudio.new()
 	world_audio.world = self
@@ -384,8 +385,14 @@ func _daily_crew_tick() -> void:
 		EventBus.toast.emit(Loc.t("crew.unpaid"))
 	if int(report["deaths"]) > 0:
 		EventBus.toast.emit(Loc.t("crew.died_" + str(report["died_of"] if report["died_of"] != "" else "wounds")) % int(report["deaths"]))
-	if int(report["deserted"]) > 0:
-		EventBus.toast.emit(Loc.t("crew.deserted") % int(report["deserted"]))
+	if int(report["deserted"]) > report["deserted_names"].size():
+		EventBus.toast.emit(Loc.t("crew.deserted") % (int(report["deserted"]) - report["deserted_names"].size()))
+	for n: String in report["deserted_names"]:
+		EventBus.toast.emit(Loc.t("persona.deserted") % n)
+	for ev: Dictionary in report["persona_events"]:
+		EventBus.toast.emit(Loc.t(str(ev["key"])) % str(ev["name"]))
+	if str(report["talked_down"]) != "":
+		EventBus.toast.emit(Loc.t("persona.talked_down") % str(report["talked_down"]))
 	if report["mutiny"]:
 		open_mutiny()
 

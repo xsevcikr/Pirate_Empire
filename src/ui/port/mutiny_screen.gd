@@ -23,6 +23,12 @@ func build() -> void:
 	l.text = Loc.t("mutiny.text")
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_box.add_child(l)
+	var leader: String = CrewPersona.ringleader(Session.state)
+	if leader != "":
+		var r := Label.new()
+		r.text = Loc.t("persona.ringleader") % [leader, CrewPersona.count_at_least(Session.state, CrewPersona.BANDS["loyal"])]
+		r.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_box.add_child(r)
 	var cost: int = Mutiny.pay_off_cost(Session.state)
 	var pay: Button = add_button("mutiny.pay", _choose.bind(Mutiny.Option.PAY_OFF))
 	pay.text = "%s (%d g)" % [Loc.t("mutiny.pay"), cost]
