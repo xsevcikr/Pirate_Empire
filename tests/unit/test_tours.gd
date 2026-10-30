@@ -150,7 +150,8 @@ func test_shell_king_is_a_three_phase_fight_with_a_two_second_telegraph() -> voi
 		seen += 0.1
 		if f.telegraph() != "":
 			break
-	assert_eq(f.boss.telegraph_left_s > 1.9 and f.boss.telegraph_left_s <= 2.0, true, "telegraph starts at 2 s")
+	var tele: float = BossAttacks.tele_s("shell_king", f.telegraph())
+	assert_eq(f.boss.telegraph_left_s > tele - 0.11 and f.boss.telegraph_left_s <= tele, true, "the tell starts at its full length")
 	f.boss.damage(1200.0 * 0.45)
 	assert_eq(f.boss.phase, 1)
 	f.boss.damage(1200.0 * 0.3)
@@ -168,7 +169,7 @@ func test_dodging_in_the_window_avoids_damage_and_opens_the_monster() -> void:
 	assert_true(f.dodge())
 	while f.telegraph() != "":
 		f.tick(0.1)
-	assert_near(f.player_hp, 100.0, 0.001)
+	assert_near(f.player_hp, 200.0, 0.001)
 	assert_true(f.is_exposed())
 	var open_hit: float = f.strike()
 	assert_near(open_hit, 60.0, 0.01, "30 damage doubled while open")
@@ -185,7 +186,7 @@ func test_a_hit_that_is_not_dodged_hurts_and_a_parry_cracks_the_claw() -> void:
 	var first: String = f.telegraph()
 	while f.telegraph() != "":
 		f.tick(0.1)
-	assert_near(f.player_hp, 100.0 - float(TourData.MONSTERS["shell_king"]["dmg"][first]), 0.001)
+	assert_near(f.player_hp, 200.0 - float(BossAttacks.of("shell_king", first)["dmg"]), 0.001)
 	var g := MonsterFight.new("shell_king", 1)
 	g.boss._action_i = 0
 	guard = 0
@@ -199,12 +200,14 @@ func test_a_hit_that_is_not_dodged_hurts_and_a_parry_cracks_the_claw() -> void:
 		while g.telegraph() != "":
 			g.tick(0.1)
 		assert_true(g.claw_cracked)
-		assert_near(g.player_hp, 100.0, 0.001)
+		assert_near(g.player_hp, 200.0 - 40.0 * BossAttacks.BLOCK_TAKEN, 0.001, "a block takes a quarter")
 
 
 func test_serpent_chain_shot_cuts_the_coil() -> void:
 	var f := MonsterFight.new("sea_serpent", 1)
 	assert_near(f.boss.max_hp, 4000.0, 0.1)
+	f.boss.damage(4000.0 * 0.4)  # the coils come in phase two
+	f.boss.enrage_left_s = 0.0
 	var guard: int = 0
 	while f.telegraph() != "coil" and guard < 600:
 		f.tick(0.1)
