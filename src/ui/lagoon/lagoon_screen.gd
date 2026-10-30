@@ -1,7 +1,7 @@
 class_name LagoonScreen
 extends MenuScreen
 ## Ashore at the player's lagoon: claim the atoll, see what it earns and who lives there, go into build mode, run
-## the harbour, raise the lagoon to its next rank, set sail. Coming ashore empties the chest and the larder.
+## the harbour, visit the harbour office, raise the lagoon to its next rank, set sail. Coming ashore empties the chest and the larder.
 
 var world: Node
 var landing: Dictionary = {}
@@ -45,16 +45,26 @@ func build() -> void:
 		_line(Loc.t("lagoon.landing") % [int(landing["gold"]), int(landing["food"]), int(landing["morale"]), int(landing["healed"]), int(float(landing["hull"]) * 100.0)])
 	var l: Dictionary = Lagoon.data(s)
 	_line(Loc.t("lagoon.summary") % [int(l["pop"]), Lagoon.beds(s), int(Lagoon.income_daily(s)), int(float(l["chest"])), int(Lagoon.chest_cap(s))])
+	if LagoonMissions.away(s) > 0:
+		_line(Loc.t("lagoon.away_line") % LagoonMissions.away(s))
 	_line(Loc.t("lagoon.summary2") % [int(Lagoon.morale_bonus(s)), int(Lagoon.defence(s)), int(Lagoon.raid_strength(s)), (s["fleet"] as Array).size(), Lagoon.berths(s)])
 	_line(Loc.t("port.header") % [int(s["gold"]), PortService.cargo_used(s), PortService.cargo_capacity(s), PortService.food_days(s)])
 	add_button("lagoon.build", _open_build_mode)
 	add_button("lagoon.harbour", func() -> void: open_child(LagoonHarbourScreen.new()))
+	var office: Button = add_button("lagoon.office", open_office)
+	if not LagoonMissions.active(s).is_empty():
+		office.text = Loc.t("lagoon.office_away") % LagoonMissions.active(s).size()
 	var cost: int = Lagoon.next_rank_cost(s)
 	if cost > 0:
 		var up: Button = add_button("lagoon.rank_up", _rank_up)
 		up.text = Loc.t("lagoon.rank_up") % [Loc.t("lagoon.rank_" + LagoonData.rank(rank + 1)["id"]), cost]
 		up.disabled = cost > int(s["gold"])
 	add_button("port.set_sail", close)
+
+
+## The harbour office: ship upgrades, lagoon rank and housing, and missions for the residents.
+func open_office() -> void:
+	open_child(CatalogueScreen.with_source(HarbourOfficeCatalogue.new()))
 
 
 func _line(text: String) -> void:

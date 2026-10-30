@@ -73,6 +73,7 @@ func _wanted() -> Dictionary:
 	for i in piers.size():
 		var lv2: int = int(piers[i])
 		out["p%d" % i] = ["%d" % lv2, func() -> Node3D: return _make_pier(i, lv2)]
+	out["office"] = ["office", func() -> Node3D: return _put(LagoonArt.office(), office_point(), LagoonData.facing_yaw())]
 	out["walk"] = ["%d" % piers.size(), func() -> Node3D: return _make_walk(piers.size())]
 	var berths: Array[Vector3] = _berths()
 	var fleet: Array = state["fleet"]
@@ -147,6 +148,14 @@ func pier_root(slot: int) -> Vector2:
 func _landing_point() -> Vector3:
 	var p: Vector2 = pier_root(0) - Vector2.from_angle(LagoonData.pier_angle(0)) * 10.0
 	return Vector3(p.x, island.ground_y(p) if island != null else 1.0, p.y)
+
+
+## Island-local ground point of the harbour office: on the beach beside the foot of the first pier, where the
+## captain steps ashore. The office (HarbourOfficeCatalogue) opens from here.
+func office_point() -> Vector3:
+	var dir: Vector2 = Vector2.from_angle(LagoonData.pier_angle(0))
+	var p: Vector2 = pier_root(0) - dir * 16.0 + Vector2(-dir.y, dir.x) * 14.0
+	return Vector3(p.x, island.ground_y(p) if island != null else LagoonData.PAD_H_M, p.y)
 
 
 func _make_pier(slot: int, level: int) -> Node3D:

@@ -17,6 +17,8 @@ var status: Status = Status.AVAILABLE
 var tier: int = -1  ## current tier for tiered items, -1 for none
 var tiers: int = 0
 var action_key: String = "cat.buy"
+var note: String = ""  ## shown in place of the price or "Owned"/"Maxed" tag when set, already translated
+var note_bad: bool = false  ## draw the note in red
 var data: Dictionary = {}  ## anything the source needs back in buy()
 
 

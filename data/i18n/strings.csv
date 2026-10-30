@@ -1447,3 +1447,50 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+lagoon.office,Harbour office (upgrades and missions),Přístavní kancelář (vylepšení a výpravy)
+lagoon.office_away,Harbour office (%d parties out),Přístavní kancelář (venku %d výprav)
+lagoon.away_line,%d pirates are out on missions,%d pirátů je pryč na výpravách
+office.title,Harbour Office,Přístavní kancelář
+office.lagoon,Lagoon,Laguna
+office.missions,Missions,Výpravy
+office.needs_lagoon_yard,Needs a level %d shipyard in your lagoon,Potřebuje loděnici úrovně %d ve tvé laguně
+office.rank_desc,"Raise the lagoon: more building plots, more piers and more parties out on missions at once.","Povýšit lagunu: víc stavebních parcel, víc mol a víc výprav najednou."
+office.stat_plots,Plots,Parcely
+office.stat_piers,Piers,Mola
+office.stat_parties,Parties,Výpravy
+office.raise,Raise,Povýšit
+office.housing,Pirate quarters,Pirátské ubikace
+office.housing_desc,"Bunkhouses and hammocks all over the atoll, so more pirates can live in your empire.","Noclehárny a houpací sítě po celém atolu, aby ve tvé říši mohlo žít víc pirátů."
+office.stat_people,People,Lidé
+office.stat_beds,Beds,Lůžka
+office.expand,Expand,Rozšířit
+office.needs_rank,Needs the lagoon rank %s,Potřebuje hodnost laguny %s
+office.away,"%d pirates away, back in %d days","%d pirátů pryč, zpět za %d dní"
+office.send,Send,Vyslat
+office.send_note,Send %d pirates,Vyslat %d pirátů
+office.stat_crew,Pirates,Piráti
+office.stat_days,Days,Dní
+office.stat_reward,Gold,Zlato
+office.stat_risk,Death risk,Riziko smrti
+office.stat_lost,Never return,Nevrátí se
+office.no_slots,"All %d parties are out, raise the lagoon for more","Všech %d výprav je venku, povyš lagunu pro další"
+office.no_crew,Needs %d pirates at home (%d here),Potřebuje %d pirátů doma (tady je %d)
+office.returned,Came home on day %d,Vrátili se %d. den
+office.sent,%s: the party has set out,%s: výprava vyrazila
+mission.fishing,Fishing trip,Rybářská výprava
+mission.wreck_dive,Dive the wrecks,Potápění k vrakům
+mission.merchant_raid,Raid a merchant,Přepadení obchodníka
+mission.smuggling,Smuggling run,Pašerácká jízda
+mission.treasure_hunt,Treasure hunt,Hon za pokladem
+mission.convoy_raid,Raid a convoy,Přepadení konvoje
+mission.fort_raid,Storm a fort,Útok na pevnost
+mission.desc.fishing,"A day with nets off the reef. Safe, but it pays little.","Den se sítěmi u útesu. Bezpečné, ale vynese málo."
+mission.desc.wreck_dive,Dive the old wrecks around the atoll for coins and trinkets. Sharks live there.,Potápění k starým vrakům kolem atolu pro mince a cetky. Žijí tam žraloci.
+mission.desc.merchant_raid,Take a longboat out and rob a lone merchant ship.,Vyplout na člunu a oloupit osamělou obchodní loď.
+mission.desc.smuggling,Run rum and silk past the navy into a lawful port.,Propašovat rum a hedvábí kolem námořnictva do zákonného přístavu.
+mission.desc.treasure_hunt,Follow an old map to a buried chest on a far island.,Najít podle staré mapy zakopanou truhlu na vzdáleném ostrově.
+mission.desc.convoy_raid,Fall on a navy-guarded convoy. Rich pickings and heavy fighting.,Přepadnout konvoj pod ochranou námořnictva. Bohatá kořist a tvrdý boj.
+mission.desc.fort_raid,Storm a coastal fort and empty its treasury. Many will not come back.,Dobýt pobřežní pevnost a vybrat její pokladnu. Mnozí se nevrátí.
+mission.report_ok,%s: all came home with %d gold,%s: všichni se vrátili s %d zlaťáky
+mission.report_hurt,"%s: back with %d gold, %d pirates died","%s: zpět s %d zlaťáky, %d pirátů zemřelo"
+mission.report_lost,%s: the party of %d never came back,%s: výprava %d pirátů se už nevrátila
