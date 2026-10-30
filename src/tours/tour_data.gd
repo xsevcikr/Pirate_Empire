@@ -95,52 +95,37 @@ const SIREN: Dictionary = {
 	"wax_cost": 20, "shanty_min_morale": 40.0,
 }
 
-## Monsters fought through MonsterFight. dmg is what an attack that is not dodged does to the player.
+## Monsters fought through MonsterFight: armour, how long a good answer leaves them open, their tricks. Their
+## attacks are in BossAttacks.
 const MONSTERS: Dictionary = {
 	"shell_king": {
 		"player": "captain", "armor": 0.5, "exposed_mult": 2.0, "expose_s": 3.0, "claw_crack_cut": 0.4,
-		"dmg": {"pincer_sweep": 40.0, "burrow_burst": 60.0, "shell_spin": 45.0},
-		"parry": ["pincer_sweep"], "dodge": ["pincer_sweep", "burrow_burst", "shell_spin"],
 	},
 	"sea_serpent": {
 		"player": "ship", "armor": 1.0, "exposed_mult": 3.0, "expose_s": 4.0, "chain_cut": 0.75,
-		"dmg": {"coil": 120.0, "head_strike": 200.0, "tail_sweep": 90.0},
-		"parry": [], "dodge": ["coil", "head_strike", "tail_sweep"],
 	},
 }
 const MONSTERS_BIG: Dictionary = {
 	"valcourt": {
 		"player": "ship", "armor": 0.6, "exposed_mult": 2.0, "expose_s": 3.0,
-		"dmg": {"line_ahead_broadsides": 250.0, "board_if_close": 100.0, "fire_ships": 200.0, "iron_bulwark": 0.0, "ram_and_board": 300.0, "captain_duel": 150.0},
-		"parry": [], "dodge": ["line_ahead_broadsides", "board_if_close", "fire_ships", "ram_and_board", "captain_duel"],
 	},
 	"ghost_admiral": {
 		"player": "ship", "armor": 0.7, "exposed_mult": 2.0, "expose_s": 3.0, "lanterns": 2,
-		"dmg": {"teleport_behind": 200.0, "phase_out": 0.0, "summon_ghost_sloops": 150.0, "lightning_storm": 250.0, "skeletal_boarders": 120.0, "cursed_lantern": 200.0},
-		"parry": [], "dodge": ["teleport_behind", "summon_ghost_sloops", "lightning_storm", "skeletal_boarders", "cursed_lantern"],
 	},
 	"kraken": {
 		"player": "ship", "armor": 1.0, "exposed_mult": 2.5, "expose_s": 4.0, "tentacles": 8, "tentacle_hp": 150.0, "head_up_s": 12.0,
-		"dmg": {"tentacle_slam": 200.0, "grab_and_crush": 350.0, "pull_into_whirlpool": 150.0, "ink_cloud": 0.0, "head_emerges": 300.0, "ram_it": 0.0},
-		"parry": [], "dodge": ["tentacle_slam", "grab_and_crush", "pull_into_whirlpool", "head_emerges"],
 	},
 	"black_ibrahim": {
 		"player": "ship", "armor": 0.6, "exposed_mult": 2.0, "expose_s": 3.0,
-		"dmg": {"fleet_duel": 250.0, "frigate_formation": 150.0, "mortar_rain": 300.0, "bombard_bases": 200.0, "burning_deck_duel": 250.0, "attack_pattern_three": 300.0},
-		"parry": [], "dodge": ["fleet_duel", "frigate_formation", "mortar_rain", "bombard_bases", "burning_deck_duel", "attack_pattern_three"],
 	},
 	"brass_colossus": {
 		"player": "captain", "armor": 0.5, "exposed_mult": 2.5, "expose_s": 3.0, "cool_extends_s": 3.0,
-		"dmg": {"steam_blast": 50.0, "ground_slam": 60.0, "flame_jets": 45.0},
-		"parry": [], "dodge": ["steam_blast", "ground_slam", "flame_jets"],
 	},
 	"ice_leviathan": {
 		"player": "ship", "armor": 0.7, "exposed_mult": 2.0, "expose_s": 4.0, "explosive_mult": 2.0,
-		"dmg": {"break_ice": 200.0, "hurl_ice": 150.0, "freezing_breath": 100.0},
-		"parry": [], "dodge": ["break_ice", "hurl_ice", "freezing_breath"],
 	},
 }
-const PLAYER_HP: Dictionary = {"captain": 100.0, "ship": 1200.0}
+const PLAYER_HP: Dictionary = {"captain": 200.0, "ship": 1200.0}  ## a captain on foot has 200 HP, like every fighter
 const STRIKE_DMG: Dictionary = {"captain": 30.0, "ship": 160.0}
 
 ## Dungeons: room count and the order of what is in them.
