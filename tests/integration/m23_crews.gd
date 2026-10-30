@@ -30,7 +30,13 @@ func _process(_delta: float) -> bool:
 	if dir == null:
 		return _finish()
 	var st: Dictionary = Session.state
-	_check(dir.lagoon_nodes.size() == 4, "four lagoons are on the sea")
+	_check(dir.lagoon_nodes.is_empty(), "no lagoon is built far from the player")
+	var lp: Vector2 = CrewData.lagoon_pos("sea_wolves")
+	var home: Vector3 = w.ship.global_position
+	w.ship.global_position = Vector3(lp.x + 2000.0, home.y, lp.y)
+	dir.build_near_lagoons()
+	_check(dir.lagoon_nodes.has("sea_wolves") and dir.lagoon_nodes.size() == 1, "the near lagoon is built")
+	w.ship.global_position = home
 	# a warband in the crew's colours
 	var band: Array[Ship] = dir.send_warband("red_hand")
 	_check(not band.is_empty(), "the Red Hand sends a warband")

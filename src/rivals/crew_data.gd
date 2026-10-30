@@ -75,6 +75,7 @@ const SPAWN_DIST_M: float = 1000.0
 const GUARD_RADIUS_M: float = 900.0  ## approach a claimed island or a lagoon this close and its guards are there
 const LAGOON_GUARDS_MAX: int = 3
 const LAGOON_CLEARANCE_M: float = 220.0
+const LAGOON_BUILD_M: float = 3500.0  ## the cove is built when the player comes this close
 const BOARD_PLAYER_M: float = 45.0  ## a crew ship this close will try to board the player
 const BOARD_MAX_REL_KN: float = 4.0  ## and only when the two ships are near the same speed
 const BOARD_COOLDOWN_S: float = 90.0

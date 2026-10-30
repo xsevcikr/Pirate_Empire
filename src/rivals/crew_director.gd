@@ -38,7 +38,6 @@ func _ready() -> void:
 	if _bus != null:
 		_bus.prize_taken.connect(_on_prize)
 		_bus.player_defeated.connect(_on_defeated)
-	_build_lagoons()
 
 
 func _clock_hours() -> float:
@@ -212,6 +211,7 @@ func _forget_post(s: Ship) -> void:
 ## and a crew ship alongside tries to board.
 func proximity_tick() -> void:
 	var p: Vector2 = pos2()
+	build_near_lagoons()
 	var claims: Dictionary = PirateCrews.root(state)["claims"]
 	for isl: String in claims:
 		if _guarded.has(isl):
@@ -261,6 +261,7 @@ func defend_lagoon(id: String) -> Array[Ship]:
 	var at: Vector2 = CrewData.lagoon_pos(id)
 	var tag: String = "lagoon:" + id
 	_guarded[tag] = true
+	build_lagoon(id)
 	PirateCrews.get_crew(state, id)["lagoon_known"] = true
 	out.append(spawn_crew_ship(id, str(CrewData.def(id)["flagship"]), at, ROLE_FLAGSHIP, tag))
 	var n: int = mini(CrewData.LAGOON_GUARDS_MAX, int(PirateCrews.get_crew(state, id)["fleet"]))
@@ -271,33 +272,43 @@ func defend_lagoon(id: String) -> Array[Ship]:
 	return out
 
 
-## A small rocky cove at each lagoon: rocks, palms, a watchtower and the crew's flag, so it can be seen from afar.
-func _build_lagoons() -> void:
-	if world == null or not (world is Node3D):
+## Builds the cove of any lagoon the player has come within LAGOON_BUILD_M of, one per call, so no frame pays for
+## more than one and a voyage that never goes near a lagoon never builds it.
+func build_near_lagoons() -> void:
+	if world == null or not (world is Node3D) or ship == null:
 		return
 	for id: String in CrewData.ORDER:
-		var root := Node3D.new()
-		root.name = "Lagoon_" + id
-		var p: Vector2 = CrewData.lagoon_pos(id)
-		root.position = Vector3(p.x, 0.0, p.y)
-		root.set_meta("kind", "crew_lagoon")
-		(world as Node3D).add_child(root)
-		lagoon_nodes[id] = root
-		var r := RandomNumberGenerator.new()
-		r.seed = hash(id)
-		for k in 9:
-			var a: float = TAU * float(k) / 9.0 + r.randf_range(-0.2, 0.2)
-			var at := Vector3(cos(a), -0.6, sin(a)) * Vector3(150.0, 1.0, 150.0)
-			var rock: Node3D = Kenney.place(root, "pirate", ["rocks-sand-a", "rocks-sand-b", "rocks-sand-c", "rocks-a"][k % 4], at, r.randf() * 360.0, 1.0)
-			var rs: float = r.randf_range(10.0, 15.0)
-			rock.scale = Vector3(rs, rs * 0.35, rs)
-			if k % 3 == 0:
-				Kenney.place(root, "pirate", "palm-bend", at + Vector3(0, 3.0, 0), r.randf() * 360.0, 6.0)
-		var tower: Node3D = Kenney.place(root, "pirate", "tower-watch", Vector3(160.0, 0.0, 0.0), 180.0, 7.0)
-		tower.set_meta("kind", "crew_tower")
-		var flag: Node3D = Kenney.place(root, "pirate", "flag-pirate-high", Vector3(160.0, 14.0, 0.0), 0.0, 6.0)
-		_tint(flag, CrewData.def(id)["color"])
-		Kenney.place(root, "pirate", "structure-platform-dock", Vector3(120.0, -0.3, 30.0), 90.0, 6.0)
+		if not lagoon_nodes.has(id) and pos2().distance_to(CrewData.lagoon_pos(id)) <= CrewData.LAGOON_BUILD_M:
+			build_lagoon(id)
+			return
+
+
+## A small rocky cove at a lagoon: rocks, palms, a watchtower and the crew's flag, so it can be seen from afar.
+func build_lagoon(id: String) -> void:
+	if world == null or not (world is Node3D) or lagoon_nodes.has(id):
+		return
+	var root := Node3D.new()
+	root.name = "Lagoon_" + id
+	var p: Vector2 = CrewData.lagoon_pos(id)
+	root.position = Vector3(p.x, 0.0, p.y)
+	root.set_meta("kind", "crew_lagoon")
+	(world as Node3D).add_child(root)
+	lagoon_nodes[id] = root
+	var r := RandomNumberGenerator.new()
+	r.seed = hash(id)
+	for k in 9:
+		var a: float = TAU * float(k) / 9.0 + r.randf_range(-0.2, 0.2)
+		var at := Vector3(cos(a), -0.6, sin(a)) * Vector3(150.0, 1.0, 150.0)
+		var rock: Node3D = Kenney.place(root, "pirate", ["rocks-sand-a", "rocks-sand-b", "rocks-sand-c", "rocks-a"][k % 4], at, r.randf() * 360.0, 1.0)
+		var rs: float = r.randf_range(10.0, 15.0)
+		rock.scale = Vector3(rs, rs * 0.35, rs)
+		if k % 3 == 0:
+			Kenney.place(root, "pirate", "palm-bend", at + Vector3(0, 3.0, 0), r.randf() * 360.0, 6.0)
+	var tower: Node3D = Kenney.place(root, "pirate", "tower-watch", Vector3(160.0, 0.0, 0.0), 180.0, 7.0)
+	tower.set_meta("kind", "crew_tower")
+	var flag: Node3D = Kenney.place(root, "pirate", "flag-pirate-high", Vector3(160.0, 14.0, 0.0), 0.0, 6.0)
+	_tint(flag, CrewData.def(id)["color"])
+	Kenney.place(root, "pirate", "structure-platform-dock", Vector3(120.0, -0.3, 30.0), 90.0, 6.0)
 
 
 static func _tint(n: Node, c: Color) -> void:
