@@ -25,6 +25,7 @@ const ACTIONS: Dictionary = {
 	"tour_journal": [KEY_N],
 	"shanty": [KEY_H],
 	"rivals": [KEY_O],
+	"interior": [KEY_I],
 	"ammo_1": [KEY_1],
 	"ammo_2": [KEY_2],
 	"ammo_3": [KEY_3],

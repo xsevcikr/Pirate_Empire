@@ -59,6 +59,7 @@ func _ready() -> void:
 	_body.material_override = _material
 	_body.position.y = size.y * 0.5
 	add_child(_body)
+	TownBuilder.dress_body(_body, kind, size, building_id.hash())
 	if kind in ["house", "warehouse"]:
 		_roof = MeshInstance3D.new()
 		var prism := PrismMesh.new()

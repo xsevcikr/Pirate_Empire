@@ -38,6 +38,7 @@ func _ready() -> void:
 	_noise = _make_noise()
 	if not staged:
 		_grow_vegetation()
+		IslandCamp.build(self, _veg_rng)
 		_build_shallows()
 	var cs := CollisionShape3D.new()
 	var cyl := CylinderShape3D.new()
@@ -48,15 +49,33 @@ func _ready() -> void:
 	add_child(cs)
 
 
+var _veg_rng: RandomNumberGenerator
+var _palm_sets: Array = []
+var _bushes: Array[Transform3D] = []
+var _rocks: Array[Transform3D] = []
+var _tries: int = 0
+var _camp_plan: Dictionary = {}
+
+
 ## One more slice of a staged island's work; false once everything is built.
 func build_next_stage() -> bool:
 	match _stage:
 		0:
-			_grow_vegetation()
+			_sample_start()
+			_sample_range(0, _tries / 2)
 		1:
+			_sample_range(_tries / 2, _tries)
+		2:
+			_scatter_vegetation()
+		3:
+			_camp_plan = IslandCamp.plan_camp(self, _veg_rng)
+		4, 5, 6:
+			if not _camp_plan.is_empty():
+				(_camp_plan["jobs"][_stage - 4] as Callable).call()
+		7:
 			_build_shallows()
 	_stage += 1
-	return _stage < 2
+	return _stage < 8
 
 
 func height_at(local: Vector2, noise: FastNoiseLite) -> float:
@@ -127,13 +146,23 @@ func _color_for(h: float, n: float) -> Color:
 
 ## Palms, bushes and boulders scattered on the island by height and slope, as three MultiMeshes.
 func _grow_vegetation() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = seed_value * 31 + 7
-	var palms: Array[Transform3D] = []
-	var bushes: Array[Transform3D] = []
-	var rocks: Array[Transform3D] = []
-	var tries: int = int(clampf(radius_m * 5.0, 200.0, 1800.0) * float(_look["density"]))
-	for i in tries:
+	_sample_start()
+	_sample_range(0, _tries)
+	_scatter_vegetation()
+
+
+func _sample_start() -> void:
+	_veg_rng = RandomNumberGenerator.new()
+	_veg_rng.seed = seed_value * 31 + 7
+	_palm_sets = [[], [], []]
+	_bushes = []
+	_rocks = []
+	_tries = int(clampf(radius_m * 5.0, 200.0, 1800.0) * float(_look["density"]))
+
+
+func _sample_range(from: int, to: int) -> void:
+	var rng: RandomNumberGenerator = _veg_rng
+	for i in range(from, to):
 		var ang: float = rng.randf() * TAU
 		var rad: float = radius_m * sqrt(rng.randf()) * 1.1
 		var p: Vector2 = Vector2.from_angle(ang) * rad
@@ -142,18 +171,24 @@ func _grow_vegetation() -> void:
 			continue
 		var slope: float = absf(ground_y(p + Vector2(1.5, 0)) - h) + absf(ground_y(p + Vector2(0, 1.5)) - h)
 		var basis := Basis(Vector3.UP, rng.randf() * TAU)
-		if bool(_look["palms"]) and h < peak_m * 0.5 and slope < 2.2 and palms.size() < PALM_CAP and rng.randf() < 0.55:
+		if bool(_look["palms"]) and h < peak_m * 0.5 and slope < 2.2 and (_palm_sets[0].size() + _palm_sets[1].size() + _palm_sets[2].size()) < PALM_CAP and rng.randf() < 0.55:
 			var sc: float = rng.randf_range(0.8, 1.45)
-			palms.append(Transform3D(basis.scaled(Vector3.ONE * sc), Vector3(p.x, h - 0.2, p.y)))
+			_palm_sets[rng.randi_range(0, 2)].append(Transform3D(basis.scaled(Vector3.ONE * sc), Vector3(p.x, h - 0.2, p.y)))
 		elif bool(_look["bushes"]) and h < peak_m * 0.62 and slope < 3.0 and rng.randf() < 0.5:
 			var sb: float = rng.randf_range(0.9, 2.4)
-			bushes.append(Transform3D(basis.scaled(Vector3(sb, sb * 0.7, sb)), Vector3(p.x, h, p.y)))
+			_bushes.append(Transform3D(basis.scaled(Vector3(sb, sb * 0.7, sb)), Vector3(p.x, h, p.y)))
 		elif (slope > 1.2 or h > peak_m * 0.5) and biome != "ice":
 			var sr: float = rng.randf_range(0.8, 3.2)
-			rocks.append(Transform3D(basis.scaled(Vector3(sr, sr * 0.75, sr)), Vector3(p.x, h - sr * 0.2, p.y)))
-	_scatter(_palm_mesh(), palms, true)
-	_scatter(_bush_mesh(_look["forest"]), bushes, true)
-	_scatter(_rock_mesh((_look["rock"] as Color).lightened(0.08)), rocks, true)
+			_rocks.append(Transform3D(basis.scaled(Vector3(sr, sr * 0.75, sr)), Vector3(p.x, h - sr * 0.2, p.y)))
+
+
+func _scatter_vegetation() -> void:
+	for v in 3:
+		var xs: Array[Transform3D] = []
+		xs.assign(_palm_sets[v])
+		_scatter(PalmMesh.build(v, seed_value), xs, true)
+	_scatter(_bush_mesh(_look["forest"]), _bushes, true)
+	_scatter(_rock_mesh((_look["rock"] as Color).lightened(0.08)), _rocks, true)
 
 
 func _scatter(mesh: Mesh, xf: Array[Transform3D], vertex_colors: bool) -> void:

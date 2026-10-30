@@ -476,6 +476,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		open_journal()
 		get_viewport().set_input_as_handled()
 		return
+	if Session.has_state() and event.is_action_pressed("interior"):
+		open_interior()
+		get_viewport().set_input_as_handled()
+		return
 	if Session.has_state() and event.is_action_pressed("rivals"):
 		open_rivals()
 		get_viewport().set_input_as_handled()
@@ -628,6 +632,20 @@ func open_sea_fight(fight: MonsterFight) -> void:
 	var screen := TourEncounterScreen.new()
 	screen.director = tours
 	screen.fight = fight
+	layer.add_child(screen)
+	screen.closed.connect(layer.queue_free)
+
+
+func open_interior() -> void:
+	if get_node_or_null("MapLayer") != null or get_node_or_null("PortLayer") != null:
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MapLayer"
+	layer.layer = 52
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var screen := InteriorScreen.new()
+	screen.stats = ship.stats
 	layer.add_child(screen)
 	screen.closed.connect(layer.queue_free)
 

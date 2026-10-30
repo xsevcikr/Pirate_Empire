@@ -12,6 +12,9 @@ var player: Node3D
 var world: Node
 signal building_destroyed(building: DestructibleBuilding, by_player: bool)
 var loaded: Dictionary = {}  ## island index -> Island
+var _unload_due: Array[int] = []
+var _forts_due: Array[PortScene] = []
+var _ports_due: Array[String] = []
 var ports: Dictionary = {}  ## port id -> PortScene
 var peak_loaded: int = 0
 var loads: int = 0
@@ -23,6 +26,7 @@ var _accum: float = 99.0
 
 func _init() -> void:
 	gen = PortData.gen()
+	PalmMesh.prewarm()
 
 
 func _physics_process(delta: float) -> void:
@@ -41,8 +45,8 @@ func refresh(at: Vector2) -> void:
 		var isl: Dictionary = gen.islands[i]
 		var d: float = (isl["pos"] as Vector2).distance_to(at)
 		if loaded.has(i):
-			if d > UNLOAD_RADIUS_M + float(isl["radius"]):
-				_unload(i)
+			if d > UNLOAD_RADIUS_M + float(isl["radius"]) and not _unload_due.has(i):
+				_unload_due.append(i)
 		elif d <= LOAD_RADIUS_M + float(isl["radius"]) and not _queue.has(i):
 			_queue.append(i)
 	_queue.sort_custom(func(a: int, b: int) -> bool:
@@ -51,6 +55,19 @@ func refresh(at: Vector2) -> void:
 
 ## One slice of work: finish the island being built or start the nearest queued one.
 func pump() -> void:
+	if not _forts_due.is_empty():
+		var f: PortScene = _forts_due.pop_front()
+		if is_instance_valid(f):
+			f.build_fort()
+		return
+	if not _unload_due.is_empty():
+		var u: int = _unload_due.pop_front()
+		if loaded.has(u):
+			_unload(u)
+		return
+	if not _ports_due.is_empty():
+		_build_port(_ports_due.pop_front())
+		return
 	if _building != null:
 		if not is_instance_valid(_building) or not _building.build_next_stage():
 			_building = null
@@ -71,13 +88,19 @@ func pump() -> void:
 	loads += 1
 	peak_loaded = maxi(peak_loaded, loaded.size())
 	if isl["city"] != "":
-		var id: String = IslandData.port_id_of(isl["city"])
-		var ps := PortScene.new()
-		ps.port_id = id
-		ps.world = world
-		ps.building_destroyed.connect(func(b: DestructibleBuilding, by_player: bool) -> void: building_destroyed.emit(b, by_player))
-		add_child(ps)
-		ports[id] = ps
+		_ports_due.append(IslandData.port_id_of(isl["city"]))
+
+
+## The harbour's buildings are a frame of work of their own, so a port is built the pump after its island.
+func _build_port(id: String) -> void:
+	var ps := PortScene.new()
+	ps.staged = true
+	_forts_due.append(ps)
+	ps.port_id = id
+	ps.world = world
+	ps.building_destroyed.connect(func(b: DestructibleBuilding, by_player: bool) -> void: building_destroyed.emit(b, by_player))
+	add_child(ps)
+	ports[id] = ps
 
 
 func _unload(i: int) -> void:
@@ -90,6 +113,7 @@ func _unload(i: int) -> void:
 	var city: String = gen.islands[i]["city"]
 	if city != "":
 		var id: String = IslandData.port_id_of(city)
+		_ports_due.erase(id)
 		if ports.has(id):
 			ports[id].queue_free()
 			ports.erase(id)
