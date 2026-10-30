@@ -288,7 +288,9 @@ func _build_lagoons() -> void:
 		for k in 9:
 			var a: float = TAU * float(k) / 9.0 + r.randf_range(-0.2, 0.2)
 			var at := Vector3(cos(a), -0.6, sin(a)) * Vector3(150.0, 1.0, 150.0)
-			Kenney.place(root, "pirate", ["rocks-sand-a", "rocks-sand-b", "rocks-sand-c", "rocks-a"][k % 4], at, r.randf() * 360.0, r.randf_range(9.0, 14.0))
+			var rock: Node3D = Kenney.place(root, "pirate", ["rocks-sand-a", "rocks-sand-b", "rocks-sand-c", "rocks-a"][k % 4], at, r.randf() * 360.0, 1.0)
+			var rs: float = r.randf_range(10.0, 15.0)
+			rock.scale = Vector3(rs, rs * 0.35, rs)
 			if k % 3 == 0:
 				Kenney.place(root, "pirate", "palm-bend", at + Vector3(0, 3.0, 0), r.randf() * 360.0, 6.0)
 		var tower: Node3D = Kenney.place(root, "pirate", "tower-watch", Vector3(160.0, 0.0, 0.0), 180.0, 7.0)
