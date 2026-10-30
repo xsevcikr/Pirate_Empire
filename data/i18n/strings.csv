@@ -260,7 +260,7 @@ rep.tier_friendly,Friendly,Přátelský
 rep.tier_allied,Allied,Spojenec
 trade.standing,%s: %s (prices %+d%%),%s: %s (ceny %+d%%)
 trade.fence,Fence / black market buys contraband at %d%% of base price.,Překupník / černý trh vykupuje kontraband za %d %% základní ceny.
-trade.blockade,%s is blockaded! Goods cost 50% more.,%s je v blokádě! Zboží je o 50 % dražší.
+trade.blockade,%s is blockaded! Goods cost 50%% more.,%s je v blokádě! Zboží je o 50 %% dražší.
 trade.dock_fee,Docking fee paid: %d g.,Zaplacen poplatek za přístav: %d g.
 inspect.title,Harbour inspection,Přístavní prohlídka
 inspect.found,Patrol officers search your hold at %s. Contraband worth %d g found.,Hlídka prohlíží tvůj podpalubí v %s. Nalezen kontraband v hodnotě %d g.
@@ -622,3 +622,42 @@ tour.perk.heart_of_the_deep,Heart of the Deep,Srdce hlubin
 tour.perk.unlock_black_ibrahim,The way to Black Ibrahim opens,Otevírá se cesta k Černému Ibrahimovi
 tour.perk.pirate_king_crown,Pirate King's crown,Koruna pirátského krále
 tour.locked,Finish the other five tours first.,Nejdřív dokonči ostatních pět cest.
+rival.title,Rivals,Soupeři
+rival.nemesis,Your nemesis: %s,Tvůj úhlavní nepřítel: %s
+rival.level,level,úroveň
+rival.meter,rivalry,soupeření
+rival.beaten,beaten,poražen
+rival.unknown,not met yet,zatím nepotkán
+rival.holds.flag,holds your flag,drží tvou vlajku
+rival.holds.figurehead,holds your figurehead,drží tvou přídovou figuru
+rival.appears,"%s, level %d, sails to meet you.","%s, úroveň %d, pluje ti vstříc."
+rival.defeated,%s is beaten. You take %d gold.,%s je poražen. Bereš %d zlata.
+rival.trophy.flag,%s took your flag and is now level %d.,%s vzal tvou vlajku a je nyní na úrovni %d.
+rival.trophy.figurehead,%s took your figurehead and is now level %d.,%s vzal tvou přídovou figuru a je nyní na úrovni %d.
+rival.taunt.molly,"A bottle: ""Too slow, darling! Love, Molly.""","Láhev: ""Moc pomalé, miláčku! Tvá Molly."""
+rival.taunt.isabeau,"A bottle, perfumed: ""The fog sends its regards.""","Navoněná láhev: ""Mlha zdraví."""
+rival.taunt.saltjaw,"A bottle: ""My gold, my sea.""","Láhev: ""Moje zlato, moje moře."""
+rival.taunt.vale,"A bottle: ""The Crown does not forget.""","Láhev: ""Koruna nezapomíná."""
+rival.taunt.valcourt,"A bottle: ""Brass outlasts pirates.""","Láhev: ""Mosaz přežije piráty."""
+rival.taunt.ibrahim,"A bottle: ""Kneel.""","Láhev: ""Klekni."""
+event.wreckage,Floating wreckage: you salvage %d gold of goods.,Plovoucí vrak: zachraňuješ zboží za %d zlata.
+event.merchant_convoy,A merchant convoy on the lane ahead.,Před tebou na trase plují obchodní lodě.
+event.navy_patrol,A navy patrol bears down on you.,Námořní hlídka se blíží.
+event.ghost_ship,A ghost ship rises from the mist.,Z mlhy se zjevuje loď duchů.
+event.monster,Something huge stirs beneath the waves.,Pod vlnami se hýbe cosi obrovského.
+event.bottle_rumor,A bottle with a rumour of treasure.,Láhev s pověstí o pokladu.
+event.bottle_cove,A bottle with the map of a hidden cove.,Láhev s mapou skryté zátoky.
+event.bottle_taunt,A bottle holding a rival's taunt.,Láhev s výsměchem soupeře.
+event.bottle_clue,A bottle with a treasure clue.,Láhev s vodítkem k pokladu.
+event.castaway,You pick up a castaway who joins the crew.,"Vytahuješ trosečníka, který se přidává k posádce."
+event.whale,You harpoon a whale: %d gold of oil.,Harpunuješ velrybu: olej za %d zlata.
+event.noble_ransom,You ransom a shipwrecked noble for %d gold.,Vyděláváš na trosečném šlechtici %d zlata výkupného.
+event.noble_return,You return a shipwrecked noble: +%d navy reputation.,Vracíš trosečného šlechtice: +%d reputace u námořnictva.
+event.waterspout,A waterspout tears at your sails!,Vodní smršť trhá tvé plachty!
+event.plague,Sickness breaks out aboard.,Na palubě propukla nemoc.
+event.plague_day,The sickness takes %d of the crew.,Nemoc si bere %d členů posádky.
+event.plague_cured,The surgeon's medicine stops the sickness.,Lékařův lék zastavil nemoc.
+event.stowaway_boy,A stowaway boy joins as cabin boy.,Černý pasažér chlapec se stává plavčíkem.
+event.stowaway_thief,A stowaway thief stole %d gold!,Černý pasažér zloděj ukradl %d zlata!
+event.becalmed,Becalmed for %d hours. The crew fish and play dice.,Bezvětří na %d hodin. Posádka rybaří a hraje v kostky.
+event.calm_ends,A breeze at last.,Konečně vánek.
