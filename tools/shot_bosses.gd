@@ -17,12 +17,10 @@ func _initialize() -> void:
 	root.size = Vector2i(1280, 720)
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.25, 0.3, 0.38)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.5, 0.55, 0.65)
-	env.ambient_light_energy = 0.7
+	env.background_color = Color(0.55, 0.75, 0.9)
+	Look.apply_environment(env)
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.35, 0.4, 0.5)
+	env.fog_light_color = Color(0.6, 0.78, 0.9)
 	env.fog_density = 0.0015
 	var we := WorldEnvironment.new()
 	we.environment = env
@@ -35,9 +33,7 @@ func _initialize() -> void:
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(3000, 3000)
 	water.mesh = pm
-	var wm := StandardMaterial3D.new()
-	wm.albedo_color = Color(0.03, 0.14, 0.2)
-	wm.roughness = 0.15
+	var wm: ShaderMaterial = Kenney.flat(Color(0.3, 0.7, 0.9))
 	water.material_override = wm
 	root.add_child(water)
 	_cam = Camera3D.new()

@@ -12,7 +12,7 @@ const CHEST_GOLD: int = 1500
 const MAX_CHESTS: int = 10
 const SHOT_PER_GUN: int = 6
 
-const WOOD_TONES: Array[Color] = [Color(0.45, 0.3, 0.17), Color(0.4, 0.27, 0.15), Color(0.5, 0.35, 0.2), Color(0.36, 0.24, 0.13), Color(0.47, 0.33, 0.2)]
+const WOOD_TONES: Array[Color] = [Color(0.95, 0.59, 0.42), Color(0.86, 0.5, 0.35), Color(0.98, 0.68, 0.5), Color(0.78, 0.45, 0.32), Color(0.92, 0.62, 0.45)]
 
 
 ## How many chests the gold fills.
@@ -28,12 +28,8 @@ static func cargo_pieces(cargo: Dictionary) -> int:
 	return n
 
 
-static func _std(c: Color, rough: float = 0.85, metal: float = 0.0) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = c
-	m.roughness = rough
-	m.metallic = metal
-	return m
+static func _std(c: Color, _rough: float = 0.85, _metal: float = 0.0) -> ShaderMaterial:
+	return Kenney.flat(c)
 
 
 static func _mesh(parent: Node3D, mesh: Mesh, mat: Material, at: Vector3, rot_deg: Vector3 = Vector3.ZERO) -> MeshInstance3D:
@@ -85,17 +81,15 @@ static func _deck(root: Node3D, half_l: float, half_w: float, y: float, rng: Ran
 			var z: float = -half_l + shift + (r + 0.5) * seg_len - seg_len * 0.5
 			var t := Transform3D(Basis().scaled(Vector3(1, 1, seg_len - 0.04)), Vector3(-half_w + (c + 0.5) * PLANK_W_M, y, clampf(z, -half_l, half_l)))
 			mm.set_instance_transform(i, t)
-			mm.set_instance_color(i, WOOD_TONES[rng.randi_range(0, WOOD_TONES.size() - 1)].lerp(Color(0.2, 0.12, 0.07), rng.randf() * 0.35))
+			mm.set_instance_color(i, WOOD_TONES[rng.randi_range(0, WOOD_TONES.size() - 1)].lerp(Color(0.6, 0.35, 0.25), rng.randf() * 0.35))
 			i += 1
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 0.9
+	var mat: ShaderMaterial = Kenney.vcol()
 	var mi := MultiMeshInstance3D.new()
 	mi.multimesh = mm
 	mi.material_override = mat
 	mi.name = "Planks"
 	root.add_child(mi)
-	var beam_mat: StandardMaterial3D = _std(Color(0.28, 0.17, 0.09), 0.9)
+	var beam_mat: ShaderMaterial = _std(Color(0.28, 0.17, 0.09), 0.9)
 	var z2: float = -half_l
 	while z2 <= half_l:
 		_mesh(root, DeckArt.box(Vector3(half_w * 2.0, 0.16, 0.2)), beam_mat, Vector3(0, y - 0.12, z2))
@@ -106,7 +100,7 @@ static func _deck(root: Node3D, half_l: float, half_w: float, y: float, rng: Ran
 
 ## Ribs and the outer planking on the far side, a keel and the posts that hold the deck up.
 static func _ribs(root: Node3D, half_l: float, half_w: float, rng: RandomNumberGenerator) -> void:
-	var rib_mat: StandardMaterial3D = _std(Color(0.3, 0.19, 0.1), 0.9)
+	var rib_mat: ShaderMaterial = _std(Color(0.3, 0.19, 0.1), 0.9)
 	var top: float = DECK_H_M
 	var low: float = -HOLD_DROP_M - DECK_H_M
 	var z: float = -half_l
@@ -130,9 +124,7 @@ static func _ribs(root: Node3D, half_l: float, half_w: float, rng: RandomNumberG
 			mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(1, 0.28, 2.96)), Vector3(-half_w - 0.02, low + r * 0.3, clampf(zc, -half_l, half_l))))
 			mm.set_instance_color(i, WOOD_TONES[rng.randi_range(0, WOOD_TONES.size() - 1)].darkened(0.15))
 			i += 1
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.roughness = 0.9
+	var mat: ShaderMaterial = Kenney.vcol()
 	var mi := MultiMeshInstance3D.new()
 	mi.multimesh = mm
 	mi.material_override = mat
@@ -145,10 +137,10 @@ static func _ribs(root: Node3D, half_l: float, half_w: float, rng: RandomNumberG
 
 ## Each gun on a carriage with its trucks, breeching rope, rammer, a pile of shot and a powder keg.
 static func _guns(root: Node3D, stats: ShipStats, half_l: float, half_w: float) -> void:
-	var dark: StandardMaterial3D = _std(Color(0.22, 0.22, 0.25), 0.5, 0.3)
-	var wood: StandardMaterial3D = _std(Color(0.33, 0.2, 0.1), 0.8)
-	var rope: StandardMaterial3D = _std(Color(0.62, 0.52, 0.34), 0.95)
-	var brass: StandardMaterial3D = _std(Color(0.8, 0.62, 0.2), 0.3, 0.9)
+	var dark: ShaderMaterial = _std(Color(0.22, 0.22, 0.25), 0.5, 0.3)
+	var wood: ShaderMaterial = _std(Color(0.33, 0.2, 0.1), 0.8)
+	var rope: ShaderMaterial = _std(Color(0.62, 0.52, 0.34), 0.95)
+	var brass: ShaderMaterial = _std(Color(0.8, 0.62, 0.2), 0.3, 0.9)
 	var n: int = maxi(stats.guns_per_side, 1)
 	var span: float = half_l * 1.5
 	for side in [-1.0, 1.0]:
@@ -190,9 +182,9 @@ static func _guns(root: Node3D, stats: ShipStats, half_l: float, half_w: float) 
 ## Barrels, crates and sacks for the cargo, water casks and ballast, stacked in the hold.
 static func _hold(root: Node3D, state: Dictionary, half_l: float, half_w: float, rng: RandomNumberGenerator) -> void:
 	var floor_y: float = -HOLD_DROP_M - DECK_H_M
-	var wood: StandardMaterial3D = _std(Color(0.4, 0.26, 0.14), 0.85)
-	var hoop: StandardMaterial3D = _std(Color(0.2, 0.2, 0.22), 0.5, 0.7)
-	var sack: StandardMaterial3D = _std(Color(0.72, 0.62, 0.44), 1.0)
+	var wood: ShaderMaterial = _std(Color(0.4, 0.26, 0.14), 0.85)
+	var hoop: ShaderMaterial = _std(Color(0.2, 0.2, 0.22), 0.5, 0.7)
+	var sack: ShaderMaterial = _std(Color(0.72, 0.62, 0.44), 1.0)
 	var pieces: int = cargo_pieces(state.get("cargo", {})) + 8
 	var slots: int = 0
 	var cols: int = maxi(int(half_w / 0.7), 2)
@@ -222,7 +214,7 @@ static func _hold(root: Node3D, state: Dictionary, half_l: float, half_w: float,
 					s.scale = Vector3(1.0, 0.8, 0.7)
 					_mesh(root, DeckArt.cyl(0.06, 0.1, 0.12, 8), sack, at + Vector3(0, 0.22, 0))
 	# ballast stones along the keel
-	var stone: StandardMaterial3D = _std(Color(0.4, 0.4, 0.42), 0.95)
+	var stone: ShaderMaterial = _std(Color(0.4, 0.4, 0.42), 0.95)
 	for k in 26:
 		var st := _mesh(root, _sphere(rng.randf_range(0.14, 0.26)), stone, Vector3(rng.randf_range(-0.4, 0.4), floor_y + 0.1, rng.randf_range(-half_l, half_l)))
 		st.scale = Vector3(1.0, 0.6, 1.0)
@@ -232,9 +224,9 @@ static func _hold(root: Node3D, state: Dictionary, half_l: float, half_w: float,
 
 ## Captain's cabin at the stern: a table with a chart, a bunk, a chair and the treasure chests.
 static func _cabin(root: Node3D, state: Dictionary, half_l: float, half_w: float, rng: RandomNumberGenerator) -> void:
-	var wood: StandardMaterial3D = _std(Color(0.3, 0.19, 0.1), 0.7)
-	var gold: StandardMaterial3D = _std(Color(0.95, 0.76, 0.2), 0.25, 0.9)
-	var brass: StandardMaterial3D = _std(Color(0.8, 0.62, 0.2), 0.3, 0.9)
+	var wood: ShaderMaterial = _std(Color(0.3, 0.19, 0.1), 0.7)
+	var gold: ShaderMaterial = _std(Color(0.95, 0.76, 0.2), 0.25, 0.9)
+	var brass: ShaderMaterial = _std(Color(0.8, 0.62, 0.2), 0.3, 0.9)
 	var z0: float = half_l * 0.62
 	# table, chart, goblets, candle
 	var table := Node3D.new()
@@ -281,7 +273,7 @@ static func _chest(root: Node3D, at: Vector3, fill: float, wood: Material, gold:
 	c.rotation_degrees.y = rng.randf_range(-25.0, 25.0)
 	root.add_child(c)
 	_mesh(c, DeckArt.box(Vector3(0.8, 0.4, 0.5)), wood, Vector3(0, 0.2, 0))
-	var iron: StandardMaterial3D = _std(Color(0.18, 0.18, 0.2), 0.4, 0.8)
+	var iron: ShaderMaterial = _std(Color(0.18, 0.18, 0.2), 0.4, 0.8)
 	for x in [-0.3, 0.3]:
 		_mesh(c, DeckArt.box(Vector3(0.05, 0.42, 0.52)), iron, Vector3(x, 0.2, 0))
 	_mesh(c, DeckArt.box(Vector3(0.06, 0.1, 0.02)), brass, Vector3(0, 0.34, 0.26))
@@ -317,12 +309,8 @@ static func _chest(root: Node3D, at: Vector3, fill: float, wood: Material, gold:
 
 
 static func _lanterns(root: Node3D, half_l: float, half_w: float) -> void:
-	var brass: StandardMaterial3D = _std(Color(0.8, 0.62, 0.2), 0.3, 0.9)
-	var glow := StandardMaterial3D.new()
-	glow.albedo_color = Color(1.0, 0.8, 0.45)
-	glow.emission_enabled = true
-	glow.emission = Color(1.0, 0.7, 0.3)
-	glow.emission_energy_multiplier = 2.0
+	var brass: ShaderMaterial = _std(Color(0.8, 0.62, 0.2), 0.3, 0.9)
+	var glow: ShaderMaterial = Kenney.flat(Color(1.0, 0.8, 0.45), 0.5)
 	for y in [DECK_H_M - 0.35, -HOLD_DROP_M - 0.4]:
 		var z: float = -half_l * 0.8
 		while z <= half_l * 0.8:

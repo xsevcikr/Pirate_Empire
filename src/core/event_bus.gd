@@ -25,3 +25,9 @@ signal stat_event(stat_name: String, amount: float)
 signal level_up(level: int)
 signal achievement_unlocked(id: String)
 signal island_found(island_name: String)
+## Audio: a sound effect (id from AudioData.SFX, position as Vector3, Vector2 or null), a voice line by situation and
+## a subtitle, and a request for a track while a screen is open.
+signal sfx(id: String, pos: Variant)
+signal bark(situation: String, arg: String)
+signal subtitle(text: String)
+signal music_request(track: String)

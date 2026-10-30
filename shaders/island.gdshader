@@ -1,32 +1,13 @@
 shader_type spatial;
-// Terrain colour from vertex colour, broken up with noise; steep faces turn to bare rock.
+// Cartoon terrain: flat-shaded facets in bright vertex colours, steep faces in banded rock, soft two-band toon light.
 
-uniform vec3 rock_color : source_color = vec3(0.36, 0.32, 0.28);
+uniform vec3 rock_color : source_color = vec3(0.55, 0.55, 0.62);
+uniform float saturation = 1.0;
+uniform float rim_amount = 0.12;
 
 varying vec3 v_obj;
-varying vec4 v_col;
-
-float hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
-
-float noise(vec2 p) {
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * (3.0 - 2.0 * f);
-	return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
-}
-
-float fbm(vec2 p) {
-	float v = 0.0;
-	float a = 0.5;
-	for (int i = 0; i < 4; i++) {
-		v += a * noise(p);
-		p = p * 2.03 + 5.1;
-		a *= 0.5;
-	}
-	return v;
-}
+varying flat vec4 v_col;
+varying vec3 v_view;
 
 void vertex() {
 	v_obj = VERTEX;
@@ -34,14 +15,25 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 world_n = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	// flat facets: the normal comes from the screen-space slope of the surface
+	vec3 fn = normalize(cross(dFdx(VERTEX), dFdy(VERTEX)));
+	if (dot(fn, VIEW) < 0.0) {
+		fn = -fn;
+	}
+	NORMAL = fn;
+	vec3 world_n = normalize((INV_VIEW_MATRIX * vec4(fn, 0.0)).xyz);
 	float slope = 1.0 - clamp(world_n.y, 0.0, 1.0);
-	float n1 = fbm(v_obj.xz * 0.12);
-	float n2 = fbm(v_obj.xz * 0.9 + v_obj.y);
-	vec3 c = v_col.rgb * (0.75 + 0.5 * n1) * (0.9 + 0.2 * n2) * 0.62;
-	float rocky = smoothstep(0.35, 0.6, slope + (n1 - 0.5) * 0.3);
-	vec3 strata = rock_color * (0.8 + 0.4 * sin(v_obj.y * 1.7 + n2 * 4.0));
+	vec3 c = pow(v_col.rgb, vec3(1.45));
+	float luma = dot(c, vec3(0.299, 0.587, 0.114));
+	c = mix(vec3(luma), c, saturation) * 1.2;
+	float rocky = step(0.42, slope);
+	float band = floor(v_obj.y * 0.35);
+	vec3 strata = rock_color * (0.85 + 0.15 * mod(band, 2.0));
 	c = mix(c, strata, rocky);
-	ALBEDO = c;
-	ROUGHNESS = 0.95;
+	ALBEDO = clamp(c, 0.0, 1.0);
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.0;
+	EMISSION = ALBEDO * pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.0) * rim_amount;
 }
+
+#include "res://shaders/toon.gdshaderinc"

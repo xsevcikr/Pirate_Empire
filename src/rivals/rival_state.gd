@@ -96,6 +96,7 @@ static func record(state: Dictionary, id: String, player_won: bool, spare: bool 
 		out["trophy"] = r["trophy"]
 		out["taunt"] = "rival.taunt." + id
 		(root_d["taunts"] as Array).append({"rival": id, "day": int(state["day"])})
+		Sfx.bark("taunt_" + id)
 		return out
 	r["wins"] = int(r["wins"]) + 1
 	r["meter"] = minf(RivalData.METER_MAX, float(r["meter"]) + RivalData.WIN_GAIN)

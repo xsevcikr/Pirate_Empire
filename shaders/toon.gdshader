@@ -1,0 +1,53 @@
+shader_type spatial;
+render_mode cull_back;
+// Cartoon surface for the Kenney models: flat palette colours, a soft two-band light and a faint rim.
+// `tint` multiplies the colour (damage soot, hull paint); `flash` is an additive hit flash (characters own copies of their materials).
+
+uniform sampler2D albedo_tex : source_color, filter_nearest, repeat_enable;
+uniform bool use_tex = true;
+uniform vec3 albedo : source_color = vec3(1.0);
+uniform vec3 tint : source_color = vec3(1.0);
+uniform float rim_amount : hint_range(0.0, 1.0) = 0.22;
+uniform vec3 paint : source_color = vec3(1.0);
+uniform float paint_mix : hint_range(0.0, 1.0) = 0.0;  // hull paint: recolours but keeps the shading detail
+uniform float emit_amount : hint_range(0.0, 4.0) = 0.0;
+uniform float saturation : hint_range(0.5, 2.0) = 1.12;
+uniform vec4 flash : source_color = vec4(0.0);
+uniform bool vcol = false;  // multiply by the vertex or MultiMesh instance colour
+
+varying vec4 v_col;
+
+void vertex() {
+	v_col = COLOR;
+	// trees and grass sway: MultiMesh custom data x is the amount (zero for everything else)
+	float amt = INSTANCE_CUSTOM.x;
+	if (amt > 0.0) {
+		float ph = MODEL_MATRIX[3].x * 0.37 + MODEL_MATRIX[3].z * 0.23;
+		VERTEX.x += sin(TIME * 1.7 + ph) * amt * VERTEX.y * 0.035;
+		VERTEX.z += cos(TIME * 1.3 + ph) * amt * VERTEX.y * 0.02;
+	}
+}
+
+vec3 saturate_col(vec3 c, float s) {
+	float l = dot(c, vec3(0.299, 0.587, 0.114));
+	return mix(vec3(l), c, s);
+}
+
+void fragment() {
+	vec3 c = albedo * tint;
+	if (use_tex) {
+		c *= texture(albedo_tex, UV).rgb;
+	}
+	if (vcol) {
+		c *= pow(v_col.rgb, vec3(1.6));
+	}
+	c = saturate_col(c, saturation);
+	c = mix(c, paint * (dot(c, vec3(0.299, 0.587, 0.114)) / 0.45), paint_mix);
+	ALBEDO = c;
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.0;
+	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 2.5);
+	EMISSION = c * (rim * rim_amount + emit_amount) + flash.rgb * flash.a;
+}
+
+#include "res://shaders/toon.gdshaderinc"

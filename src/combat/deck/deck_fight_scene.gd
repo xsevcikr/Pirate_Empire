@@ -31,6 +31,7 @@ func _init() -> void:
 
 
 func start(c: DeckCombat) -> void:
+	add_to_group("deck_fight")
 	combat = c
 	_build_deck()
 	for f in combat.fighters:
@@ -66,10 +67,7 @@ func _box(size: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
 	var b := BoxMesh.new()
 	b.size = size
 	m.mesh = b
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.9
-	m.material_override = mat
+	m.material_override = Kenney.flat(color)
 	m.position = at
 	add_child(m)
 	return m
@@ -93,9 +91,7 @@ func _build_deck() -> void:
 	for r in combat.ropes:
 		DeckArt._rope(self, Vector3(r["pos"].x, 0.1, r["pos"].y), Vector3(r["pos"].x, 9.5, r["pos"].y), 0.03, DeckArt.plain(Color(0.7, 0.58, 0.35), 0.95))
 	var sun := DirectionalLight3D.new()
-	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 60.0
-	sun.light_angular_distance = 0.5
+	Look.apply_sun(sun, 60.0)
 	add_child(sun)
 	var env := Environment.new()
 	var sky := Sky.new()
@@ -103,12 +99,8 @@ func _build_deck() -> void:
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.glow_enabled = true
-	env.glow_intensity = 0.5
 	env.fog_enabled = true
-	env.ssao_enabled = true
+	Look.apply_environment(env)
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
@@ -116,6 +108,7 @@ func _build_deck() -> void:
 	ocean.model = WaveModel.new(3.0, Vector2(1, 0))
 	ocean.position = Vector3(0.0, -3.4, 0.0)
 	add_child(ocean)
+	Look.add_vignette(self)
 	var dn := DayNight.new()
 	dn.sun = sun
 	dn.env = env
@@ -183,6 +176,8 @@ func apply_input(i: Dictionary) -> void:
 		return
 	var move: Vector2 = i.get("move", Vector2.ZERO)
 	p.move_intent = move.normalized() if move.length() > 0.1 else Vector2.ZERO
+	if p.move_intent != Vector2.ZERO:
+		Sfx.play("step_wood")
 	# face the nearest enemy when one is close, otherwise the way we walk
 	var foe: FighterState = combat.nearest_enemy(p)
 	if foe != null and foe.pos.distance_to(p.pos) <= LOCK_ON_M:
@@ -233,11 +228,14 @@ func _on_hit(_a: int, t_id: int, info: Dictionary) -> void:
 		v.flash(str(info.get("result", "hit")))
 	if t_id == combat.player.id:
 		_shake = 1.0
+	var res: String = str(info.get("result", "hit"))
+	Sfx.play("parry_ring" if res == "parried" else "sword_clash")
 	if hud != null:
 		hud.on_hit(info, v.fighter.pos if v != null else Vector2.ZERO)
 
 
 func _on_keg(at: Vector2) -> void:
+	Sfx.play("explosion")
 	for k in _kegs:
 		if absf(k.position.x - at.x) < 0.1 and absf(k.position.z - at.y) < 0.1:
 			k.visible = false
@@ -245,6 +243,7 @@ func _on_keg(at: Vector2) -> void:
 
 
 func _on_shot(_id: int, from_pos: Vector2, to_pos: Vector2) -> void:
+	Sfx.play("blunderbuss" if from_pos.distance_to(to_pos) < 4.0 else ("musket" if _id == combat.player.id else "pistol"))
 	var tracer := MeshInstance3D.new()
 	var b := BoxMesh.new()
 	var d: Vector2 = to_pos - from_pos

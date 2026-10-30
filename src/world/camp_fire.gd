@@ -14,17 +14,9 @@ func _init(seed_v: float = 0.0) -> void:
 
 
 func _ready() -> void:
-	var stone := StandardMaterial3D.new()
-	stone.albedo_color = Color(0.4, 0.39, 0.38)
-	stone.roughness = 1.0
-	var log_m := StandardMaterial3D.new()
-	log_m.albedo_color = Color(0.25, 0.15, 0.08)
-	log_m.roughness = 0.95
-	var coals := StandardMaterial3D.new()
-	coals.albedo_color = Color(0.9, 0.3, 0.05)
-	coals.emission_enabled = true
-	coals.emission = Color(1.0, 0.35, 0.05)
-	coals.emission_energy_multiplier = 1.6
+	var stone: ShaderMaterial = Kenney.flat(Color(0.63, 0.65, 0.73))
+	var log_m: ShaderMaterial = Kenney.flat(Color(0.69, 0.38, 0.25))
+	var coals: ShaderMaterial = Kenney.flat(Color(1.0, 0.45, 0.2), 0.9)
 	for i in 9:
 		var a: float = TAU * i / 9.0
 		var s := MeshInstance3D.new()

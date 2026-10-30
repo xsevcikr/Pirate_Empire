@@ -20,8 +20,8 @@ static func burst(parent: Node, pos: Vector3, color: Color, amount: int, speed: 
 	var mesh := SphereMesh.new()
 	mesh.radius = size
 	mesh.height = size * 2.0
-	mesh.radial_segments = 6
-	mesh.rings = 3
+	mesh.radial_segments = 5
+	mesh.rings = 2
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

@@ -40,14 +40,14 @@ void vertex() {
 void fragment() {
 	vec2 p = v_world.xz * 0.00045 + wind_dir * cloud_time * 0.002;
 	float d = fbm(p);
-	float c = smoothstep(1.0 - coverage - 0.08, 1.0 - coverage + 0.22, d);
+	float c = smoothstep(1.0 - coverage - 0.015, 1.0 - coverage + 0.015, d);
 	// sun-facing edges are bright, cores shaded: sample a little toward the light
 	float d2 = fbm(p + vec2(0.012, -0.008));
-	float shade = clamp((d - d2) * 9.0 + 0.5, 0.0, 1.0);
+	float shade = step(0.5, clamp((d - d2) * 9.0 + 0.5, 0.0, 1.0));
 	vec3 col = mix(lit_color, shade_color, shade * 0.75 * c);
 	vec3 cam = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	float dist = distance(v_world.xz, cam.xz);
 	float fade = 1.0 - smoothstep(horizon_fade * 0.35, horizon_fade, dist);
 	ALBEDO = col;
-	ALPHA = c * fade * 0.92;
+	ALPHA = c * fade;
 }

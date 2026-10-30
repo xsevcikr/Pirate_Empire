@@ -30,8 +30,8 @@ static func value(state: Dictionary, name: String) -> float:
 			return float(state.get("prizes_taken", 0))
 		"rivals_beaten":
 			var n: int = 0
-			for r: Dictionary in (state.get("rivals", {}) as Dictionary).values():
-				if bool(r.get("defeated", false)):
+			for id: String in RivalData.RIVALS:
+				if RivalState.is_defeated(state, id):
 					n += 1
 			return float(n)
 		"recruited_molly":

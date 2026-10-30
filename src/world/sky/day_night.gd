@@ -9,7 +9,7 @@ var ocean: Ocean
 var clouds: CloudLayer
 
 const DAWN: Color = Color(1.0, 0.62, 0.38)
-const NOON: Color = Color(1.0, 0.96, 0.9)
+const NOON: Color = Color(1.0, 0.94, 0.82)
 const NIGHT: Color = Color(0.45, 0.55, 0.85)
 
 
@@ -29,14 +29,14 @@ func apply_hour(hour: float) -> void:
 			col = NIGHT
 			sun.light_energy = 0.12
 		else:
-			sun.light_energy = lerpf(0.2, 1.6, clampf(sin(elevation) * 2.0, 0.0, 1.0))
+			sun.light_energy = lerpf(0.2, 0.8, clampf(sin(elevation) * 2.0, 0.0, 1.0))
 		sun.light_color = col
-	var top_day := Color(0.18, 0.38, 0.75)
-	var horizon_day := Color(0.62, 0.78, 0.92)
+	var top_day := Color(0.28, 0.58, 0.96)
+	var horizon_day := Color(0.78, 0.9, 1.0)
 	var top_night := Color(0.01, 0.02, 0.07)
 	var horizon_night := Color(0.04, 0.06, 0.14)
 	var top: Color = top_night.lerp(top_day, day_amount)
-	var sunset: Color = Color(1.0, 0.5, 0.22)
+	var sunset: Color = Color(1.0, 0.62, 0.38)
 	var horizon: Color = horizon_night.lerp(horizon_day, day_amount).lerp(sunset, low * day_amount * 0.85)
 	top = top.lerp(Color(0.22, 0.26, 0.5), low * day_amount * 0.7)
 	if sky_material:
@@ -50,7 +50,9 @@ func apply_hour(hour: float) -> void:
 	if env:
 		env.fog_light_color = horizon
 		env.fog_density = lerpf(0.0006, 0.0016, low)
-		env.ambient_light_energy = lerpf(0.25, 1.25, day_amount)
+		var amb_day: Color = Color(0.46, 0.52, 0.72).lerp(Color(0.66, 0.5, 0.52), low * day_amount * 0.6)
+		env.ambient_light_color = Color(0.1, 0.13, 0.28).lerp(amb_day, day_amount)
+		env.ambient_light_energy = lerpf(0.5, 0.78, day_amount)
 	if ocean:
 		ocean.set_sky_color(horizon.lerp(top, 0.7))
 	if clouds:

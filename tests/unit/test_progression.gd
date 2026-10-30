@@ -662,3 +662,11 @@ func test_progression_strings_exist_in_both_languages() -> void:
 		for k in keys:
 			assert_true(Loc.t(k) != k, "%s has a %s string" % [k, loc])
 	Loc.locale = saved
+
+
+func test_rivals_beaten_counts_with_taunts_and_rewards_in_the_state() -> void:
+	var s: Dictionary = SaveGame.new_state()
+	RivalState.root(s)["taunts"].append({"rival": "molly", "day": 1})
+	assert_eq(Achievements.value(s, "rivals_beaten"), 0.0)
+	RivalState.get_rival(s, "molly")["defeated"] = true
+	assert_eq(Achievements.value(s, "rivals_beaten"), 1.0)

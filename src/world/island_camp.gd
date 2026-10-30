@@ -11,12 +11,8 @@ const BEACH_MAX_M: float = 6.0
 const MAX_SLOPE: float = 0.9
 
 
-static func _mat(c: Color, rough: float = 0.9) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = c
-	m.roughness = rough
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	return m
+static func _mat(c: Color, _rough: float = 0.9) -> ShaderMaterial:
+	return Kenney.flat(c)
 
 
 ## A flat beach spot for the settlement, or (0,0,NaN) y-flag when none: returns {"ok", "pos": Vector2, "h": float}.
@@ -93,6 +89,12 @@ static func plan_camp(isl: Island, rng: RandomNumberGenerator) -> Dictionary:
 			else:
 				_crate(root, q, rng.randf() * 90.0)
 		_flag(root, Vector3(-4.0, 0.0, 4.0), rng)
+		for k in 6:
+			var fa: float = rng.randf() * TAU
+			var fp := Vector3(cos(fa) * rng.randf_range(6.0, 12.0), 0.0, sin(fa) * rng.randf_range(6.0, 12.0))
+			fp.y = isl.ground_y(at + Vector2(fp.x, fp.z)) - h0
+			if fp.y > -0.3:
+				Kenney.place(root, "nature", ["log_stack", "mushroom_redGroup", "flower_redA", "grass_large", "stone_largeA", "log"][k], fp, rng.randf() * 360.0, 5.0)
 		_boat(root, Vector3(-9.0, -0.3, -5.0), rng.randf() * 360.0))
 	jobs.append(func() -> void: _people(root, rng, big))
 	return {"root": root, "jobs": jobs}
@@ -103,23 +105,12 @@ static func _hut(root: Node3D, at: Vector3, yaw: float, rng: RandomNumberGenerat
 	h.name = "Hut"
 	h.position = at
 	h.rotation_degrees.y = yaw
+	h.scale = Vector3.ONE * rng.randf_range(1.25, 1.55)
 	root.add_child(h)
-	var wall: StandardMaterial3D = _mat(Color(0.5, 0.36, 0.22).lerp(Color(0.6, 0.5, 0.3), rng.randf()))
-	var thatch: StandardMaterial3D = _mat(Color(0.7, 0.58, 0.3).lerp(Color(0.5, 0.4, 0.2), rng.randf() * 0.6), 1.0)
-	var post: StandardMaterial3D = _mat(Color(0.3, 0.2, 0.1))
-	var r: float = rng.randf_range(1.7, 2.3)
-	DeckArt.add_mesh(h, DeckArt.cyl(r, r * 1.02, 2.0, 10), wall, Vector3(0, 1.0, 0))
-	for k in 10:
-		var a: float = TAU * k / 10.0
-		DeckArt.add_mesh(h, DeckArt.cyl(0.07, 0.07, 2.1, 5), post, Vector3(cos(a) * r, 1.0, sin(a) * r))
-	var roof := DeckArt.add_mesh(h, DeckArt.cyl(0.0, r * 1.45, 1.9, 12), thatch, Vector3(0, 2.9, 0))
+	Kenney.place(h, "pirate", "structure", Vector3.ZERO, 0.0, 1.0)
+	var roof: Node3D = Kenney.place(h, "pirate", "structure-roof", Vector3.ZERO, 0.0, 1.0)
 	roof.name = "Roof"
-	for k in 14:
-		var a: float = TAU * k / 14.0
-		DeckArt.add_mesh(h, DeckArt.box(Vector3(0.05, 1.85, 0.04)), thatch.duplicate(), Vector3(cos(a) * r * 0.74, 2.95, sin(a) * r * 0.74), Vector3(0.0, -a * 180.0 / PI, -(90.0 - rad_to_deg(atan2(1.9, r * 1.45)))))
-	DeckArt.add_mesh(h, DeckArt.cyl(0.04, 0.04, 0.5, 5), post, Vector3(0, 4.1, 0))
-	DeckArt.add_mesh(h, DeckArt.box(Vector3(0.7, 1.4, 0.1)), _mat(Color(0.12, 0.08, 0.05)), Vector3(0, 0.7, r * 0.99))
-	DeckArt.add_mesh(h, DeckArt.box(Vector3(0.9, 0.08, 0.5)), post, Vector3(0, 0.05, r + 0.3))
+	Kenney.place(h, "pirate", "structure-platform", Vector3(0, -0.5, 0), 0.0, 1.0).scale = Vector3(1.0, 0.5, 1.0)
 
 
 static func _tent(root: Node3D, at: Vector3, yaw: float) -> void:
@@ -128,12 +119,7 @@ static func _tent(root: Node3D, at: Vector3, yaw: float) -> void:
 	t.position = at
 	t.rotation_degrees.y = yaw
 	root.add_child(t)
-	var cloth: StandardMaterial3D = _mat(Color(0.85, 0.8, 0.65), 1.0)
-	var m := PrismMesh.new()
-	m.size = Vector3(2.6, 1.8, 3.0)
-	DeckArt.add_mesh(t, m, cloth, Vector3(0, 0.9, 0))
-	DeckArt.add_mesh(t, DeckArt.box(Vector3(0.05, 2.1, 0.05)), _mat(Color(0.3, 0.2, 0.1)), Vector3(0, 1.0, 1.55))
-	DeckArt.add_mesh(t, DeckArt.box(Vector3(0.7, 1.1, 0.05)), _mat(Color(0.2, 0.17, 0.12)), Vector3(0, 0.55, 1.5), Vector3(-12, 0, 0))
+	Kenney.place(t, "forest", "tent", Vector3.ZERO, 0.0, 2.4)
 
 
 static func _rack(root: Node3D, at: Vector3, rng: RandomNumberGenerator) -> void:
@@ -141,11 +127,11 @@ static func _rack(root: Node3D, at: Vector3, rng: RandomNumberGenerator) -> void
 	r.name = "FishRack"
 	r.position = at
 	root.add_child(r)
-	var wood: StandardMaterial3D = _mat(Color(0.35, 0.23, 0.12))
+	var wood: ShaderMaterial = _mat(Color(0.35, 0.23, 0.12))
 	for x in [-1.1, 1.1]:
 		DeckArt.add_mesh(r, DeckArt.cyl(0.05, 0.06, 1.6, 6), wood, Vector3(x, 0.8, 0), Vector3(0, 0, x * 4.0))
 	DeckArt.add_mesh(r, DeckArt.cyl(0.04, 0.04, 2.4, 6), wood, Vector3(0, 1.5, 0), Vector3(0, 0, 90))
-	var fish: StandardMaterial3D = _mat(Color(0.65, 0.68, 0.7), 0.4)
+	var fish: ShaderMaterial = _mat(Color(0.65, 0.68, 0.7), 0.4)
 	for i in 6:
 		var f := DeckArt.add_mesh(r, _ellipsoid(0.07, 0.32), fish, Vector3(-0.95 + i * 0.38, 1.3, 0), Vector3(0, rng.randf_range(-20, 20), 0))
 		f.scale = Vector3(0.6, 1.0, 1.0)
@@ -161,20 +147,17 @@ static func _ellipsoid(r: float, h: float) -> Mesh:
 
 
 static func _barrel(root: Node3D, at: Vector3) -> void:
-	var wood: StandardMaterial3D = _mat(Color(0.4, 0.27, 0.14))
-	DeckArt.add_mesh(root, DeckArt.cyl(0.36, 0.36, 0.8, 12), wood, at + Vector3(0, 0.4, 0))
-	for h in [-0.25, 0.0, 0.25]:
-		DeckArt.add_mesh(root, DeckArt.cyl(0.375, 0.375, 0.04, 12), _mat(Color(0.2, 0.2, 0.22), 0.5), at + Vector3(0, 0.4 + h, 0))
+	Kenney.place(root, "pirate", "barrel", at, at.x * 53.0, 0.6)
 
 
 static func _crate(root: Node3D, at: Vector3, yaw: float) -> void:
-	DeckArt.add_mesh(root, DeckArt.box(Vector3(0.8, 0.7, 0.8)), _mat(Color(0.5, 0.36, 0.2)), at + Vector3(0, 0.35, 0), Vector3(0, yaw, 0))
-	DeckArt.add_mesh(root, DeckArt.box(Vector3(0.84, 0.06, 0.84)), _mat(Color(0.3, 0.2, 0.1)), at + Vector3(0, 0.55, 0), Vector3(0, yaw, 0))
+	Kenney.place(root, "pirate", "crate", at, yaw, 0.75)
 
 
 static func _flag(root: Node3D, at: Vector3, rng: RandomNumberGenerator) -> void:
-	DeckArt.add_mesh(root, DeckArt.cyl(0.06, 0.08, 5.0, 6), _mat(Color(0.35, 0.24, 0.13)), at + Vector3(0, 2.5, 0))
-	var cloth := DeckArt.add_mesh(root, DeckArt.box(Vector3(1.5, 0.9, 0.02)), _mat([Color(0.08, 0.08, 0.1), Color(0.7, 0.1, 0.1), Color(0.15, 0.3, 0.6)][rng.randi_range(0, 2)]), at + Vector3(0.78, 4.4, 0))
+	DeckArt.add_mesh(root, DeckArt.cyl(0.07, 0.1, 5.0, 6), _mat(Color(0.69, 0.38, 0.25)), at + Vector3(0, 2.5, 0))
+	var models: Array[String] = ["flag-pirate", "flag", "flag-pennant"]
+	var cloth: Node3D = Kenney.place(root, "pirate", models[rng.randi_range(0, 2)], at + Vector3(0, 3.2, 0), 0.0, 1.3)
 	cloth.name = "Flag"
 
 
@@ -184,12 +167,7 @@ static func _boat(root: Node3D, at: Vector3, yaw: float) -> void:
 	b.position = at
 	b.rotation_degrees = Vector3(0, yaw, 4)
 	root.add_child(b)
-	var wood: StandardMaterial3D = _mat(Color(0.42, 0.28, 0.15))
-	var hull := DeckArt.add_mesh(b, _ellipsoid(1.0, 1.0), wood, Vector3(0, 0.35, 0))
-	hull.scale = Vector3(0.75, 0.45, 2.1)
-	for z in [-0.6, 0.0, 0.6]:
-		DeckArt.add_mesh(b, DeckArt.box(Vector3(1.3, 0.06, 0.18)), _mat(Color(0.55, 0.4, 0.22)), Vector3(0, 0.52, z))
-	DeckArt.add_mesh(b, DeckArt.cyl(0.03, 0.03, 2.2, 6), wood, Vector3(0.8, 0.7, 0.2), Vector3(70, 20, 0))
+	Kenney.place(b, "pirate", "boat-row-small", Vector3(0, 0.2, 0), 0.0, 1.0)
 
 
 ## A few villagers: some sit round the fire facing it, one stands near a hut. The same figures as the crew,

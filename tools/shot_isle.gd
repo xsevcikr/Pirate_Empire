@@ -18,9 +18,7 @@ func _initialize() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.55, 0.75, 0.9)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.7, 0.78, 0.85)
-	env.ambient_light_energy = 0.8
+	Look.apply_environment(env)
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.7, 0.82, 0.9)
 	env.fog_density = 0.0008
@@ -29,15 +27,13 @@ func _initialize() -> void:
 	root.add_child(we)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-35, 40, 0)
-	sun.shadow_enabled = true
+	Look.apply_sun(sun, 400.0)
 	root.add_child(sun)
 	var water := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(3000, 3000)
 	water.mesh = pm
-	var wm := StandardMaterial3D.new()
-	wm.albedo_color = Color(0.08, 0.6, 0.65)
-	wm.roughness = 0.2
+	var wm: ShaderMaterial = Kenney.flat(Color(0.3, 0.75, 0.9))
 	water.material_override = wm
 	root.add_child(water)
 	_cam = Camera3D.new()

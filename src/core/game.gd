@@ -14,6 +14,7 @@ func change_state(new_state: State) -> void:
 
 
 func _ready() -> void:
+	get_tree().root.theme = Look.ui_theme()
 	change_state(State.MENU)
 
 

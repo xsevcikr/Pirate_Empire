@@ -84,11 +84,8 @@ func _exit_tree() -> void:
 
 # ---- stage ----------------------------------------------------------------------------------------
 
-func _mat(c: Color, rough: float = 0.9) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = c
-	m.roughness = rough
-	return m
+func _mat(c: Color, _rough: float = 0.9) -> ShaderMaterial:
+	return Kenney.flat(c)
 
 
 func _box(size: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
@@ -103,8 +100,8 @@ func _box(size: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
 
 
 func _build_ground(style: Dictionary) -> void:
-	_box(Vector3(STREET_HALF_WIDTH_M * 2.0 + 36.0, 1.0, STREET_LENGTH_M + 24.0), Vector3(0, -0.5, 0), Color(0.36, 0.3, 0.24))
-	_box(Vector3(STREET_HALF_WIDTH_M * 2.0, 0.1, STREET_LENGTH_M + 24.0), Vector3(0, 0.02, 0), Color(0.42, 0.36, 0.3))
+	_box(Vector3(STREET_HALF_WIDTH_M * 2.0 + 36.0, 1.0, STREET_LENGTH_M + 24.0), Vector3(0, -0.5, 0), Color(0.38, 0.8, 0.55))
+	_box(Vector3(STREET_HALF_WIDTH_M * 2.0, 0.1, STREET_LENGTH_M + 24.0), Vector3(0, 0.02, 0), Color(0.95, 0.75, 0.6))
 
 
 func _building(kind: String, at: Vector3, side: float, style: Dictionary) -> void:
@@ -133,12 +130,9 @@ func _building(kind: String, at: Vector3, side: float, style: Dictionary) -> voi
 
 
 func _lantern_post(at: Vector3) -> void:
-	_box(Vector3(0.12, 3.2, 0.12), at + Vector3(0, 1.6, 0), Color(0.12, 0.1, 0.1))
-	_box(Vector3(0.6, 0.06, 0.06), at + Vector3(0.28, 3.1, 0), Color(0.12, 0.1, 0.1))
-	var glow := StandardMaterial3D.new()
-	glow.albedo_color = Color(1.0, 0.8, 0.45)
-	glow.emission_enabled = true
-	glow.emission = Color(1.0, 0.65, 0.25)
+	_box(Vector3(0.12, 3.2, 0.12), at + Vector3(0, 1.6, 0), Color(0.31, 0.32, 0.38))
+	_box(Vector3(0.6, 0.06, 0.06), at + Vector3(0.28, 3.1, 0), Color(0.31, 0.32, 0.38))
+	var glow: ShaderMaterial = Kenney.flat(Color(1.0, 0.75, 0.27), 0.5)
 	var mi := MeshInstance3D.new()
 	mi.mesh = DeckArt.box(Vector3(0.22, 0.3, 0.22))
 	mi.material_override = glow
@@ -189,8 +183,8 @@ func _spawn_people(rng: RandomNumberGenerator, style: Dictionary) -> void:
 
 func _build_pier(style: Dictionary) -> void:
 	var z: float = STREET_LENGTH_M * 0.5 + 4.0
-	_box(Vector3(5.0, 0.5, 14.0), Vector3(0, 0.0, z + 4.0), Color(0.36, 0.24, 0.14))
-	_box(Vector3(0.4, 6.0, 0.4), Vector3(0, 3.0, z + 10.5), Color(0.3, 0.2, 0.12))
+	_box(Vector3(5.0, 0.5, 14.0), Vector3(0, 0.0, z + 4.0), Color(0.69, 0.38, 0.25))
+	_box(Vector3(0.4, 6.0, 0.4), Vector3(0, 3.0, z + 10.5), Color(0.69, 0.38, 0.25))
 	_box(Vector3(0.1, 1.6, 2.6), Vector3(0, 5.2, z + 11.8), style["flag"])
 	var sign := Label3D.new()
 	sign.text = Loc.t("dock.sign_pier")
@@ -206,8 +200,7 @@ func _build_pier(style: Dictionary) -> void:
 func _build_sky_and_sea() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48.0, -35.0, 0.0)
-	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 90.0
+	Look.apply_sun(sun, 90.0)
 	add_child(sun)
 	var env := Environment.new()
 	var sky := Sky.new()
@@ -215,8 +208,7 @@ func _build_sky_and_sea() -> void:
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	Look.apply_environment(env)
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
@@ -226,25 +218,20 @@ func _build_sky_and_sea() -> void:
 	add_child(ocean)
 
 
+var _captain_f := FighterState.new()
+
+
+## The captain is a logical node that the walking code moves; the visible man is a Kenney character that follows it.
 func _make_captain() -> Node3D:
 	var n := Node3D.new()
-	var body := MeshInstance3D.new()
-	var cap := CapsuleMesh.new()
-	cap.radius = 0.32
-	cap.height = 1.7
-	body.mesh = cap
-	body.material_override = _mat(Color(0.5, 0.12, 0.1))
-	body.position.y = 0.95
-	n.add_child(body)
-	var hat := MeshInstance3D.new()
-	var cone := CylinderMesh.new()
-	cone.top_radius = 0.22
-	cone.bottom_radius = 0.5
-	cone.height = 0.22
-	hat.mesh = cone
-	hat.material_override = _mat(Color(0.07, 0.07, 0.08))
-	hat.position.y = 1.9
-	n.add_child(hat)
+	_captain_f.id = 1
+	_captain_f.kind = "captain_player"
+	_captain_f.melee = "none"
+	var v := DeckFighterView.new()
+	v.fighter = _captain_f
+	v.show_label = false
+	v.pose_idle_only = true
+	add_child(v)
 	return n
 
 
@@ -259,6 +246,8 @@ func _physics_process(delta: float) -> void:
 		return
 	var move: Vector2 = read_move()
 	step(move, delta)
+	if move.length() > 0.1:
+		Sfx.play("step_wood")
 	_place_camera(delta)
 	_update_prompt()
 	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("deck_use"):
@@ -283,10 +272,11 @@ func step(move: Vector2, delta: float) -> void:
 		p.z = clampf(p.z, -STREET_LENGTH_M * 0.5, STREET_LENGTH_M * 0.5 + 10.0)
 		captain.rotation.y = lerp_angle(captain.rotation.y, atan2(dir.x, dir.y), clampf(delta * 12.0, 0.0, 1.0))
 		captain.position = p
+		_captain_f.dir = dir
 		_walk_t += delta * 9.0
-		captain.position.y = absf(sin(_walk_t)) * 0.08
-	else:
 		captain.position.y = 0.0
+	_captain_f.move_intent = move
+	_captain_f.pos = Vector2(captain.position.x, captain.position.z)
 
 
 ## The door the captain stands at, or "".

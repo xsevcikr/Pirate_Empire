@@ -19,9 +19,7 @@ func _ready() -> void:
 	cm.bottom_radius = size.x * 0.5
 	cm.height = 1.6
 	top.mesh = cm
-	var m := StandardMaterial3D.new()
-	m.albedo_color = wall_color.darkened(0.1)
-	top.material_override = m
+	top.material_override = Kenney.flat(wall_color.darkened(0.1))
 	top.position.y = size.y + 0.8
 	add_child(top)
 	for k in 3:
@@ -31,9 +29,7 @@ func _ready() -> void:
 		bm.bottom_radius = 0.36
 		bm.height = 3.0
 		barrel.mesh = bm
-		var bmat := StandardMaterial3D.new()
-		bmat.albedo_color = Color(0.1, 0.1, 0.11)
-		barrel.material_override = bmat
+		barrel.material_override = Kenney.flat(Color(0.31, 0.32, 0.38))
 		var a: float = float(k) * 0.55 - 0.55
 		barrel.position = Vector3(sin(a) * size.x * 0.6, size.y + 1.0, cos(a) * size.x * 0.6)
 		barrel.rotation = Vector3(deg_to_rad(80.0), a, 0.0)

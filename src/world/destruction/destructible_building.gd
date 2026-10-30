@@ -18,7 +18,7 @@ var hp: float = 250.0
 var is_ruin: bool = false
 var _body: MeshInstance3D
 var _roof: MeshInstance3D
-var _material: StandardMaterial3D
+var _material: ShaderMaterial
 var _stage: int = 0
 var _burn_left: float = 0.0
 var _fx_accum: float = 0.0
@@ -49,9 +49,7 @@ func _ready() -> void:
 	cs.shape = box
 	cs.position.y = size.y * 0.5
 	add_child(cs)
-	_material = StandardMaterial3D.new()
-	_material.albedo_color = wall_color
-	_material.roughness = 0.95
+	_material = _toon(Look.cartoon(wall_color))
 	_body = MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size
@@ -65,13 +63,21 @@ func _ready() -> void:
 		var prism := PrismMesh.new()
 		prism.size = Vector3(size.x + 1.2, size.y * 0.45, size.z + 1.2)
 		_roof.mesh = prism
-		var rm := StandardMaterial3D.new()
-		rm.albedo_color = roof_color
-		_roof.material_override = rm
+		_roof.material_override = Kenney.flat(Look.cartoon(roof_color))
 		_roof.position.y = size.y + prism.size.y * 0.5
 		add_child(_roof)
 	if is_ruin:
 		_collapse(false, false)
+
+
+## A private toon material, so cracks can darken this building alone.
+func _toon(c: Color) -> ShaderMaterial:
+	var m: ShaderMaterial = Kenney.flat(c).duplicate() as ShaderMaterial
+	return m
+
+
+func _set_wall(c: Color) -> void:
+	_material.set_shader_parameter("albedo", Vector3(c.r, c.g, c.b))
 
 
 func fraction() -> float:
@@ -110,15 +116,13 @@ func _apply_cracks() -> void:
 	if stage == _stage or stage >= 3:
 		return
 	_stage = stage
-	_material.albedo_color = wall_color.darkened(0.18 * float(stage))
+	_set_wall(Look.cartoon(wall_color).darkened(0.18 * float(stage)))
 	# a dark crack slab on the front face for each stage reached
 	var crack := MeshInstance3D.new()
 	var cm := BoxMesh.new()
 	cm.size = Vector3(size.x * 0.08, size.y * (0.5 + 0.2 * float(stage)), 0.08)
 	crack.mesh = cm
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.05, 0.04, 0.04)
-	crack.material_override = mat
+	crack.material_override = Kenney.flat(Color(0.22, 0.22, 0.26))
 	crack.position = Vector3(size.x * (0.12 * float(stage) - 0.2), size.y * 0.5, size.z * 0.5 + 0.05)
 	crack.rotation.z = 0.35 * float(stage)
 	add_child(crack)
@@ -159,7 +163,7 @@ func rebuild() -> void:
 	hp = max_hp
 	_stage = 0
 	collision_layer = 4
-	_material.albedo_color = wall_color
+	_set_wall(Look.cartoon(wall_color))
 	if _body != null:
 		_body.visible = true
 	if _roof != null:

@@ -58,6 +58,7 @@ func add_button(key: String, cb: Callable) -> Button:
 	b.focus_mode = Control.FOCUS_ALL
 	b.custom_minimum_size = Vector2(0, 44)
 	b.pressed.connect(cb)
+	b.pressed.connect(Sfx.play.bind("ui_click"))
 	_box.add_child(b)
 	return b
 

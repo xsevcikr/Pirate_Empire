@@ -157,8 +157,5 @@ func _flag(color: Color, base: Vector3) -> void:
 	add_child(mi)
 
 
-func _mat(color: Color) -> StandardMaterial3D:
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.9
-	return mat
+func _mat(color: Color) -> ShaderMaterial:
+	return Kenney.flat(Look.cartoon(color))
