@@ -9,6 +9,7 @@ const ROLL_DAMP: float = 0.9
 const PITCH_DAMP: float = 1.2
 const RUDDER_TIME_S: float = 1.2
 const HEEL_COEFF: float = 0.25
+const FLOOD_RIGHTING: float = 0.2  ## righting lever, as a share of the beam, of a flooded hull
 const POINT_COLUMNS: int = 4
 const POINT_ROWS: int = 4
 
@@ -180,17 +181,20 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		av.y = lerpf(av.y, desired, 1.0 - exp(-3.0 * dt))
 		state.angular_velocity = av
 
-	# Flooded compartments list the ship toward the heavier side
+	# Flooded compartments list the ship toward the heavier side and trim her down by the head or stern. Deep in
+	# the water the sampled buoyancy points all hit their depth cap and stop righting her, so a metacentric
+	# righting moment (stiffer the more she floods) holds her at a list instead of rolling her over.
 	if flood > 0.05:
 		var heavy: float = 0.0
-		for i in damage.section_count:
-			heavy += damage.water_t[i] * (1.0 if damage.section_is_starboard(i) else -1.0)
-		state.apply_torque(forward * heavy * 9.81 * stats.beam_m * 0.15)
-		# ...and trim her down by the head or the stern
 		var trim: float = 0.0
 		for i in damage.section_count:
-			trim += damage.water_t[i] * section_center(i).z / (stats.length_m * 0.5)
-		state.apply_torque(right * trim * 9.81 * stats.length_m * 0.08)
+			var c: Vector3 = section_center(i)
+			heavy += damage.water_t[i] * (1.0 if damage.section_is_starboard(i) else -1.0) * absf(c.x)
+			trim += damage.water_t[i] * c.z
+		state.apply_torque(forward * heavy * 1000.0 * 9.81)
+		state.apply_torque(right * trim * 1000.0 * 9.81)
+		var up: Vector3 = xf.basis.y
+		state.apply_torque(up.cross(Vector3.UP) * stats.mass_kg * 9.81 * stats.beam_m * FLOOD_RIGHTING * minf(flood * 3.0, 1.0))
 
 	# Roll and pitch damping (local axes)
 	var local_av: Vector3 = xf.basis.inverse() * state.angular_velocity

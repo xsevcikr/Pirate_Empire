@@ -58,15 +58,15 @@ func _process(_delta: float) -> bool:
 		1:
 			_hull0 = _ship.damage.hull_hp_total()
 			_sloop0 = _sloop.damage.hull_hp_total()
-			_ship.linear_velocity = Vector3(0, 0, -9.0 * 0.5144)
+			_ship.linear_velocity = Vector3(0, 0, -11.0 * 0.5144)
 			_go(2, 1)
 		2:
 			if _ship.damage.hull_hp_total() >= _hull0 and _frames < 900:
-				_ship.linear_velocity = Vector3(0, _ship.linear_velocity.y, -9.0 * 0.5144)
+				_ship.linear_velocity = Vector3(0, _ship.linear_velocity.y, -11.0 * 0.5144)
 				return false
 			var mine: float = _hull0 - _ship.damage.hull_hp_total()
 			var theirs: float = _sloop0 - _sloop.damage.hull_hp_total()
-			print("ram at 9 kn: cutter took %.0f of %.0f HP, sloop took %.0f of %.0f HP; holes %d / %d" % [mine, _ship.stats.hull_hp, theirs, _sloop.stats.hull_hp, _ship.damage.breaches.size(), _sloop.damage.breaches.size()])
+			print("ram at 11 kn: cutter took %.0f of %.0f HP, sloop took %.0f of %.0f HP; holes %d / %d" % [mine, _ship.stats.hull_hp, theirs, _sloop.stats.hull_hp, _ship.damage.breaches.size(), _sloop.damage.breaches.size()])
 			_check(mine > 10.0, "the ram hurt our bow, %f" % mine)
 			_check(theirs > mine, "the sloop, struck on the beam, took more (%f vs %f)" % [theirs, mine])
 			_check(_ship.damage.breaches.size() >= 1, "our bow is holed")

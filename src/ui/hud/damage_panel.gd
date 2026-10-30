@@ -7,7 +7,7 @@ extends CanvasLayer
 
 const W: float = 470.0
 const H_SMALL: float = 210.0
-const H_FULL: float = 390.0
+const H_FULL: float = 330.0
 const PLAN_W: float = 92.0
 const PLAN_H: float = 180.0
 const SHOW_HOLD_S: float = 8.0  ## the small panel stays this long after the last of the damage is dealt with
@@ -105,10 +105,12 @@ func _nudge(job: String, d: int) -> void:
 
 
 func _layout() -> void:
-	var h: float = H_FULL if expanded else H_SMALL
-	_root.offset_top = -150.0 - h
+	# anchored at the bottom and growing upward, so the gold and cargo line below stays clear
+	_root.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_root.offset_bottom = -150.0
+	_root.offset_top = -150.0 - (H_FULL if expanded else H_SMALL)
 	_jobs.visible = expanded
+	_root.reset_size()
 
 
 func _ship() -> Ship:

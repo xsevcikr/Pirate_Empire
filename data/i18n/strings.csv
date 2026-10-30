@@ -1078,7 +1078,7 @@ dmg.done_stuffed,Hammocks and oakum rammed into the hole (%s). Half the water st
 dmg.done_jury,"A jury mast is up, with half sail on it.","Nouzový stožár stojí, nese polovinu plachet."
 dmg.no_timber,No repair timber left! The crew can only fother holes with canvas or stuff them with oakum.,Došlo dříví na opravy! Posádka může díry jen překrýt plátnem nebo ucpat koudelí.
 dmg.title,Hull %d%%   Water %d%%,Trup %d%%   Voda %d%%
-dmg.holes,"Holes: %d open, %d patched   Leak %.2f t/s","Díry: %d otevřené, %d opravené   Únik %.2f t/s"
+dmg.holes,"Holes: %d leaking, %d patched   Leak %.2f t/s","Díry: %d tečou, %d opravené   Únik %.2f t/s"
 dmg.stores,Timber %d   Canvas %d   Tools %.1f,Dříví %d   Plátno %d   Nářadí %.1f
 dmg.hands,Hands: %s,Ruce: %s
 dmg.idle,idle,nic

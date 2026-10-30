@@ -107,5 +107,5 @@ func _process(delta: float) -> void:
 	for c in get_children():
 		if c.get_meta("state", "") == "open" or c.get_meta("state", "") == "stuffed":
 			var out: Vector3 = -(c as Node3D).global_transform.basis.z
-			var amount: int = 10 if c.get_meta("state") == "open" else 4
-			Vfx.burst(ship.get_parent(), (c as Node3D).global_position + out * 0.2, Color(0.93, 0.98, 1.0, 0.85), amount, 2.5, 0.7, 0.13, -9.8, 35.0, (out + Vector3.UP * 0.6).normalized())
+			var amount: int = 18 if c.get_meta("state") == "open" else 6
+			Vfx.burst(ship.get_parent(), (c as Node3D).global_position + out * 0.2, Color(0.93, 0.98, 1.0, 0.9), amount, 3.5, 0.8, 0.2, -9.8, 35.0, (out + Vector3.UP * 0.6).normalized())
