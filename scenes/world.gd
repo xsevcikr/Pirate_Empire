@@ -19,6 +19,7 @@ var overlay: GameOverlay
 var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
+var minimap: Minimap
 var damage_panel: DamagePanel
 var convoys: ConvoyManager
 var tours: TourDirector
@@ -143,6 +144,11 @@ func _ready() -> void:
 	hud.target = target
 	hud.clock = get_node_or_null("/root/GameClock")
 	add_child(hud)
+	minimap = Minimap.new()
+	minimap.name = "Minimap"
+	minimap.ship = ship
+	minimap.world = self
+	add_child(minimap)
 
 	Session.apply(self)
 	Game.change_state(Game.State.PLAYING)
@@ -436,6 +442,7 @@ func _replace_player_ship() -> void:
 	rig.target = fresh
 	player_controller.ship = fresh
 	hud.ship = fresh
+	minimap.ship = fresh
 	if prizes != null:
 		prizes.player = fresh
 	if tutorial != null:
