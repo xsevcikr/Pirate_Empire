@@ -492,6 +492,7 @@ func open_lagoon() -> void:
 	layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	layer.layer = 50
 	add_child(layer)
+	Session.state["day"] = GameClock.day  # the rest day and mission days read it
 	var screen := LagoonScreen.new()
 	screen.world = self
 	layer.add_child(screen)
@@ -503,16 +504,20 @@ func open_lagoon() -> void:
 		layer.queue_free())
 
 
-## A day at the lagoon while the captain is away; raids are reported as they happen.
+## A day at the lagoon while the captain is away; raids and parties coming home from missions are reported.
 func _lagoon_day() -> void:
 	if not Lagoon.claimed(Session.state):
 		return
+	Session.state["day"] = GameClock.day  # missions come home by the clock's day
 	var r: Dictionary = Lagoon.daily(Session.state, _trade_rng)
 	match str(r["raid"]):
 		"repelled":
 			EventBus.toast.emit(Loc.t("lagoon.raid_repelled"))
 		"lost":
 			EventBus.toast.emit(Loc.t("lagoon.raid_lost") % int(r["lost_gold"]))
+	for e: Dictionary in LagoonMissions.daily(Session.state, _trade_rng):
+		EventBus.toast.emit(LagoonMissions.report(e))
+		Sfx.play("coin" if int(e["gold"]) > 0 else "bell")
 	if streamer.lagoon != null:
 		streamer.lagoon.sync()
 
