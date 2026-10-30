@@ -14,6 +14,9 @@ const CAPTAIN_MIN_CREW: int = 18  ## smaller ships have no captain worth a duel
 
 ## Enemy line-up for `count` men: the on-screen twelve and the rest in reserve.
 static func enemy_roster(faction: String, count: int) -> Dictionary:
+	var crew_id: String = CrewData.id_of_faction(faction)
+	if crew_id != "":
+		return CrewDeck.roster(crew_id, count, count >= CAPTAIN_MIN_CREW)
 	var mix: Array = MIX.get(faction, MIX["default"])
 	var shown: int = mini(count, DeckData.MAX_ON_SCREEN)
 	var out: Array = []
@@ -55,6 +58,8 @@ static func build(committed: int, quality: float, morale: float, enemy_faction: 
 	}
 	var c := DeckCombat.new()
 	c.setup(mine, theirs, seed_value)
+	if theirs.has("crew"):
+		CrewDeck.toughen(c, str(theirs["crew"]))
 	return c
 
 

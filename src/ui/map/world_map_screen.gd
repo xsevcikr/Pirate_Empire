@@ -110,6 +110,7 @@ func _draw() -> void:
 	_draw_lanes()
 	for isl in chart.gen.islands:
 		_draw_island(isl)
+	_draw_crews()
 	_draw_route()
 	_draw_player()
 	_label(Loc.t("map.title"), Vector2(_rect.position.x, _rect.position.y - 14.0), 22, PARCHMENT)
@@ -177,6 +178,38 @@ func _draw_route() -> void:
 	var g: Vector2 = Chart.to_screen(goal, _rect)
 	draw_line(g - Vector2(7, 7), g + Vector2(7, 7), Color(0.7, 0.1, 0.1), 3.0)
 	draw_line(g - Vector2(7, -7), g + Vector2(7, -7), Color(0.7, 0.1, 0.1), 3.0)
+
+
+## The rival crews on the chart: each region framed in the colours of the crew that holds it, a pennant on every
+## known island a crew has claimed, and the lagoons the player has found.
+func _draw_crews() -> void:
+	if not Session.has_state():
+		return
+	var st: Dictionary = Session.state
+	for rid in WorldMap.REGIONS:
+		var owner: String = PirateCrews.owner_of(st, rid)
+		if owner == "":
+			continue
+		var r: Rect2 = WorldMap.REGIONS[rid]["rect"]
+		var a: Vector2 = Chart.to_screen(r.position, _rect)
+		var b: Vector2 = Chart.to_screen(r.end, _rect)
+		var col: Color = CrewData.def(owner)["color"]
+		draw_rect(Rect2(a, b - a).grow(-4.0), Color(col, 0.8), false, 3.0)
+	var claims: Dictionary = PirateCrews.root(st)["claims"]
+	for isl in chart.gen.islands:
+		if claims.has(isl["name"]) and island_known(isl):
+			var c: Vector2 = Chart.to_screen(isl["pos"], _rect) + Vector2(-2.0, -8.0)
+			var col: Color = CrewData.def(claims[isl["name"]]["crew"])["color"]
+			draw_line(c, c + Vector2(0, -16), INK, 2.0)
+			draw_colored_polygon(PackedVector2Array([c + Vector2(0, -16), c + Vector2(12, -12), c + Vector2(0, -8)]), col)
+	for id: String in PirateCrews.alive_ids(st):
+		if not bool(PirateCrews.get_crew(st, id)["lagoon_known"]):
+			continue
+		var p: Vector2 = Chart.to_screen(CrewData.lagoon_pos(id), _rect)
+		var col: Color = CrewData.def(id)["color"]
+		draw_circle(p, 9.0, INK)
+		draw_circle(p, 7.0, col)
+		_label(str(CrewData.def(id)["name"]), p + Vector2(11, 5), 13, INK)
 
 
 func _draw_player() -> void:

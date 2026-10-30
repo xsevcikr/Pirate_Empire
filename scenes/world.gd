@@ -22,6 +22,7 @@ var hud: SailingHud
 var convoys: ConvoyManager
 var tours: TourDirector
 var rivals: RivalDirector
+var crews: CrewDirector
 var progress: ProgressDirector
 var world_audio: WorldAudio
 var streamer: WorldStreamer
@@ -168,6 +169,11 @@ func _start_game_layer() -> void:
 	rivals.world = self
 	rivals.state = Session.state
 	add_child(rivals)
+	crews = CrewDirector.new()
+	crews.ship = ship
+	crews.world = self
+	crews.state = Session.state
+	add_child(crews)
 	progress = ProgressDirector.new()
 	progress.ship = ship
 	progress.state = Session.state

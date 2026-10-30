@@ -92,7 +92,7 @@ func _begin_deck_fight() -> void:
 	_committed = int(round(attacker.crew.count * STANCE_FRACTION[stance]))
 	var d_n: int = int(round(target.crew.count * (1.0 + target.stats.boarding_defense)))
 	_defenders_at_start = d_n
-	deck = DeckBridge.build(_committed, attacker.crew.quality * Progression.stat(game_state, "boarding_strength_mult"), attacker.crew.morale, target.faction, d_n, target.crew.quality,
+	deck = DeckBridge.build(_committed, attacker.crew.quality * Progression.stat(game_state, "boarding_strength_mult"), attacker.crew.morale, str(target.get_meta("deck_faction", target.faction)), d_n, target.crew.quality,
 		target.crew.morale, game_state, seed_value)
 	deck.finished.connect(_on_deck_finished)
 	sim = deck.sim
