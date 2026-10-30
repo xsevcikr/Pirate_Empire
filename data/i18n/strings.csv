@@ -221,3 +221,30 @@ mutiny.paid,You pay the crew off. They grumble but stay.,Vyplatil jsi posádku. 
 mutiny.duel_won,You cut down the ringleader. The crew falls in line.,Zabil jsi vůdce. Posádka se podřídila.
 mutiny.duel_lost,The ringleader wins and takes half your gold.,Vůdce vyhrál a vzal ti polovinu zlata.
 mutiny.marooned,The mutineers are left on a lonely island.,Vzbouřenci zůstali na opuštěném ostrově.
+prize.capture,Take her as a prize,Vzít ji jako kořist
+prize.sell,Sell her at the next port,Prodat ji v přístavu
+prize.ransom,Ransom the crew,Vyžádat výkupné
+prize.press,Press the survivors into service,Naverbovat přeživší
+prize.no_crew,Not enough hands to sail a prize.,Není dost mužů na plavbu kořisti.
+prize.fate_gold,The deal brings %d gold.,Obchod vynesl %d zlaťáků.
+prize.fate_recruits,%d survivors take the oath.,%d přeživších složilo přísahu.
+prize.fate_ship,A prize crew takes the captured ship into your fleet.,Kořistní posádka převzala ukořistěnou loď do tvé flotily.
+prize.fate_rescue,Word of the ransom reaches their navy. A rescue fleet is coming!,Zpráva o výkupném dorazila k jejich námořnictvu. Blíží se záchranná flotila!
+deck.help,"J/K attack, Shift block, Ctrl dodge, V kick, F pistol, E rope, G grenade, 1-5 orders","J/K útok, Shift blok, Ctrl úhyb, V kopnutí, F pistole, E lano, G granát, 1-5 rozkazy"
+deck.counts,Our men %d  vs  theirs %d,Naši muži %d  proti  %d
+deck.pistol,Pistol %d/%d,Pistole %d/%d
+deck.command,Orders,Rozkazy
+deck.cmd_charge,Charge!,Útok!
+deck.cmd_hold,Hold the line,Držet linii
+deck.cmd_protect,Protect the captain,Chránit kapitána
+deck.cmd_focus,Get their captain,Na jejich kapitána
+deck.cmd_fall_back,Fall back,Ústup
+deck.blocked,Blocked,Blok
+deck.parry,Parry!,Parírování!
+deck.victory,Victory!,Vítězství!
+deck.defeat,Driven back,Odraženi
+deck.surrender,They surrender!,Vzdávají se!
+weapon.rusty_cutlass,Rusty cutlass,Rezavá šavle
+weapon.club,Club,Pálka
+weapon.bayonet,Bayonet,Bajonet
+weapon.captains_cutlass,Captain's cutlass,Kapitánova šavle

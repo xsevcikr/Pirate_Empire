@@ -7,7 +7,7 @@ uniform float flutter : hint_range(0.0, 1.0) = 0.0;
 uniform float damage : hint_range(0.0, 1.0) = 0.0;
 uniform vec3 bulge_dir = vec3(0.0, 0.0, -1.0);
 uniform float bulge_depth = 2.0;
-uniform vec3 canvas_color : source_color = vec3(0.97, 0.92, 0.80);
+uniform vec3 canvas_color : source_color = vec3(0.80, 0.72, 0.55);
 uniform vec3 stain_color : source_color = vec3(0.55, 0.45, 0.32);
 uniform float time_offset = 0.0;
 

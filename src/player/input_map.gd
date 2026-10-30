@@ -24,8 +24,22 @@ const ACTIONS: Dictionary = {
 	"ammo_3": [KEY_3],
 	"ammo_4": [KEY_4],
 	"ammo_5": [KEY_5],
+	"deck_light": [KEY_J],
+	"deck_heavy": [KEY_K],
+	"deck_block": [KEY_SHIFT],
+	"deck_dodge": [KEY_CTRL],
+	"deck_kick": [KEY_V],
+	"deck_fire": [KEY_F],
+	"deck_use": [KEY_E],
+	"deck_grenade": [KEY_G],
 	"wind_stronger": [KEY_EQUAL, KEY_KP_ADD],
 	"wind_weaker": [KEY_MINUS, KEY_KP_SUBTRACT],
+}
+
+## Gamepad buttons for the deck fight.
+const DECK_PAD: Dictionary = {
+	"deck_light": JOY_BUTTON_X, "deck_heavy": JOY_BUTTON_Y, "deck_block": JOY_BUTTON_LEFT_SHOULDER, "deck_dodge": JOY_BUTTON_B,
+	"deck_kick": JOY_BUTTON_RIGHT_SHOULDER, "deck_fire": JOY_BUTTON_RIGHT_STICK, "deck_use": JOY_BUTTON_A,
 }
 
 
@@ -51,3 +65,12 @@ static func register() -> void:
 			var pad := InputEventJoypadButton.new()
 			pad.button_index = JOY_BUTTON_A
 			InputMap.action_add_event(action, pad)
+		if action == "deck_light" or action == "deck_heavy":
+			var click := InputEventMouseButton.new()
+			click.button_index = MOUSE_BUTTON_LEFT if action == "deck_light" else MOUSE_BUTTON_RIGHT
+			InputMap.action_add_event(action, click)
+		var pad_button: int = DECK_PAD.get(action, -1)
+		if pad_button >= 0:
+			var jb := InputEventJoypadButton.new()
+			jb.button_index = pad_button as JoyButton
+			InputMap.action_add_event(action, jb)

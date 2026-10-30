@@ -8,7 +8,7 @@ const FLAG_SHADER: Shader = preload("res://shaders/flag.gdshader")
 var ship: Ship
 var stats: ShipStats
 var root: Node3D
-var hull_material: StandardMaterial3D
+var hull_material: ShaderMaterial
 var mast_groups: Array[Node3D] = []
 var sail_materials: Array[ShaderMaterial] = []
 var _tiers: Array[Dictionary] = []  # {node, material, rig, tier, mast, square}
@@ -17,6 +17,9 @@ var _spray_l: CPUParticles3D
 var _spray_r: CPUParticles3D
 var _time: float = 0.0
 var _rig_yaw: PackedFloat32Array = PackedFloat32Array()
+var _hands: Array[DeckFighterView] = []
+var _hands_root: Node3D
+const MAX_VISIBLE_HANDS: int = 9
 
 
 static func half_width(stats: ShipStats, t: float) -> float:
@@ -91,7 +94,7 @@ func _build_hull() -> void:
 	verts.append(Vector3(sw * 0.93, stop, zc))
 	verts.append(Vector3(-sw * 0.93, stop, zc))
 	for v in 4:
-		cols.append(Color(0.1, 0.06, 0.04))
+		cols.append(Color(0.5, 0.3, 0.16))
 	idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
 	# Deck
 	var deck_y: float = F * 0.78
@@ -109,13 +112,16 @@ func _build_hull() -> void:
 		var a2: int = db + i * 2
 		idx.append_array([a2, a2 + 1, a2 + 2, a2 + 1, a2 + 3, a2 + 2])
 	var mesh := _mesh_from(verts, cols, idx)
-	hull_material = StandardMaterial3D.new()
-	hull_material.vertex_color_use_as_albedo = true
-	hull_material.roughness = 0.78
-	hull_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var planks := ShaderMaterial.new()
+	hull_material = planks
+	planks.shader = load("res://shaders/wood.gdshader")
+	planks.set_shader_parameter("use_vertex_color", true)
+	planks.set_shader_parameter("plank_width", 0.28)
+	planks.set_shader_parameter("plank_len", 3.5)
+	planks.set_shader_parameter("wear", 0.7)
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
-	mi.material_override = hull_material
+	mi.material_override = planks
 	root.add_child(mi)
 
 
@@ -124,7 +130,7 @@ func _hull_color(y: float, F: float) -> Color:
 		return Color(0.30, 0.10, 0.06)  # copper-red below the waterline
 	if y > F - 1.05 and y < F - 0.35:
 		return Color(0.78, 0.58, 0.16)  # gun-row stripe
-	return Color(0.09, 0.06, 0.045)
+	return Color(0.36, 0.21, 0.115)
 
 
 ## Builds an ArrayMesh with outward-facing, consistent normals (winding is fixed per triangle).
@@ -479,9 +485,47 @@ func set_mast_visible(index: int, vis: bool) -> void:
 		mast_groups[index].visible = vis
 
 
+## Sailors on deck: figures stand at fixed stations along the deck, one per two hands up to a cap. Only the
+## player's ship carries them, to keep eight-ship battles inside the frame budget.
+func _sync_hands() -> void:
+	if ship.ai != null or ship.crew == null:
+		return
+	var want: int = mini(ceili(float(ship.crew.count) / 2.0), MAX_VISIBLE_HANDS)
+	if want == _hands.size():
+		return
+	if _hands_root == null:
+		_hands_root = Node3D.new()
+		_hands_root.name = "Hands"
+		ship.add_child(_hands_root)
+	while _hands.size() > want:
+		var gone: DeckFighterView = _hands.pop_back()
+		gone.queue_free()
+	var types: Array[String] = ["seasoned", "green", "swordsman", "gunner", "green", "seasoned", "bosun", "green", "musketeer"]
+	while _hands.size() < want:
+		var i: int = _hands.size()
+		var f: FighterState = FighterState.make_crew(types[i % types.size()])
+		f.id = 100 + i * 3
+		f.melee = "cutlass"
+		var side: float = 1.0 if i % 2 == 0 else -1.0
+		var z: float = lerpf(-0.22, 0.4, float(i) / float(maxi(MAX_VISIBLE_HANDS - 1, 1))) * stats.length_m
+		var t: float = z / stats.length_m + 0.5
+		f.pos = Vector2(side * (half_width(stats, t) * 0.55 + 0.1 * float(i % 3)), z)
+		f.dir = Vector2(side * 0.3, -1.0 if i % 3 == 0 else 0.4).normalized()
+		var v := DeckFighterView.new()
+		v.fighter = f
+		v.show_label = false
+		v.scale = Vector3.ONE * clampf(stats.beam_m / 7.0, 0.8, 1.0)
+		var holder := Node3D.new()
+		holder.position = Vector3(0, stats.freeboard_m * 0.78 * 0.88, 0)
+		holder.add_child(v)
+		_hands_root.add_child(holder)
+		_hands.append(v)
+
+
 ## Per-frame: sail trim, billow, tears, wake strength.
 func update(delta: float) -> void:
 	_time += delta
+	_sync_hands()
 	var wind: WindModel = ship.wind
 	if wind == null or ship.damage == null:
 		return

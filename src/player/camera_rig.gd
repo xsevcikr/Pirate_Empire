@@ -2,8 +2,8 @@ class_name CameraRig
 extends Node3D
 ## Third-person chase camera: 28 m behind, 11 m up, FOV 65. Right mouse drag orbits freely.
 
-const DISTANCE: float = 28.0
-const HEIGHT: float = 11.0
+const DISTANCE: float = 24.0
+const HEIGHT: float = 8.5
 const FOLLOW_LAG: float = 2.5
 const FOV_DEG: float = 65.0
 
@@ -49,7 +49,7 @@ func _process(delta: float) -> void:
 	var back := Vector3(-sin(yaw), 0.0, -cos(yaw))
 	var scale: float = 1.0
 	if target is Ship:
-		scale = clampf((target as Ship).stats.length_m / 18.0, 1.0, 3.2)
+		scale = clampf((target as Ship).stats.length_m / 18.0, 0.7, 3.2)
 	var height: float = (HEIGHT + _orbit_pitch * 25.0) * scale
 	var pos: Vector3 = target.global_position + back * DISTANCE * scale + Vector3.UP * height
 	global_position = pos

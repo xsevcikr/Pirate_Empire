@@ -279,13 +279,13 @@ func _on_sank() -> void:
 
 var sink_started: bool = false
 var visuals: ShipVisuals
-var _hull_material: StandardMaterial3D
+var _hull_material: ShaderMaterial
 
 
 func _update_damage_visuals() -> void:
 	if _hull_material:
 		var f: float = damage.hull_fraction()
-		_hull_material.albedo_color = Color.WHITE.lerp(Color(0.35, 0.3, 0.3), 1.0 - f)
+		_hull_material.set_shader_parameter("tint", Color.WHITE.lerp(Color(0.35, 0.3, 0.3), 1.0 - f))
 
 
 func _process(delta: float) -> void:
