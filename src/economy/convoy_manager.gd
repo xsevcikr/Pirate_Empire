@@ -52,7 +52,7 @@ func _spawn(c: Dictionary, at: Vector2) -> void:
 	var ships: Array[Ship] = []
 	var per_ship: float = float(c["units"]) / maxf(float(c["ships"]), 1.0)
 	for i in int(c["ships"]):
-		var cls: String = TradeData.CONVOY_STATS[i % TradeData.CONVOY_STATS.size()]
+		var cls: String = ShipRoster.convoy(i, int(c["ships"]))
 		var s: Ship = _make(cls, at, dir, i, "merchant", c, yaw)
 		s.set_meta("rep_faction", "merchant")
 		s.set_meta("loot_seed", 40 + int(c["id"]) + i)

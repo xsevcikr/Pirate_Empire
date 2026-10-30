@@ -1,7 +1,7 @@
 class_name WorldStreamer
 extends Node
-## Keeps the islands (and the harbours on them) near the player in the scene and frees the rest. At most one
-## slice of one island is built per frame, so sailing across the map never stalls a frame.
+## Keeps the islands (and the harbours and landings on them) near the player in the scene and frees the rest. At most
+## one slice of one island is built per frame, so sailing across the map never stalls a frame.
 
 const LOAD_RADIUS_M: float = 3200.0
 const UNLOAD_RADIUS_M: float = 4200.0
@@ -15,6 +15,8 @@ var loaded: Dictionary = {}  ## island index -> Island
 var _unload_due: Array[int] = []
 var _forts_due: Array[PortScene] = []
 var _ports_due: Array[String] = []
+var _landings_due: Array[int] = []
+var _landing_jobs: Array[Callable] = []  ## one slice of a landing's props per pump
 var ports: Dictionary = {}  ## port id -> PortScene
 var lagoon: LagoonScene = null  ## the player's lagoon while Skull Atoll is loaded
 var peak_loaded: int = 0
@@ -28,6 +30,7 @@ var _accum: float = 99.0
 func _init() -> void:
 	gen = PortData.gen()
 	Island.prewarm()
+	LandingSite.prewarm()
 
 
 func _physics_process(delta: float) -> void:
@@ -69,6 +72,16 @@ func pump() -> void:
 	if not _ports_due.is_empty():
 		_build_port(_ports_due.pop_front())
 		return
+	if not _landing_jobs.is_empty():
+		var job: Callable = _landing_jobs.pop_front()
+		if job.is_valid():
+			job.call()
+		return
+	if not _landings_due.is_empty():
+		var li: int = _landings_due.pop_front()
+		if loaded.has(li):
+			_landing_jobs.append_array(LandingSite.plan_site(loaded[li], gen, li).get("jobs", []))
+		return
 	if _building != null:
 		if not is_instance_valid(_building) or not _building.build_next_stage():
 			_building = null
@@ -98,6 +111,8 @@ func pump() -> void:
 	peak_loaded = maxi(peak_loaded, loaded.size())
 	if isl["city"] != "":
 		_ports_due.append(IslandData.port_id_of(isl["city"]))
+	elif Landings.has_landing(isl):
+		_landings_due.append(i)
 
 
 ## Skull Atoll is low and levelled where the player builds, with no wild camp on it.
@@ -132,6 +147,7 @@ func _unload(i: int) -> void:
 	node.queue_free()
 	loaded.erase(i)
 	unloads += 1
+	_landings_due.erase(i)
 	var city: String = gen.islands[i]["city"]
 	if city != "":
 		var id: String = IslandData.port_id_of(city)

@@ -2,7 +2,8 @@ class_name Upgrades
 extends RefCounted
 ## Ship upgrade lines: 8 lines x 5 tiers, base cost times a class multiplier.
 
-const CLASS_MULT: Dictionary = {"cutter": 0.4, "sloop": 1.0, "schooner": 1.5, "brigantine": 2.5, "frigate": 4.0, "galleon": 5.0, "man_o_war": 8.0, "revenant": 4.0, "sovereign": 10.0}
+const CLASS_MULT: Dictionary = {"cutter": 0.4, "sloop": 1.0, "schooner": 1.5, "brigantine": 2.5, "frigate": 4.0, "galleon": 5.0, "man_o_war": 8.0, "revenant": 4.0, "sovereign": 10.0,
+	"pinnace": 0.8, "xebec": 1.8, "corvette": 3.2, "east_indiaman": 4.5, "treasure_galleon": 9.0, "dreadnought": 11.0, "leviathan": 13.0}
 const REFUND_FRACTION: float = 0.4
 const RESPEC_REFUND: float = 0.5
 const TIERS: int = 5

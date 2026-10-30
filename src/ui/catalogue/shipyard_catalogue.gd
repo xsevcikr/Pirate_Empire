@@ -10,6 +10,7 @@ const STAT_KEYS: Dictionary = {
 	"hull_hp": "cat.stat_hull", "max_speed_kn": "cat.stat_speed", "turn_rate_deg_s": "cat.stat_turn",
 	"rudder_hp": "cat.stat_rudder", "crew_max": "cat.stat_crew",
 }
+const GIANT_ICON: String = "pirate/ship-pirate-large"
 const FULL_TIER_YARD: int = 3  ## Upgrades.purchase refuses tier 5 below this shipyard level
 
 
@@ -56,17 +57,29 @@ func _ships(s: Dictionary, out: Array[CatalogueItem]) -> void:
 		leg.data = {"kind": "helm", "class": class_id}
 		_ship_stats(leg, PortService.ship_stats(class_id))
 		out.append(leg)
+	var giants_here: bool = false
 	for class_id in PortData.CLASS_ORDER:
 		if class_id == s["ship_class"] or not PortData.can_sell_class(port_id, class_id):
 			continue
 		var st: ShipStats = PortService.ship_stats(class_id)
 		var it := CatalogueItem.make("ship:" + class_id, "cat.ships", Loc.t("ship." + class_id), ship_icon(class_id), PortService.ship_cost(s, class_id))
 		it.blurb = Loc.t("cat.trade_in") % [CatalogueScreen.money(st.price), CatalogueScreen.money(PortService.trade_in_value(s, class_id))]
+		if PortData.is_giant(class_id):
+			giants_here = true
+			it.blurb = Loc.t("cat.giant") + "  " + it.blurb
 		it.data = {"kind": "ship", "class": class_id, "trade": "buy_ship"}
 		_ship_stats(it, st)
 		if st.infamy_required > int(s["fame"]):
 			it.lock(Loc.t("port.fame_needed") % st.infamy_required)
 		out.append(it)
+	if not giants_here and not PortData.is_giant(s["ship_class"]):
+		var names: Array[String] = []
+		for id in PortData.giant_yards():
+			names.append(str(PortData.PORTS[id]["name"]))
+		var hint := CatalogueItem.make("info:giants", "cat.ships", Loc.t("cat.giant_title"), GIANT_ICON, 0)
+		hint.blurb = Loc.t("cat.giant_desc")
+		hint.lock(Loc.t("port.giant_hint") % ", ".join(names))
+		out.append(hint)
 
 
 func _upgrades(s: Dictionary, out: Array[CatalogueItem]) -> void:
@@ -134,7 +147,7 @@ func icon_list() -> PackedStringArray:
 	var out: PackedStringArray = []
 	for class_id in PortData.CLASS_ORDER:
 		out.append(ship_icon(class_id))
-	out.append("pirate/ship-ghost")
+	out.append_array(["pirate/ship-ghost", GIANT_ICON])
 	for line: String in UPGRADE_ICONS:
 		out.append(UPGRADE_ICONS[line])
 	out.append_array(["pirate/crate", "dungeon/coin"])

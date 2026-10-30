@@ -147,16 +147,20 @@ func test_shipyard_lays_down_ships_into_free_berths() -> void:
 	var s: Dictionary = _claimed()
 	assert_eq(Lagoon.commission_problem(s, "sloop"), "yard")
 	Lagoon.place(s, "shipyard", Vector2i(1, 0))
-	assert_eq(Lagoon.commission_classes(s), ["cutter", "sloop", "schooner"])
+	var small: Array[String] = []
+	for i in 3:
+		small.append(PortData.CLASS_ORDER[i])
+	assert_eq(Lagoon.commission_classes(s), small, "a first-level yard lays down the three smallest classes")
+	var third: String = small[2]
 	assert_eq(Lagoon.commission_problem(s, "sloop"), "berth")
 	Lagoon.build_pier(s)
 	var g: int = int(s["gold"])
-	assert_true(Lagoon.commission(s, "schooner", "Sea Wolf"))
-	assert_eq(int(s["gold"]), g - PortService.ship_stats("schooner").price)
-	assert_eq(Lagoon.class_of(s["fleet"][0]), "schooner")
+	assert_true(Lagoon.commission(s, third, "Sea Wolf"))
+	assert_eq(int(s["gold"]), g - PortService.ship_stats(third).price)
+	assert_eq(Lagoon.class_of(s["fleet"][0]), third)
 	assert_eq(Lagoon.commission_problem(s, "sloop"), "berth")
 	Lagoon.upgrade(s, Vector2i(1, 0))
-	assert_true(Lagoon.commission_classes(s).has("frigate"))
+	assert_true(Lagoon.commission_classes(s).has(PortData.CLASS_ORDER[4]), "a second-level yard lays down bigger keels")
 
 
 func test_take_command_swaps_the_flagship() -> void:
