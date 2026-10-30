@@ -435,6 +435,25 @@ func can_dock() -> bool:
 	return dock_port() != "" and ship.speed_knots() <= PortData.DOCK_MAX_SPEED_KN
 
 
+## Landing: off the beach of an island without a harbour, slow, Space sends a boat ashore.
+func landing_island() -> int:
+	return Landings.near(PortData.gen(), Vector2(ship.global_position.x, ship.global_position.z))
+
+
+func can_land() -> bool:
+	return landing_island() >= 0 and ship.speed_knots() <= Landings.MAX_SPEED_KN
+
+
+func go_ashore() -> Dictionary:
+	var i: int = landing_island()
+	if i < 0:
+		return {}
+	var island_name: String = PortData.gen().islands[i]["name"]
+	var r: Dictionary = Landings.go_ashore(Session.state, island_name, _trade_rng)
+	EventBus.toast.emit(Landings.summary(r, island_name))
+	return r
+
+
 ## Tonnage in the hold times the fee, at lawful ports only.
 func _docking_fee(port_id: String) -> int:
 	if not bool(PortData.PORTS[port_id]["lawful"]):
@@ -480,6 +499,10 @@ func open_port() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if Session.has_state() and event.is_action_pressed("interact") and can_dock() and get_node_or_null("PauseMenu") == null:
 		open_port()
+		get_viewport().set_input_as_handled()
+		return
+	if Session.has_state() and event.is_action_pressed("interact") and can_land() and get_node_or_null("PauseMenu") == null:
+		go_ashore()
 		get_viewport().set_input_as_handled()
 		return
 	if Session.has_state() and event.is_action_pressed("tour_journal"):
@@ -744,7 +767,7 @@ func _physics_process(delta: float) -> void:
 	_navigate(delta)
 	_seamanship(delta)
 	if overlay != null:
-		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else "")
+		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("hud.land_hint") if can_land() else ""))
 		var st: Dictionary = Session.state
 		overlay.set_info(Loc.t("hud.status") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water"), PortService.cargo_used(st), PortService.cargo_capacity(st), int(st["morale"]), Loc.t("morale." + Morale.band(float(st["morale"])))])
 	wind.update(delta)

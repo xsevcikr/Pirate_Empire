@@ -41,6 +41,7 @@ func build(owner_ship: Ship) -> void:
 	_build_rig()
 	_build_guns()
 	_build_wake()
+	ShipLivery.apply(self)
 
 
 ## Scale factors from the Kenney hull (model units) to this ship class. Beam and length follow the stats; height
@@ -140,11 +141,16 @@ func _mast_defs() -> Array[Dictionary]:
 	var defs: Array[Dictionary] = []
 	for m: Dictionary in _parts["masts"]:
 		defs.append(m)
-	if stats.mast_count > defs.size() and defs.size() >= 2:
+	# each extra mast goes into the widest gap between two masts, so a four-master spaces them evenly
+	while stats.mast_count > defs.size() and defs.size() >= 2:
+		var at: int = 1
+		for i in range(1, defs.size()):
+			if absf(float(defs[i - 1]["z"]) - float(defs[i]["z"])) > absf(float(defs[at - 1]["z"]) - float(defs[at]["z"])):
+				at = i
 		var extra: Dictionary = ShipModel.mast_piece().duplicate()
-		extra["z"] = (float(defs[0]["z"]) + float(defs[1]["z"])) * 0.5
+		extra["z"] = (float(defs[at - 1]["z"]) + float(defs[at]["z"])) * 0.5
 		extra["extra"] = true
-		defs.insert(1, extra)
+		defs.insert(at, extra)
 	while defs.size() > stats.mast_count and defs.size() > 1:
 		defs.pop_back()
 	return defs
