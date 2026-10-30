@@ -1447,3 +1447,25 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+weather.clear,Clear,Jasno
+weather.overcast,Overcast,Zataženo
+weather.rain,Rain,Déšť
+weather.storm,Storm,Bouře
+weather.fog,Fog,Mlha
+weather.turns,The weather turns: %s.,Počasí se mění: %s.
+weather.badge,"%s, %s","%s, %s"
+weather.phase.dawn,dawn,svítání
+weather.phase.day,day,den
+weather.phase.dusk,dusk,soumrak
+weather.phase.night,night,noc
+weather.st_elmo,St Elmo's fire on our masthead! Shorten sail!,Eliášův oheň na našem stěžni! Stáhněte plachty!
+weather.struck,Lightning struck our mast!,Blesk udeřil do našeho stěžně!
+weather.struck_fell,Lightning brought our mast down!,Blesk nám srazil stěžeň!
+weather.big_sea,Big sea coming on the %s! Turn into it!,Velká vlna z %s! Natočte se proti ní!
+weather.side.port,port beam,levoboku
+weather.side.starboard,starboard beam,pravoboku
+weather.side.bow,bow,přídě
+weather.side.stern,stern,zádi
+weather.sea_hit,The sea broke over us: %d hull damage.,Vlna se přes nás převalila: poškození trupu %d.
+weather.weathered,We rode out the storm. The crew learned from it.,Přestáli jsme bouři. Posádka se přiučila.
+log.storm_weathered,Rode out a storm at sea.,Přestáli jsme bouři na moři.
