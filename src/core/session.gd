@@ -55,7 +55,7 @@ static func capture(world: Node) -> void:
 		state["pos"] = [ship.global_position.x, ship.global_position.z]
 		state["yaw"] = ship.rotation_degrees.y
 		state["ship_hull"] = ship.damage.hull_fraction()
-		state["crew"] = ship.crew.count
+		reconcile_crew(ship)
 		state["sail_level"] = ship.sail_level
 		state["morale"] = ship.crew.morale
 		for k: String in ship.broadside.ammo:
@@ -72,7 +72,9 @@ static func capture(world: Node) -> void:
 static func player_stats() -> ShipStats:
 	if state.is_empty():
 		return load("res://data/ships/sloop.tres")
-	return UpgradeEffects.apply(PortService.ship_stats(state["ship_class"]), state["upgrades"])
+	var stats: ShipStats = UpgradeEffects.apply(PortService.ship_stats(state["ship_class"]), state["upgrades"])
+	stats.max_speed_kn *= float(CrewEffects.compute(state["roster"])["speed_mult"])  # a navigator's +4%
+	return stats
 
 
 ## Put saved values back into a freshly built world.
@@ -85,16 +87,39 @@ static func apply(world: Node) -> void:
 	var pos: Array = state.get("pos", [START_POS.x, START_POS.y])
 	ship.position = Vector3(float(pos[0]), 0.0, float(pos[1]))
 	ship.rotation_degrees.y = float(state.get("yaw", START_YAW_DEG))
-	ship.crew.count = int(state["crew"])
+	ship.sail_level = int(state.get("sail_level", 0))
+	apply_to_ship(ship)
+
+
+## Push the state's crew, ammunition, hull and morale into the live ship. Called after the player changed
+## something in port, so the ship and the state agree before the next capture.
+static func apply_to_ship(ship: Ship) -> void:
+	ship.crew.count = CrewLife.fit_crew(state)
 	ship.crew.captain_hands = 1
+	ship.crew.brief_morale = true
+	var fx: Dictionary = CrewEffects.compute(state["roster"])
+	ship.crew.quality = float(fx["quality"])
+	ship.broadside.spread_scale = float(fx["spread_mult"])
+	ship.broadside.reload_scale = float(fx["reload_mult"])
 	ship.crew.morale = float(state["morale"])
 	ship.display_label = str(state["ship_name"])
 	for k: String in state["ammo"]:
 		ship.broadside.ammo[k] = int(state["ammo"][k])
-	ship.sail_level = int(state.get("sail_level", 0))
+	apply_hull(ship)
+
+
+static func apply_hull(ship: Ship) -> void:
 	var frac: float = clampf(float(state["ship_hull"]), 0.05, 1.0)
 	for i in ship.damage.section_hp.size():
 		ship.damage.section_hp[i] = ship.damage.section_max * frac
+
+
+## Men who fell on the ship since the state last saw it (guns, boarding) become casualties in the state.
+static func reconcile_crew(ship: Ship) -> Dictionary:
+	var lost: int = CrewLife.fit_crew(state) - ship.crew.count
+	if lost <= 0:
+		return {"dead": 0, "wounded": 0}
+	return CrewLife.casualties(state, lost)
 
 
 ## Written to the autosave slot whenever the player leaves port.

@@ -60,10 +60,14 @@ func _process(_delta: float) -> bool:
 		3:  # sail somewhere, change gold, open pause
 			var ship: Ship = _world.get("ship")
 			ship.global_position = _pos
+			for i in 17:
+				Session.state["roster"].append({"name": "Hand", "type": "green", "level": 1, "xp": 0})
+			Session.state["crew"] = 17
 			ship.crew.count = 17
 			Session.state["gold"] = 1234
 			var clock: Node = root.get_node("GameClock")
 			clock.day = 5
+			Session.state["last_tick_day"] = 5  # the jump is not five days of upkeep
 			clock.hour = 9.5
 			_press_action("pause")
 			_step = 4
