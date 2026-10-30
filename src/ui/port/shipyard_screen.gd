@@ -25,16 +25,22 @@ func build() -> void:
 		if class_id != s["ship_class"]:
 			add_item_row(Loc.t("ship." + class_id), [[Loc.t("port.take_helm"), _take_helm.bind(class_id)]])
 	add_text(Loc.t("port.ships_for_sale"))
+	var giants_shown: bool = false
 	for class_id in PortData.CLASS_ORDER:
 		if class_id == s["ship_class"] or not PortData.can_sell_class(port_id, class_id):
 			continue
+		if PortData.is_giant(class_id) and not giants_shown:
+			giants_shown = true
+			add_text(Loc.t("port.giant_ships"))
 		var ship_stats: ShipStats = PortService.ship_stats(class_id)
 		var cost: int = PortService.ship_cost(s, class_id)
 		var locked: bool = ship_stats.infamy_required > int(s["fame"])
-		var label: String = "%s  %d g  (%s %d g)  %s %.1f kn  %s %d" % [Loc.t("ship." + class_id), ship_stats.price, Loc.t("port.after_trade_in"), cost, Loc.t("port.speed"), ship_stats.max_speed_kn, Loc.t("port.cargo"), int(ship_stats.cargo_t)]
+		var label: String = "%s  %d g  (%s %d g)  %s %.1f kn  %s %d  %s %d" % [Loc.t("ship." + class_id), ship_stats.price, Loc.t("port.after_trade_in"), cost, Loc.t("port.speed"), ship_stats.max_speed_kn, Loc.t("port.cargo"), int(ship_stats.cargo_t), Loc.t("port.guns"), ship_stats.guns_per_side * 2]
 		if locked:
 			label += "  (" + Loc.t("port.fame_needed") % ship_stats.infamy_required + ")"
 		add_item_row(label, [[Loc.t("port.buy_ship"), _buy_ship.bind(class_id) if not locked and cost <= int(s["gold"]) else Callable()]])
+	if not giants_shown and not PortData.is_giant(s["ship_class"]):
+		add_text(Loc.t("port.giant_hint") % _yard_names())
 	add_text(Loc.t("port.upgrades"))
 	var level: int = PortData.PORTS[port_id]["shipyard_level"]
 	for line: String in Upgrades.BASE_COST.keys():
@@ -46,6 +52,13 @@ func build() -> void:
 		add_item_row("%s  %s %d/%d  (%d g)" % [Loc.t("upg." + line), Loc.t("port.tier"), tier, Upgrades.TIERS, cost],
 			[[Loc.t("port.install"), _upgrade.bind(line, level) if cost <= int(s["gold"]) else Callable()]])
 	add_button("menu.back", close)
+
+
+func _yard_names() -> String:
+	var names: Array[String] = []
+	for id in PortData.giant_yards():
+		names.append(str(PortData.PORTS[id]["name"]))
+	return ", ".join(names)
 
 
 func _insure() -> void:

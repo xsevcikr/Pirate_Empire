@@ -218,7 +218,7 @@ func test_old_saves_gain_canvas_tools_and_ship_damage() -> void:
 	old["supplies"].erase("tools")
 	old.erase("ship_damage")
 	var m: Dictionary = SaveGame.migrate(old)
-	assert_eq(int(m["version"]), 13)
+	assert_eq(int(m["version"]), SaveGame.VERSION)
 	assert_near(float(m["supplies"]["canvas"]), 0.0, 0.001)
 	assert_near(float(m["supplies"]["tools"]), 0.0, 0.001)
 	assert_eq(m["ship_damage"], {})

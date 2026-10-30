@@ -136,6 +136,10 @@ func _draw_island(isl: Dictionary) -> void:
 		var port: Vector2 = Chart.to_screen(PortData.PORTS[IslandData.port_id_of(isl["city"])]["dock"], _rect)
 		draw_rect(Rect2(port - Vector2(4, 4), Vector2(8, 8)), col)
 		draw_rect(Rect2(port - Vector2(4, 4), Vector2(8, 8)), INK, false, 1.5)
+	elif Landings.has_landing(isl):  # a beach landing, no harbour: a hollow ring
+		var g: WorldGen = PortData.gen()
+		var at: Vector2 = Chart.to_screen(Landings.anchorage(g, g.index_of(isl["name"])), _rect)
+		draw_arc(at, 4.5, 0.0, TAU, 12, INK, 2.0)
 
 
 func _draw_lanes() -> void:
