@@ -18,6 +18,7 @@ var _ports_due: Array[String] = []
 var _landings_due: Array[int] = []
 var _landing_jobs: Array[Callable] = []  ## one slice of a landing's props per pump
 var ports: Dictionary = {}  ## port id -> PortScene
+var lagoon: LagoonScene = null  ## the player's lagoon while Skull Atoll is loaded
 var peak_loaded: int = 0
 var loads: int = 0
 var unloads: int = 0
@@ -95,7 +96,15 @@ func pump() -> void:
 	node.staged = true
 	node.name = "Island_%d" % i
 	node.position = Vector3(isl["pos"].x, 0.0, isl["pos"].y)
+	var is_lagoon: bool = isl["name"] == LagoonData.ISLAND
+	if is_lagoon:
+		_shape_lagoon(node)
 	add_child(node)
+	if is_lagoon:
+		lagoon = LagoonScene.new()
+		lagoon.island = node
+		lagoon.state = Session.state
+		node.add_child(lagoon)
 	loaded[i] = node
 	_building = node
 	loads += 1
@@ -104,6 +113,17 @@ func pump() -> void:
 		_ports_due.append(IslandData.port_id_of(isl["city"]))
 	elif Landings.has_landing(isl):
 		_landings_due.append(i)
+
+
+## Skull Atoll is low and levelled where the player builds, with no wild camp on it.
+func _shape_lagoon(node: Island) -> void:
+	node.peak_m = 16.0
+	node.pad_center = LagoonData.pad_center()
+	node.pad_radius = LagoonData.PAD_RADIUS_M
+	node.pad_blend = LagoonData.PAD_BLEND_M
+	node.pad_h = LagoonData.PAD_H_M
+	node.keep_clear = LagoonData.keep_clear
+	node.no_camp = true
 
 
 ## The harbour's buildings are a frame of work of their own, so a port is built the pump after its island.
@@ -122,6 +142,8 @@ func _unload(i: int) -> void:
 	var node: Island = loaded[i]
 	if node == _building:
 		_building = null
+	if lagoon != null and lagoon.island == node:
+		lagoon = null
 	node.queue_free()
 	loaded.erase(i)
 	unloads += 1
