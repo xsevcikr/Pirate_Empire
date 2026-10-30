@@ -1,6 +1,7 @@
 class_name RivalScreen
 extends MenuScreen
-## The rivals page (O): each named rival with their meter, level, the trophy they hold and how the arc stands.
+## The rivals page (O): each named rival with their meter, level, the trophy they hold and how the arc stands, and
+## the way to the rival pirate crews.
 
 
 func _init() -> void:
@@ -24,6 +25,7 @@ func build() -> void:
 		_label(line)
 		if str(r["trophy"]) != "" and not bool(r["defeated"]):
 			_label("    " + Loc.t("rival.holds." + str(r["trophy"])))
+	add_button("pcrew.title", func() -> void: open_child(CrewsScreen.new()))
 	add_button("menu.back", close)
 
 

@@ -3,7 +3,7 @@ extends RefCounted
 ## Every number and text key of the treasure tours: the two tours of milestone 18, their steps, hint prices, map
 ## fragment drop rates, monsters, traps and the digging table. Nothing here changes at run time.
 
-const DROP_RATE: Dictionary = {"merchant": 0.04, "pirate": 0.08, "treasure_galleon": 0.15, "rival": 1.0}
+const DROP_RATE: Dictionary = {"merchant": 0.04, "pirate": 0.08, "treasure_galleon": 0.15, "rival": 1.0, "crew": 0.25}
 const FRAGMENTS_PER_TOUR: int = 3
 const HINT_COST: Array[int] = [0, 0, 50, 500]  ## index = hint level; level 1 is the navigator, 2 and 3 the tavern
 const STUCK_FREE_S: float = 600.0  ## a step open this long gives its hints for free: nobody is ever locked out

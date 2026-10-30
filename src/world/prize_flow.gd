@@ -133,7 +133,8 @@ func finish_prize(ship: Ship, loot: Dictionary, fate: int) -> void:
 	if ship.has_meta("convoy"):
 		TradeNetwork.lose_ships(Session.state, int(ship.get_meta("convoy")), 1)
 		ship.remove_meta("convoy")
-	var info: Dictionary = {"quest": str(ship.get_meta("quest", "")), "tutorial": str(ship.get_meta("tutorial", "")), "loot": loot, "fate": fate, "rival": str(ship.get_meta("rival", "")), "class_id": ship.stats.class_id}
+	var info: Dictionary = {"quest": str(ship.get_meta("quest", "")), "tutorial": str(ship.get_meta("tutorial", "")), "loot": loot, "fate": fate, "rival": str(ship.get_meta("rival", "")), "class_id": ship.stats.class_id,
+		"crew": str(ship.get_meta("crew", "")), "crew_role": str(ship.get_meta("crew_role", "")), "crew_tag": str(ship.get_meta("crew_tag", "")), "ship": ship}
 	if loot["map_fragment"] != "" and MapFragments.add(Session.state, loot["map_fragment"]):
 		bus.toast.emit(Loc.t("tour.fragment_found"))
 	if info["quest"] != "" and Session.state["quests"].has(info["quest"]):

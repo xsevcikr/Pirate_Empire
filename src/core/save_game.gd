@@ -16,7 +16,7 @@ static func new_state() -> Dictionary:
 		"tutorial": "leave_dock", "captain_cut": Morale.CUT_DEFAULT, "captain_level": 1, "rum_ration": true, "wounded": 0,
 		"starve_days": 0, "thirst_days": 0, "unpaid_days": 0, "death_accum": 0.0, "wound_accum": 0.0, "desert_accum": 0.0,
 		"mutiny_shield_day": -99, "last_tick_day": 1, "offers_window": -1, "offers_taken": [], "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
-		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "streams_known": [], "course": [], "wrecks": [], "destroyed": {}, "tours": {}, "rivals": {}, "sea_events": {}, "prizes_taken": 0, "captain_xp": 0, "skills": {}, "skill_points_spent": 0, "stats": {}, "achievements": {}, "islands_seen": [], "trade_rem": 0, "custom": {}, "ship_damage": {}, "siren_paid": false, "act": 0, "beat": 0,
+		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "streams_known": [], "course": [], "wrecks": [], "destroyed": {}, "tours": {}, "rivals": {}, "crews": {}, "sea_events": {}, "prizes_taken": 0, "captain_xp": 0, "skills": {}, "skill_points_spent": 0, "stats": {}, "achievements": {}, "islands_seen": [], "trade_rem": 0, "custom": {}, "ship_damage": {}, "siren_paid": false, "act": 0, "beat": 0,
 		"landings": {},
 		"fleet": [], "bases": [], "lagoon": {}, "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
@@ -100,7 +100,10 @@ static func migrate(d: Dictionary) -> Dictionary:
 		# v14 adds the player's own lagoon on Skull Atoll. Old saves start with it unclaimed.
 		d["lagoon"] = {}
 		d["version"] = 14
-	# v15 belongs to the rival crews, which merge before this.
+	if v < 15:
+		# v15 adds the rival pirate crews. They start fresh in an old save, as they would in a new game.
+		d["crews"] = {}
+		d["version"] = 15
 	if v < 16:
 		# v16 adds crash breaches and damage control: the holes, water and fallen masts kept in ship_damage, and
 		# canvas and tools among the supplies. An old ship sails on as it was, with none of the new stores.

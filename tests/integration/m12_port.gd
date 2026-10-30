@@ -11,6 +11,7 @@ var _ship: Ship
 var _lugger: Ship
 var _menu: PortMenu
 var _gold_before: int = 0
+var _food_before: float = 0.0
 
 
 func _check(cond: bool, msg: String) -> void:
@@ -123,6 +124,10 @@ func _process(_delta: float) -> bool:
 			_go(5, 5)
 		5:
 			_check(not paused, "leaving port unpauses")
+			# Loading the world takes a varying number of frames and the clock runs through them, so the crew's daily
+			# meal may already have been eaten: count the food from here, at midday so no meal falls inside the boarding.
+			root.get_node("GameClock").hour = 12.0
+			_food_before = float(st["supplies"]["food"])
 			_lugger.sail_level = 0
 			_lugger.linear_velocity = Vector3.ZERO
 			var right: Vector3 = _lugger.global_transform.basis.x
@@ -144,7 +149,7 @@ func _process(_delta: float) -> bool:
 			_check(paused, "prize screen pauses the game")
 			prize._choose(CaptureFate.Fate.RELEASE)
 			_check(st["gold"] >= 160 and st["gold"] <= 190, "loot gold 60-90, got %d" % st["gold"])
-			_check(int(st["supplies"]["food"]) == 10, "6 food looted")
+			_check(is_equal_approx(float(st["supplies"]["food"]) - _food_before, 6.0), "6 food looted")
 			_check(int(st["cargo"].get("fish", 0)) == 10, "a crate of fish looted")
 			_check(st["tutorial"] == "return_port", "looting advances to return_port, got %s" % st["tutorial"])
 			_teleport_to_dock()
