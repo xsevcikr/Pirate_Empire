@@ -81,6 +81,7 @@ func _ready() -> void:
 	_f_ref = _k_drag * vmax * vmax
 	broadside = Broadside.new()
 	broadside.ship = self
+	broadside.gun_id = stats.gun_id
 	add_child(broadside)
 
 

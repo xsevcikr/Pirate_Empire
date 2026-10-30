@@ -101,3 +101,26 @@ func advance(hours: float) -> void:
 			events[e] -= h
 			if events[e] <= 0.0:
 				events.erase(e)
+
+
+func to_dict() -> Dictionary:
+	return {"stock": stock.duplicate(), "events": events.duplicate(), "clock_h": _clock_h, "rep_mod": rep_mod}
+
+
+func load_dict(d: Dictionary) -> void:
+	for g in Goods.ids():
+		if d.get("stock", {}).has(g):
+			stock[g] = float(d["stock"][g])
+	events = d.get("events", {}).duplicate()
+	_clock_h = float(d.get("clock_h", 0.0))
+	rep_mod = float(d.get("rep_mod", 0.0))
+
+
+## +1 when the price sits more than 3% above the good's base price, -1 when more than 3% below, else 0.
+func trend(good: String) -> int:
+	var r: float = mid_price(good) / Goods.base_price(good)
+	if r > 1.03:
+		return 1
+	if r < 0.97:
+		return -1
+	return 0

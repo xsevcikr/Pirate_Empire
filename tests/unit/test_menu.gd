@@ -4,7 +4,7 @@ extends TestCase
 func test_migration_from_v2_adds_world_position() -> void:
 	var v2: String = '{"version": 2, "gold": 530, "hour": 8.0, "day": 4, "crew": 9}'
 	var s: Dictionary = SaveGame.from_json(v2)
-	assert_eq(s["version"], 3)
+	assert_eq(s["version"], SaveGame.VERSION)
 	assert_eq(s["gold"], 530)
 	assert_true(s.has("pos") and s.has("yaw") and s.has("playtime") and s.has("captain"))
 
