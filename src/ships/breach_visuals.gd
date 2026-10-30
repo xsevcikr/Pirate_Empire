@@ -42,7 +42,10 @@ func surface(br: Dictionary) -> Dictionary:
 	var hb: float = ship.stats.beam_m * 0.5
 	var hl: float = ship.stats.length_m * 0.5
 	var width: float = ship.visuals.hull_half_width() if ship.visuals != null else hb
-	var at := Vector3(p.x * width / hb, 0.1, p.z * 0.96)
+	var at := Vector3(p.x * width / hb, 0.1, p.z * 0.86)
+	var along: float = absf(p.z) / hl
+	if along > 0.45:  # the drawn hull curves in toward the stem and stern faster than the collision box
+		at.x *= lerpf(1.0, 0.35, clampf((along - 0.45) / 0.55, 0.0, 1.0))
 	var n := Vector3(p.x / hb, 0.0, p.z / hl * 0.6)
 	if n.length() < 0.01:
 		n = Vector3(0, 0, -1)

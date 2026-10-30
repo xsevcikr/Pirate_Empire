@@ -72,8 +72,8 @@ func _process(_d: float) -> bool:
 		d.set_breach_state(b3, "fothered")
 		var b4: int = d.open_breach(0, Vector3(hb * 0.8, -0.3, -5.5), 1, CollisionModel.breach_leak(1))
 		d.set_breach_state(b4, "patched")
-		d.water_t[0] = 4.0
-		d.water_t[2] = 6.0
+		d.water_t[0] = 0.5
+		d.water_t[2] = 1.0
 		d.section_hp[2] = d.section_max * 0.35
 		d.section_hp[0] = d.section_max * 0.55
 		_ship.refresh_damage()
@@ -83,7 +83,7 @@ func _process(_d: float) -> bool:
 		var side: Vector3 = _ship.global_transform.basis.x
 		_cam.global_position = _ship.global_position + side * 11.0 + Vector3(0, 2.6, 1.0)
 		_cam.look_at(_ship.global_position + side * 2.0 + Vector3(0, 0.6, 0.6), Vector3.UP)
-	if _hit_at > 0 and _frames == _hit_at + 200:
+	if _hit_at > 0 and _frames == _hit_at + 150:
 		root.get_texture().get_image().save_png(_prefix + "_hull.png")
 	if _hit_at > 0 and _frames == _hit_at + 300:
 		_ship.sail_level = 2
