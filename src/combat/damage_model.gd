@@ -365,6 +365,18 @@ func repair_hull(hp: float) -> float:
 	return section_hp[weakest] - before
 
 
+## The deck-fight repair party: `amount` HP spread over the weakest sections in turn, to the same sea cap as
+## repair_hull. Returns the HP actually put back.
+func patch_hull(amount: float) -> float:
+	var left: float = amount
+	while left > 0.001:
+		var got: float = repair_hull(left)
+		if got <= 0.0:
+			break
+		left -= got
+	return amount - left
+
+
 ## HP the crew could still put back at sea.
 func hull_repairable() -> float:
 	var t: float = 0.0

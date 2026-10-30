@@ -7,6 +7,8 @@ signal fighter_hit(attacker_id: int, target_id: int, info: Dictionary)
 signal fighter_died(fighter: FighterState)
 signal ranged_fired(shooter_id: int, from_pos: Vector2, to_pos: Vector2)
 signal keg_exploded(at: Vector2)
+signal cannon_fired(from_pos: Vector2, direction: Vector2)
+signal deck_gun_ready
 signal finished(result: Dictionary)
 
 enum Outcome { ONGOING, PLAYER_WINS, ENEMY_WINS }
@@ -28,16 +30,22 @@ var command: DeckData.Command = DeckData.Command.CHARGE
 var player_kills: int = 0
 var started_with: Array[int] = [0, 0]  ## men per side at the start, on screen and in reserve
 var reserve_kind: Array[String] = ["green", "sailor"]
+## Our deck gun: loaded by the hands sent to it, fired on the captain's order.
+var cannon_loaded: bool = false
+var cannon_load: float = 0.0  ## man-seconds of work done toward the next load
+var hull_repaired: float = 0.0  ## hull hit points the repair party has patched on our own ship
 
 var _next_id: int = 1
 var _spawn_clock: Array[float] = [0.0, 0.0]
 
 
-## `mine`: {level, melee, ranged, shots, crew: [{type, level}], reserve, morale, effic}
+## `mine`: {level, melee, ranged, shots, hp, rum, crew: [{type, level}], reserve, morale, effic}
 ## `theirs`: {fighters: [archetype or {kind, hp}], reserve, reserve_kind, morale}
 func setup(mine: Dictionary, theirs: Dictionary, seed_value: int = 1) -> void:
 	rng.seed = seed_value
-	player = FighterState.make_player(int(mine.get("level", 1)), str(mine.get("melee", "rusty_cutlass")), str(mine.get("ranged", "flintlock")), int(mine.get("shots", 10)))
+	player = FighterState.make_player(int(mine.get("level", 1)), str(mine.get("melee", "rusty_cutlass")), str(mine.get("ranged", "flintlock")), int(mine.get("shots", 10)),
+		float(mine.get("hp", -1.0)))
+	player.rum_left = int(mine.get("rum", DeckData.RUM_PER_FIGHT))
 	var sk: Dictionary = mine.get("skills", {})
 	player.stamina_max += float(sk.get("stamina_add", 0.0))
 	player.stamina = player.stamina_max
@@ -173,6 +181,7 @@ func tick(dt: float) -> void:
 			DeckAI.think(self, f, dt)
 	_move_all(dt)
 	_resolve_pending()
+	_run_jobs(dt)
 	_update_grenades(dt)
 	_run_reserves(dt)
 	_check_end()
@@ -219,6 +228,10 @@ func _resolve_pending() -> void:
 		if f.kick_pending:
 			f.kick_pending = false
 			_kick(f)
+		if f.aim_fire_pending and f.aim_lock_left <= 0.0:
+			f.aim_fire_pending = false
+			if f.is_standing() and fire_ranged(f, f.aim_dir) and not f.is_player:
+				f.aim_left = rng.randf_range(DeckData.AI_AIM_S[0], DeckData.AI_AIM_S[1])  # his next shot is a while off
 
 
 func _in_arc(from_f: FighterState, to_pos: Vector2, range_m: float, arc_deg: float) -> bool:
@@ -234,7 +247,7 @@ func _in_arc(from_f: FighterState, to_pos: Vector2, range_m: float, arc_deg: flo
 func _melee_strike(att: FighterState) -> void:
 	var weapon: Dictionary = WeaponData.WEAPONS[att.melee]
 	var heavy: bool = att.swing_heavy
-	var dmg: float = DeckData.swing_damage(att.melee, heavy) * att.strength
+	var dmg: float = DeckData.swing_damage(att.melee, heavy)
 	if not heavy:
 		dmg *= DeckData.COMBO_MULT[clampi(att.combo, 0, DeckData.COMBO_MULT.size() - 1)]
 	var tgt: FighterState = null
@@ -324,7 +337,9 @@ func covered(from_pos: Vector2, to_pos: Vector2) -> bool:
 	return false
 
 
-## Fire the shooter's ranged weapon along `aim`. Returns true if a shot left the barrel.
+## Fire the shooter's ranged weapon along `aim`. The ball flies along the aim, thrown off by the shooter's spread
+## (wide from the hip, tight once the captain has held his aim), and hits the first enemy whose body is on its line.
+## A blunderbuss sprays its cone instead. Returns true if a shot left the barrel.
 func fire_ranged(shooter: FighterState, aim: Vector2) -> bool:
 	if not shooter.can_fire():
 		return false
@@ -338,38 +353,48 @@ func fire_ranged(shooter: FighterState, aim: Vector2) -> bool:
 	if shooter.reload_left <= 0.0:
 		shooter.reload_left = shooter.reload_time()
 	var range_m: float = float(w["range"])
-	var cone: float = float(w.get("cone_deg", DeckData.RANGED_AIM_CONE_DEG))
 	var pellets: int = int(w.get("pellets", 1))
-	var end: Vector2 = shooter.pos + a * range_m
-	ranged_fired.emit(shooter.id, shooter.pos, end)
+	var dmg: float = DeckData.gun_damage(shooter.ranged)
+	if pellets > 1:
+		var cone: float = float(w.get("cone_deg", DeckData.RANGED_AIM_CONE_DEG))
+		ranged_fired.emit(shooter.id, shooter.pos, shooter.pos + a * range_m)
+		var spray: Array[FighterState] = []
+		for o in fighters:
+			if o.team != shooter.team and o.is_standing():
+				var d: Vector2 = o.pos - shooter.pos
+				if d.length() <= range_m and absf(rad_to_deg(a.angle_to(d))) <= cone * 0.5:
+					spray.append(o)
+		spray.sort_custom(func(x: FighterState, y: FighterState) -> bool: return x.pos.distance_squared_to(shooter.pos) < y.pos.distance_squared_to(shooter.pos))
+		for t in spray.slice(0, 3):
+			var res: Dictionary = t.receive_raw(dmg * (1.0 - DeckData.COVER_RANGED_REDUCTION if covered(shooter.pos, t.pos) else 1.0), shooter)
+			if t.is_standing():
+				t.pos += (t.pos - shooter.pos).normalized() * 1.0  # blunderbuss knockback
+			_after_hit(shooter, t, res)
+		return true
+	var shot: Vector2 = a.rotated(deg_to_rad(rng.randfn(0.0, shooter.shot_spread_deg())))
+	var tgt: FighterState = null
+	var best_t: float = range_m
+	for o in fighters:
+		if o.team == shooter.team or not o.is_standing():
+			continue
+		var along: float = (o.pos - shooter.pos).dot(shot)
+		if along <= 0.0 or along >= best_t:
+			continue
+		if (shooter.pos + shot * along).distance_to(o.pos) <= DeckData.BULLET_RADIUS_M:
+			best_t = along
+			tgt = o
+	var end: Vector2 = shooter.pos + shot * best_t
 	for k in kegs:
 		if k["alive"] and _segment_hits_circle(shooter.pos, end, k["pos"], 0.6):
+			ranged_fired.emit(shooter.id, shooter.pos, k["pos"])
 			_explode_keg(k, shooter)
-			break
-	var candidates: Array[FighterState] = []
-	for o in fighters:
-		if o.team != shooter.team and o.is_standing():
-			var d: Vector2 = o.pos - shooter.pos
-			if d.length() <= range_m and absf(rad_to_deg(a.angle_to(d))) <= cone * 0.5:
-				candidates.append(o)
-	if candidates.is_empty():
+			return true
+	ranged_fired.emit(shooter.id, shooter.pos, end)
+	if tgt == null:
 		return true
-	candidates.sort_custom(func(x: FighterState, y: FighterState) -> bool: return absf(a.angle_to(x.pos - shooter.pos)) < absf(a.angle_to(y.pos - shooter.pos)))
-	var targets: Array[FighterState] = []
-	if pellets > 1:
-		targets.assign(candidates)
-	else:
-		targets.append(candidates[0])
-	for t in targets:
-		var dmg: float = float(w["damage"])
-		if pellets > 1:
-			dmg /= float(targets.size())  # the pellets spread over everyone in the cone
-		if covered(shooter.pos, t.pos):
-			dmg *= 1.0 - DeckData.COVER_RANGED_REDUCTION
-		var res: Dictionary = t.receive_raw(dmg, shooter)
-		if pellets > 1 and t.is_standing():
-			t.pos += (t.pos - shooter.pos).normalized() * 1.0  # blunderbuss knockback
-		_after_hit(shooter, t, res)
+	if covered(shooter.pos, tgt.pos):
+		dmg *= 1.0 - DeckData.COVER_RANGED_REDUCTION
+	_after_hit(shooter, tgt, tgt.receive_raw(dmg, shooter))
 	return true
 
 
@@ -438,6 +463,134 @@ func use_rope(f: FighterState) -> bool:
 	return false
 
 
+# ---- orders: the deck gun and the repair party -------------------------------------------------
+
+## Send two hands to load our deck gun. False when it is already loaded or no one is free to go.
+func order_load_cannon() -> bool:
+	if cannon_loaded:
+		return false
+	var have: int = _on_job(DeckData.Job.CANNON).size()
+	var sent: Array[FighterState] = _free_hands(DeckData.CANNON_CREW - have, "gunner")
+	for i in sent.size():
+		sent[i].job = DeckData.Job.CANNON
+	_place_job(DeckData.Job.CANNON)
+	return have + sent.size() > 0
+
+
+## Fire the loaded deck gun at the thickest knot of the enemy. Returns how many men the grapeshot hit, or -1 when
+## the gun is not loaded or nobody is standing at it.
+func order_fire_cannon() -> int:
+	var crew: Array[FighterState] = _on_job(DeckData.Job.CANNON)
+	var at_gun: bool = false
+	for f in crew:
+		if f.pos.distance_to(f.job_spot) <= DeckData.AT_JOB_M * 1.5:
+			at_gun = true
+	if not cannon_loaded or not at_gun:
+		return -1
+	cannon_loaded = false
+	cannon_load = 0.0
+	var from: Vector2 = DeckData.CANNON_POS
+	var aim: Vector2 = _best_cannon_aim(from)
+	cannon_fired.emit(from, aim)
+	var hit: Array[FighterState] = []
+	for o in fighters:
+		if o.team == 1 and o.is_standing() and _in_cone(from, aim, o.pos):
+			hit.append(o)
+	hit.sort_custom(func(x: FighterState, y: FighterState) -> bool: return x.pos.distance_squared_to(from) < y.pos.distance_squared_to(from))
+	hit = hit.slice(0, DeckData.CANNON_MAX_HITS)
+	for t in hit:
+		var dmg: float = DeckData.GUN_DAMAGE * (1.0 - DeckData.COVER_RANGED_REDUCTION if covered(from, t.pos) else 1.0)
+		_after_hit(player, t, t.receive_raw(dmg, player))
+		if t.is_standing():
+			t.stagger(DeckData.KICK_STAGGER_S)
+	for k in kegs:
+		if k["alive"] and _in_cone(from, aim, k["pos"]):
+			_explode_keg(k, player)
+	for f in crew:
+		f.job = DeckData.Job.NONE
+	return hit.size()
+
+
+## Toggle the repair party: two hands (a carpenter first) go to our rail and patch the hull while the fight goes on.
+## Returns true when a party was sent, false when it was called back (or nobody could go).
+func order_repair() -> bool:
+	var party: Array[FighterState] = _on_job(DeckData.Job.REPAIR)
+	if not party.is_empty():
+		for f in party:
+			f.job = DeckData.Job.NONE
+		return false
+	var sent: Array[FighterState] = _free_hands(DeckData.REPAIR_CREW, "carpenter")
+	for f in sent:
+		f.job = DeckData.Job.REPAIR
+	_place_job(DeckData.Job.REPAIR)
+	return not sent.is_empty()
+
+
+func _on_job(job: DeckData.Job) -> Array[FighterState]:
+	var out: Array[FighterState] = []
+	for f in fighters:
+		if f.team == 0 and not f.is_player and f.is_standing() and f.job == job:
+			out.append(f)
+	return out
+
+
+## Up to `n` hands with no job, men of `prefer` type first, then whoever is nearest our rail.
+func _free_hands(n: int, prefer: String) -> Array[FighterState]:
+	var pool: Array[FighterState] = _on_job(DeckData.Job.NONE)
+	pool.sort_custom(func(x: FighterState, y: FighterState) -> bool:
+		if (x.crew_type == prefer) != (y.crew_type == prefer):
+			return x.crew_type == prefer
+		return x.pos.x < y.pos.x)
+	return pool.slice(0, maxi(n, 0))
+
+
+func _place_job(job: DeckData.Job) -> void:
+	var crew: Array[FighterState] = _on_job(job)
+	for i in crew.size():
+		if job == DeckData.Job.CANNON:
+			crew[i].job_spot = DeckData.CANNON_POS + Vector2(-0.6, -0.9 if i % 2 == 0 else 0.9)
+		else:
+			crew[i].job_spot = Vector2(DeckData.REPAIR_SPOT_X, 5.0 + 1.2 * float(i))
+
+
+func _run_jobs(dt: float) -> void:
+	for f in fighters:
+		if f.team != 0 or f.is_player or not f.is_standing() or f.job == DeckData.Job.NONE:
+			continue
+		if f.pos.distance_to(f.job_spot) > DeckData.AT_JOB_M or f.state != FighterState.State.IDLE:
+			continue
+		if f.job == DeckData.Job.CANNON and not cannon_loaded:
+			cannon_load += dt
+			if cannon_load >= DeckData.CANNON_LOAD_MAN_S:
+				cannon_loaded = true
+				deck_gun_ready.emit()
+		elif f.job == DeckData.Job.REPAIR:
+			hull_repaired += DeckData.REPAIR_HP_PER_MAN_S * dt
+
+
+func _in_cone(from: Vector2, aim: Vector2, at: Vector2) -> bool:
+	var d: Vector2 = at - from
+	return d.length() <= DeckData.CANNON_RANGE_M and absf(rad_to_deg(aim.angle_to(d))) <= DeckData.CANNON_CONE_DEG * 0.5
+
+
+## The bearing from `from` that puts the most standing enemies inside the grapeshot cone.
+func _best_cannon_aim(from: Vector2) -> Vector2:
+	var best: Vector2 = Vector2.RIGHT
+	var best_n: int = -1
+	for o in fighters:
+		if o.team != 1 or not o.is_standing():
+			continue
+		var aim: Vector2 = (o.pos - from).normalized()
+		var n: int = 0
+		for p in fighters:
+			if p.team == 1 and p.is_standing() and _in_cone(from, aim, p.pos):
+				n += 1
+		if n > best_n:
+			best_n = n
+			best = aim
+	return best
+
+
 # ---- reserves, reinforcements, the end ---------------------------------------------------------
 
 func _run_reserves(dt: float) -> void:
@@ -481,7 +634,7 @@ func _check_end() -> void:
 	elif morale[0] < BoardingSim.MORALE_BREAK and player_left < enemy_left:
 		surrendered = true
 		_finish(Outcome.ENEMY_WINS)
-	elif time_s >= BoardingSim.TIME_LIMIT_S:
+	elif time_s >= DeckData.FIGHT_TIME_LIMIT_S:
 		timed_out = true
 		_finish(Outcome.PLAYER_WINS if total_power(0) >= total_power(1) else Outcome.ENEMY_WINS)
 
@@ -500,7 +653,8 @@ func result() -> Dictionary:
 		"outcome": outcome, "player_won": outcome == Outcome.PLAYER_WINS, "surrendered": surrendered, "timed_out": timed_out,
 		"crew_left": mine_left, "enemy_left": standing_on_screen(1) + reserve_of(1), "player_kills": player_kills,
 		"parries": player.parries, "captain_down": player.state == FighterState.State.DOWN, "time_s": time_s,
-		"captain_dead_enemy": _enemy_captain_dead(),
+		"captain_dead_enemy": _enemy_captain_dead(), "captain_hp": player.hp, "rum_drunk": player.rum_drunk,
+		"hull_repaired": hull_repaired,
 	}
 
 

@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 16
+const VERSION: int = 17
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -11,7 +11,7 @@ static func new_state() -> Dictionary:
 		"version": VERSION, "gold": 100, "hour": 9.0, "day": 0, "ship_class": "cutter", "ship_name": "The Driftwood",
 		"ship_hull": 0.7, "crew": 0, "roster": [], "morale": 70.0, "cargo": {}, "upgrades": {}, "officers": [],
 		"supplies": PortData.START_SUPPLIES.duplicate(), "ammo": {"round": WeaponData.SWIVEL_START_SHOTS, "chain": 0, "grape": 0, "heated": 0, "explosive": 0},
-		"captain_hp": 100, "melee": "rusty_cutlass", "pistol": "flintlock", "pistol_shots": WeaponData.PISTOL_START_SHOTS,
+		"captain_hp": 200.0, "melee": "rusty_cutlass", "pistol": "flintlock", "pistol_shots": WeaponData.PISTOL_START_SHOTS,
 		"owned_weapons": ["rusty_cutlass", "flintlock"], "fame": 0, "docked_at": PortData.START_PORT, "starter_exchange": true,
 		"tutorial": "leave_dock", "captain_cut": Morale.CUT_DEFAULT, "captain_level": 1, "rum_ration": true, "wounded": 0,
 		"starve_days": 0, "thirst_days": 0, "unpaid_days": 0, "death_accum": 0.0, "wound_accum": 0.0, "desert_accum": 0.0,
@@ -114,6 +114,10 @@ static func migrate(d: Dictionary) -> Dictionary:
 		d["supplies"] = sup
 		d["ship_damage"] = d.get("ship_damage", {})
 		d["version"] = 16
+	if v < 17:
+		# v17: every man on deck, the captain too, has 200 hit points, and the captain's now carry between fights.
+		d["captain_hp"] = 200.0
+		d["version"] = 17
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

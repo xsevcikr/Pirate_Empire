@@ -18,6 +18,13 @@ func _face(a: FighterState, b: FighterState, dist: float = 1.5) -> void:
 	b.dir = Vector2.LEFT
 
 
+## A steady aim: the captain has held it long enough for the tightest spread.
+func _steady(f: FighterState) -> void:
+	f.mode = FighterState.Mode.GUN
+	f.aiming = true
+	f.aim_hold_t = 5.0
+
+
 func _enemy(c: DeckCombat) -> FighterState:
 	for f in c.fighters:
 		if f.team == 1:
@@ -51,7 +58,8 @@ func test_late_block_is_only_a_block() -> void:
 	var r: Dictionary = me.receive_melee(foe, 20.0, false, false, 10.21)
 	assert_eq(r["result"], "blocked")
 	assert_near(me.hp, me.hp_max - 4.0, 0.0001)  # 80% off
-	assert_eq(foe.state, FighterState.State.IDLE)
+	assert_eq(foe.state, FighterState.State.STAGGER)  # his blade bounced off the guard
+	assert_near(foe.stagger_left, DeckData.BLOCK_RECOIL_S, 0.0001)
 
 
 func test_parry_window_edges() -> void:
@@ -194,28 +202,28 @@ func test_kick_staggers_a_blocking_man() -> void:
 # ---- damage numbers ----------------------------------------------------------------------------
 
 func test_weapon_damage_table() -> void:
-	assert_eq(DeckData.swing_damage("rusty_cutlass", false), 18.0)
-	assert_eq(DeckData.swing_damage("rusty_cutlass", true), 32.0)
-	assert_eq(DeckData.swing_damage("cutlass", false), 25.0)
-	assert_eq(DeckData.swing_damage("cutlass", true), 45.0)
-	assert_eq(DeckData.swing_damage("rapier", false), 18.0)
-	assert_eq(DeckData.swing_damage("rapier", true), 34.0)
-	assert_eq(DeckData.swing_damage("boarding_axe", false), 35.0)
-	assert_eq(DeckData.swing_damage("boarding_axe", true), 65.0)
-	assert_eq(DeckData.swing_damage("captains_cutlass", true), 58.0)
+	# every blade 30 (45 heavy), fists 20 (30 heavy), every gun 50
+	for w in ["rusty_cutlass", "cutlass", "rapier", "boarding_axe", "captains_cutlass", "club", "bayonet", "dagger"]:
+		assert_eq(DeckData.swing_damage(w, false), 30.0, w)
+		assert_eq(DeckData.swing_damage(w, true), 45.0, w)
+	assert_eq(DeckData.swing_damage("fists", false), 20.0)
+	assert_eq(DeckData.swing_damage("fists", true), 30.0)
+	for g in ["flintlock", "musket", "blunderbuss"]:
+		assert_eq(DeckData.gun_damage(g), 50.0, g)
+		assert_eq(WeaponData.WEAPONS[g]["damage"], 50, g)
 	assert_near(DeckData.swing_time("cutlass", false), 0.5, 0.0001)
 	assert_near(DeckData.swing_time("cutlass", true), 1.1, 0.0001)
 	assert_near(DeckData.swing_time("rapier", false), 0.35, 0.0001)
 
 
-func test_enemy_archetype_hit_points() -> void:
-	assert_eq(DeckData.ENEMIES["sailor"]["hp"], 40.0)
-	assert_eq(DeckData.ENEMIES["marine"]["hp"], 70.0)
-	assert_eq(DeckData.ENEMIES["officer"]["hp"], 110.0)
-	assert_eq(DeckData.ENEMIES["brute"]["hp"], 160.0)
-	assert_eq(DeckData.player_hp(1), 100.0)
-	assert_eq(DeckData.player_hp(5), 140.0)
-	assert_eq(FighterState.make_enemy("captain", 900.0).hp, 900.0)
+func test_everyone_has_200_hit_points() -> void:
+	for kind: String in DeckData.ENEMIES:
+		assert_eq(FighterState.make_enemy(kind).hp, 200.0, kind)
+	for t: String in DeckData.CREW:
+		assert_eq(FighterState.make_crew(t, 3).hp, 200.0, t)
+	assert_eq(DeckData.player_hp(1), 200.0)
+	assert_eq(DeckData.player_hp(5), 200.0)
+	assert_eq(FighterState.make_enemy("captain", 900.0).hp, 900.0)  # a boss keeps his own
 
 
 func _swing_and_resolve(c: DeckCombat, att: FighterState, heavy: bool) -> void:
@@ -237,16 +245,18 @@ func test_light_and_heavy_hit_for_table_damage() -> void:
 	var foe: FighterState = _enemy(c)
 	_face(me, foe)
 	foe.think_left = 1000.0  # keep the dummy still
+	foe.block_skill = 0.0
 	me.stamina = 100.0
 	_swing_and_resolve(c, me, false)
-	assert_near(foe.hp, 110.0 - 25.0, 0.01)
+	assert_near(foe.hp, 200.0 - 30.0, 0.01)
 	c = _duel("cutlass", "officer")
 	me = c.player
 	foe = _enemy(c)
 	_face(me, foe)
 	foe.think_left = 1000.0
+	foe.block_skill = 0.0
 	_swing_and_resolve(c, me, true)
-	assert_near(foe.hp, 110.0 - 45.0, 0.01)
+	assert_near(foe.hp, 200.0 - 45.0, 0.01)
 
 
 func test_three_hit_combo_multiplies_the_third_blow() -> void:
@@ -267,9 +277,9 @@ func test_three_hit_combo_multiplies_the_third_blow() -> void:
 			if me.state == FighterState.State.IDLE and i > 5:
 				break
 		dealt.append(before - foe.hp)
-	assert_near(dealt[0], 25.0, 0.01)
-	assert_near(dealt[1], 25.0 * 1.1, 0.01)
-	assert_near(dealt[2], 25.0 * 1.4, 0.01)
+	assert_near(dealt[0], 30.0, 0.01)
+	assert_near(dealt[1], 30.0 * 1.1, 0.01)
+	assert_near(dealt[2], 30.0 * 1.4, 0.01)
 
 
 func test_brute_front_armour_needs_a_flank() -> void:
@@ -298,13 +308,55 @@ func test_dagger_backstab_triples() -> void:
 	for i in 30:
 		c.tick(1.0 / 60.0)
 		foe.think_left = 1000.0
-	assert_near(110.0 - foe.hp, 12.0 * 3.0, 0.01)
+	assert_near(200.0 - foe.hp, 30.0 * 3.0, 0.01)
 
 
-func test_swordsman_hits_harder() -> void:
+func test_swordsman_swings_faster() -> void:
 	var s: FighterState = FighterState.make_crew("swordsman")
+	var g: FighterState = FighterState.make_crew("green")
 	assert_near(s.strength, 1.6, 0.0001)
-	assert_near(DeckData.swing_damage(s.melee, false) * s.strength, 40.0, 0.0001)
+	s.try_swing(false)
+	g.try_swing(false)
+	assert_near(s.swing_dur, 0.5 / sqrt(1.6), 0.0001)
+	assert_near(g.swing_dur, 0.5, 0.0001)
+
+
+func test_fists_when_there_is_no_blade() -> void:
+	var c := DeckCombat.new()
+	c.setup({"level": 1, "melee": "", "ranged": "", "shots": 0, "crew": [], "reserve": 0, "morale": 70.0},
+		{"fighters": ["officer"], "reserve": 0, "morale": 70.0}, 1)
+	c.covers = []
+	c.kegs = []
+	c.ropes = []
+	var me: FighterState = c.player
+	assert_eq(me.melee, "fists")
+	assert_eq(me.mode, FighterState.Mode.FISTS)
+	assert_true(not me.set_mode(FighterState.Mode.BLADE))
+	assert_true(not me.set_mode(FighterState.Mode.GUN))
+	var foe: FighterState = _enemy(c)
+	_face(me, foe)
+	foe.think_left = 1000.0
+	foe.block_skill = 0.0
+	_swing_and_resolve(c, me, false)
+	assert_near(foe.hp, 200.0 - 20.0, 0.01)
+
+
+func test_putting_the_blade_away_for_fists_and_the_gun() -> void:
+	var c: DeckCombat = _duel("cutlass")
+	var me: FighterState = c.player
+	assert_eq(me.mode, FighterState.Mode.BLADE)
+	me.cycle_mode()
+	assert_eq(me.mode, FighterState.Mode.FISTS)
+	assert_eq(me.melee, "fists")
+	me.cycle_mode()
+	assert_eq(me.mode, FighterState.Mode.GUN)
+	me.cycle_mode()
+	assert_eq(me.mode, FighterState.Mode.BLADE)
+	assert_eq(me.melee, "cutlass")
+	me.ranged_ammo = 0
+	me.cycle_mode()
+	me.cycle_mode()
+	assert_eq(me.mode, FighterState.Mode.BLADE)  # no shot left: the gun is skipped
 
 
 # ---- guns, cover, props ------------------------------------------------------------------------
@@ -316,18 +368,18 @@ func test_pistol_braces_and_reload() -> void:
 	me.pos = Vector2(-5, 0)
 	foe.pos = Vector2(5, 0)
 	foe.think_left = 1000.0
+	_steady(me)
 	assert_eq(me.charges, 4)
 	assert_true(c.fire_ranged(me, Vector2.RIGHT))  # 10 m is inside pistol range (15 m): it fires
 	assert_eq(me.charges, 3)
 	assert_eq(me.ranged_ammo, 9)
-	assert_near(foe.hp, 40.0 - 60.0 if false else 0.0, 0.0001)  # a 60-damage ball kills a 40 HP sailor
+	assert_near(foe.hp, 150.0, 0.0001)  # a ball does 50
 	for i in 3:
 		c.fire_ranged(me, Vector2.RIGHT)
 	assert_eq(me.charges, 0)
 	assert_true(not c.fire_ranged(me, Vector2.RIGHT))
 	me.tick(5.1, 0.0)
 	assert_eq(me.charges, 1)  # five seconds reload one barrel
-	assert_eq(WeaponData.WEAPONS["flintlock"]["damage"], 60)
 	assert_eq(WeaponData.WEAPONS["flintlock"]["range"], 15.0)
 
 
@@ -338,16 +390,18 @@ func test_cover_cuts_ranged_damage_seventy_percent() -> void:
 	me.pos = Vector2(-5, 0)
 	foe.pos = Vector2(4, 0)
 	foe.think_left = 1000.0
+	_steady(me)
 	c.fire_ranged(me, Vector2.RIGHT)
-	assert_near(110.0 - foe.hp, 60.0, 0.01)
+	assert_near(200.0 - foe.hp, 50.0, 0.01)
 	var c2: DeckCombat = _duel("cutlass", "officer")
 	c2.covers = [{"pos": Vector2(0, 0), "radius": 0.8}]
 	c2.player.pos = Vector2(-5, 0)
 	var foe2: FighterState = _enemy(c2)
 	foe2.pos = Vector2(4, 0)
 	foe2.think_left = 1000.0
+	_steady(c2.player)
 	c2.fire_ranged(c2.player, Vector2.RIGHT)
-	assert_near(110.0 - foe2.hp, 60.0 * 0.3, 0.01)
+	assert_near(200.0 - foe2.hp, 50.0 * 0.3, 0.01)
 
 
 func test_powder_keg_blast() -> void:
@@ -358,9 +412,10 @@ func test_powder_keg_blast() -> void:
 	me.pos = Vector2(-6, 0)
 	foe.pos = Vector2(0.0, 3.5)  # inside the 4 m blast, off the line of fire
 	foe.think_left = 1000.0
+	_steady(me)
 	c.fire_ranged(me, Vector2.RIGHT)
 	assert_true(not c.kegs[0]["alive"])
-	assert_near(110.0 - foe.hp, 80.0 + 0.0, 0.01)  # the ball hits the keg first and the blast does 80
+	assert_near(200.0 - foe.hp, 80.0 + 0.0, 0.01)  # the ball hits the keg first and the blast does 80
 	assert_eq(me.hp, me.hp_max)  # six metres away from the barrel
 
 
@@ -371,7 +426,7 @@ func test_net_trap_stuns_and_hurts() -> void:
 	foe.pos = Vector2(3, 0.5)
 	c.player.pos = Vector2(0.5, 0)
 	assert_true(c.use_rope(c.player))
-	assert_near(110.0 - foe.hp, 40.0, 0.01)
+	assert_near(200.0 - foe.hp, 40.0, 0.01)
 	assert_near(foe.stun_left, 2.0, 0.0001)
 	assert_true(not c.use_rope(c.player))  # a rope can be cut once
 
@@ -383,7 +438,7 @@ func test_rope_swing_drop_attack() -> void:
 	foe.pos = Vector2(6, 0)
 	c.player.pos = Vector2(0.5, 0)
 	assert_true(c.use_rope(c.player))
-	assert_near(110.0 - foe.hp, 45.0, 0.01)
+	assert_near(200.0 - foe.hp, 45.0, 0.01)
 	assert_eq(foe.state, FighterState.State.STAGGER)
 	assert_true(c.player.pos.distance_to(foe.pos) < 1.5)
 
@@ -397,7 +452,7 @@ func test_grenade_blast() -> void:
 	for i in 200:
 		c.tick(1.0 / 60.0)
 		foe.think_left = 1000.0
-	assert_near(110.0 - foe.hp, 80.0, 0.01)
+	assert_near(200.0 - foe.hp, 80.0, 0.01)
 
 
 # ---- the fight as a whole ----------------------------------------------------------------------
@@ -419,7 +474,7 @@ func test_twelve_against_twelve_on_screen() -> void:
 	var c: DeckCombat = _twelve_v_twelve()
 	assert_eq(c.alive_on_screen(0), 12)
 	assert_eq(c.alive_on_screen(1), 12)
-	assert_eq(c.player.hp_max, 120.0)
+	assert_eq(c.player.hp_max, 200.0)
 
 
 func test_a_fight_ends_and_is_repeatable() -> void:
@@ -428,7 +483,7 @@ func test_a_fight_ends_and_is_repeatable() -> void:
 	for run in 2:
 		var c: DeckCombat = _twelve_v_twelve(5)
 		var steps: int = 0
-		while c.outcome == DeckCombat.Outcome.ONGOING and steps < 60 * 130:
+		while c.outcome == DeckCombat.Outcome.ONGOING and steps < 60 * int(DeckData.FIGHT_TIME_LIMIT_S + 10.0):
 			c.command = DeckData.Command.CHARGE
 			c.tick(1.0 / 60.0)
 			steps += 1
@@ -475,7 +530,7 @@ func test_deaths_lower_morale_and_captain_halves_it() -> void:
 func test_killing_everyone_wins() -> void:
 	var c: DeckCombat = _duel("cutlass", "sailor")
 	var foe: FighterState = _enemy(c)
-	foe.receive_raw(100.0, c.player)
+	foe.receive_raw(500.0, c.player)
 	c._on_death(foe, c.player)
 	c.tick(1.0 / 60.0)
 	assert_eq(c.outcome, DeckCombat.Outcome.PLAYER_WINS)
@@ -505,7 +560,7 @@ func test_time_limit_resolves_by_remaining_strength() -> void:
 	for f in c.fighters:
 		f.think_left = 1.0e9
 		f.move_intent = Vector2.ZERO
-	c.time_s = BoardingSim.TIME_LIMIT_S - 0.001
+	c.time_s = DeckData.FIGHT_TIME_LIMIT_S - 0.001
 	c.tick(0.01)
 	assert_true(c.timed_out)
 	assert_true(c.outcome != DeckCombat.Outcome.ONGOING)

@@ -5,8 +5,8 @@ extends RefCounted
 ## Who defends, by ship faction: archetype weights in order of rank. The first slots are the best men.
 const MIX: Dictionary = {
 	"navy": ["officer", "marine", "marine", "marine", "sailor"],
-	"pirate": ["captain", "brute", "sailor", "sailor", "marine"],
-	"merchant": ["officer", "sailor", "sailor", "sailor", "brute"],
+	"pirate": ["captain", "brute", "brawler", "sailor", "marine", "brawler"],
+	"merchant": ["officer", "sailor", "brawler", "sailor", "brute"],
 	"default": ["officer", "sailor", "marine", "sailor", "sailor"],
 }
 const CAPTAIN_MIN_CREW: int = 18  ## smaller ships have no captain worth a duel
@@ -49,7 +49,7 @@ static func build(committed: int, quality: float, morale: float, enemy_faction: 
 	theirs["morale"] = enemy_morale
 	var mine: Dictionary = {
 		"level": int(state.get("captain_level", 1)), "melee": str(state.get("melee", "rusty_cutlass")), "ranged": str(state.get("pistol", "flintlock")),
-		"shots": int(state.get("pistol_shots", 10)), "crew": crew, "reserve": maxi(committed - 1 - on_screen, 0), "morale": morale,
+		"shots": int(state.get("pistol_shots", 10)), "hp": CaptainHealth.hp(state), "rum": CaptainHealth.rum_bottles(state), "crew": crew, "reserve": maxi(committed - 1 - on_screen, 0), "morale": morale,
 		"effic": Morale.efficiency(morale) * clampf(quality, 0.5, 1.5),
 		"skills": {
 			"stamina_add": Progression.stat(state, "stamina_add"), "melee_damage_mult": Progression.stat(state, "melee_damage_mult"),

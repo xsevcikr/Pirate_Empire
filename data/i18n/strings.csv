@@ -230,15 +230,15 @@ prize.fate_gold,The deal brings %d gold.,Obchod vynesl %d zlaťáků.
 prize.fate_recruits,%d survivors take the oath.,%d přeživších složilo přísahu.
 prize.fate_ship,A prize crew takes the captured ship into your fleet.,Kořistní posádka převzala ukořistěnou loď do tvé flotily.
 prize.fate_rescue,Word of the ransom reaches their navy. A rescue fleet is coming!,Zpráva o výkupném dorazila k jejich námořnictvu. Blíží se záchranná flotila!
-deck.help,"J/K attack, Shift block, Ctrl dodge, V kick, F pistol, E rope, G grenade, 1-5 orders","J/K útok, Shift blok, Ctrl úhyb, V kopnutí, F pistole, E lano, G granát, 1-5 rozkazy"
+deck.help,"LMB/J light, RMB/K heavy, Shift block, Ctrl dodge, V kick, Q blade/fists/gun (gun: hold RMB to aim, LMB fire), F quick shot, Z rum, E rope, G grenade, 1-8 orders","LTM/J lehký, PTM/K těžký, Shift blok, Ctrl úhyb, V kopnutí, Q šavle/pěsti/zbraň (zbraň: držet PTM mířit, LTM pálit), F rychlý výstřel, Z rum, E lano, G granát, 1-8 rozkazy"
 deck.counts,Our men %d  vs  theirs %d,Naši muži %d  proti  %d
 deck.pistol,Pistol %d/%d,Pistole %d/%d
 deck.command,Orders,Rozkazy
-deck.cmd_charge,Charge!,Útok!
+deck.cmd_charge,Attack!,Útok!
 deck.cmd_hold,Hold the line,Držet linii
 deck.cmd_protect,Protect the captain,Chránit kapitána
 deck.cmd_focus,Get their captain,Na jejich kapitána
-deck.cmd_fall_back,Fall back,Ústup
+deck.cmd_fall_back,Retreat,Ústup
 deck.blocked,Blocked,Blok
 deck.parry,Parry!,Parírování!
 deck.victory,Victory!,Vítězství!
@@ -1056,6 +1056,41 @@ bark.taunt.saltjaw,"The sea is mine, and all in it.",Moře je moje a všechno v 
 bark.taunt.vale,"In the Crown's name, strike your colours!","Jménem Koruny, spusťte vlajku!"
 bark.taunt.valcourt,Brass outlasts pirates.,Mosaz přežije piráty.
 bark.taunt.ibrahim,Kneel.,Klekni.
+deck.cmd_load,Load cannon,Nabít dělo
+deck.cmd_fire,Fire cannon!,Pal z děla!
+deck.cmd_repair,Repair ship,Opravit loď
+deck.cannon_ready,Cannon loaded,Dělo nabito
+deck.cannon_loading,Loading %d%%,Nabíjí se %d%%
+deck.repair_stop,Stop repairs,Přestat opravovat
+deck.enemy_morale,Enemy morale,Morálka nepřítele
+deck.our_crew,Our crew,Naše posádka
+deck.hand,Hand,Námořník
+deck.your_health,Health %d / %d,Zdraví %d / %d
+deck.mode_blade,Blade,Čepel
+deck.mode_fists,Fists,Pěsti
+deck.mode_gun,Gun,Zbraň
+deck.rum,Rum x%d (Z: +50 health),Rum x%d (Z: +50 zdraví)
+deck.rum_wait,Rum x%d (wait %d s),Rum x%d (počkej %d s)
+deck.hit,Hit!,Zásah!
+deck.missed,Missed,Vedle
+deck.note_loaded,The cannon is loaded!,Dělo je nabité!
+deck.note_loading,Two hands run to load the cannon,Dva muži běží nabít dělo
+deck.note_no_hands,No one free to send,Není koho poslat
+deck.note_not_loaded,The cannon is not loaded,Dělo není nabité
+deck.note_repairing,Hands go to patch the hull,Muži jdou záplatovat trup
+deck.note_repair_stop,Repair party back in the fight,Opraváři se vracejí do boje
+deck.note_no_rum,No rum left,Došel rum
+deck.note_full_hp,You are not hurt,Nejsi zraněný
+deck.note_rum_wait,"Not so fast, captain","Ne tak rychle, kapitáne"
+weapon.fists,Fists,Pěsti
+orders.attack,Attack,Útok
+orders.load,Load cannons,Nabít děla
+orders.fire,Fire!,Pal!
+orders.retreat,Retreat,Ústup
+orders.repair,Repair,Opravy
+orders.rum,Drink rum,Napít se rumu
+hud.captain_hp,Captain %d/%d health   rum for %d drinks,Kapitán %d/%d zdraví   rum na %d doušků
+hud.rum_drunk,A pull of rum: %d health,Doušek rumu: %d zdraví
 pcrew.title,Pirate crews,Pirátské posádky
 pcrew.league,The pirate league,Pirátská liga
 pcrew.you,You,Ty

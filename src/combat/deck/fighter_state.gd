@@ -2,7 +2,9 @@ class_name FighterState
 extends RefCounted
 ## One man on deck, as plain data and timers: no nodes, so every rule can be tested without a scene.
 
-enum State { IDLE, SWING, BLOCK, STAGGER, DODGE, KICK, DOWN, DEAD }
+enum State { IDLE, SWING, BLOCK, STAGGER, DODGE, KICK, DRINK, DOWN, DEAD }
+## What the captain has in hand: his blade, his bare fists, or his gun (the left and right buttons fire and aim).
+enum Mode { BLADE, FISTS, GUN }
 
 var id: int = 0
 var team: int = 0  ## 0 = the player's side, 1 = the enemy
@@ -11,8 +13,8 @@ var crew_type: String = "green"
 var display_name: String = ""
 var is_player: bool = false
 
-var hp: float = 60.0
-var hp_max: float = 60.0
+var hp: float = DeckData.FIGHTER_HP
+var hp_max: float = DeckData.FIGHTER_HP
 var stamina_max: float = DeckData.STAMINA_MAX
 var stamina: float = DeckData.STAMINA_MAX
 ## Captain skills (progression): multipliers on this fighter's blade, parry window and pistol reload.
@@ -25,6 +27,8 @@ var move_speed: float = DeckData.MOVE_SPEED_MS
 var move_intent: Vector2 = Vector2.ZERO
 
 var melee: String = "cutlass"
+var blade: String = ""  ## the blade he owns ("" for none): `melee` is "fists" while it is put away
+var mode: Mode = Mode.BLADE
 var ranged: String = ""
 var strength: float = 1.0
 var front_armor: bool = false
@@ -46,6 +50,8 @@ var swing_dur: float = 0.5
 var swing_struck: bool = false
 var strike_pending: bool = false
 var combo: int = 0
+var swing_serial: int = 0  ## counts swings, so an AI man reads each blow coming at him once
+var reacted_key: int = -1
 var combo_left: float = 0.0
 var charge_t: float = 0.0
 
@@ -59,7 +65,20 @@ var kick_done: bool = false
 var charges: int = 0
 var ranged_ammo: int = 0
 var reload_left: float = 0.0
-var aim_left: float = 0.0  ## AI men take their time lining up a shot
+var aim_left: float = 0.0  ## AI men take their time between shots
+var aim_skill_deg: float = 4.0  ## spread of an AI man's shot, one standard deviation
+var aiming: bool = false  ## the captain holds his aim: slower feet, a steadier hand
+var aim_hold_t: float = 0.0
+var aim_lock_left: float = 0.0  ## an AI man stands with his gun levelled at `aim_dir` until this runs out
+var aim_dir: Vector2 = Vector2.RIGHT
+var aim_fire_pending: bool = false
+
+var rum_left: int = 0
+var rum_cool: float = 0.0
+var rum_drunk: int = 0
+
+var job: DeckData.Job = DeckData.Job.NONE
+var job_spot: Vector2 = Vector2.ZERO
 
 var command_target: int = -1
 var target_id: int = -1
@@ -73,15 +92,17 @@ var damage_taken: float = 0.0
 var last_hit_by: int = -1
 
 
-static func make_player(level: int, melee_id: String, ranged_id: String, ranged_shots: int) -> FighterState:
+static func make_player(level: int, melee_id: String, ranged_id: String, ranged_shots: int, start_hp: float = -1.0) -> FighterState:
 	var f := FighterState.new()
 	f.kind = "captain_player"
 	f.is_player = true
 	f.team = 0
 	f.hp_max = DeckData.player_hp(level)
-	f.hp = f.hp_max
-	f.melee = melee_id
-	f.ranged = ranged_id
+	f.hp = clampf(start_hp, 1.0, f.hp_max) if start_hp > 0.0 else f.hp_max
+	f.blade = melee_id if melee_id != "fists" else ""
+	f.melee = f.blade if f.blade != "" else "fists"
+	f.mode = Mode.BLADE if f.blade != "" else Mode.FISTS
+	f.ranged = ranged_id if ranged_shots > 0 else ""
 	f.ranged_ammo = ranged_shots
 	f.charges = mini(ranged_shots, DeckData.PISTOL_BRACE) if ranged_id != "" else 0
 	f.display_name = "Captain"
@@ -94,13 +115,15 @@ static func make_crew(type: String, level: int = 1) -> FighterState:
 	f.kind = "crew"
 	f.crew_type = type
 	f.team = 0
-	f.hp_max = DeckData.CREW_HP + 5.0 * float(level - 1)
+	f.hp_max = DeckData.CREW_HP
 	f.hp = f.hp_max
 	f.melee = spec["melee"]
+	f.blade = f.melee if f.melee != "fists" else ""
 	f.ranged = spec["ranged"]
 	f.strength = float(spec["strength"])
-	f.parry_skill = float(spec["parry"])
-	f.block_skill = float(spec["block"])
+	f.parry_skill = minf(float(spec["parry"]) + 0.02 * float(level - 1), 0.6)
+	f.block_skill = minf(float(spec["block"]) + 0.02 * float(level - 1), 0.7)
+	f.aim_skill_deg = float(spec.get("aim", 3.5))
 	if f.ranged != "":
 		f.ranged_ammo = 6
 		f.charges = 1 if f.ranged == "musket" else 2
@@ -115,7 +138,10 @@ static func make_enemy(archetype: String, hp_override: float = -1.0) -> FighterS
 	f.hp_max = hp_override if hp_override > 0.0 else float(spec["hp"])
 	f.hp = f.hp_max
 	f.melee = spec["melee"]
+	f.blade = f.melee if f.melee != "fists" else ""
+	f.mode = Mode.BLADE if f.blade != "" else Mode.FISTS
 	f.ranged = spec["ranged"]
+	f.aim_skill_deg = float(spec.get("aim", 3.0)) * float(Difficulty.value("aim_error"))
 	f.panics = bool(spec["panics"])
 	f.rallies = bool(spec.get("rallies", false))
 	f.front_armor = bool(spec.get("front_armor", false))
@@ -127,7 +153,56 @@ static func make_enemy(archetype: String, hp_override: float = -1.0) -> FighterS
 	if f.ranged != "":
 		f.ranged_ammo = 4
 		f.charges = 1
+	f.rum_left = 1 if archetype == "captain" else 0
 	return f
+
+
+## Blade, fists, gun, round again; a mode he cannot use is skipped.
+func cycle_mode() -> void:
+	for step in 3:
+		var next: Mode = ((mode + 1 + step) % 3) as Mode
+		if set_mode(next):
+			return
+
+
+func set_mode(m: Mode) -> bool:
+	match m:
+		Mode.BLADE:
+			if blade == "":
+				return false
+			melee = blade
+		Mode.FISTS:
+			melee = "fists"
+		Mode.GUN:
+			if ranged == "" or ranged_ammo <= 0:
+				return false
+	mode = m
+	if m != Mode.GUN:
+		aiming = false
+		aim_hold_t = 0.0
+	return true
+
+
+## One standard deviation of the next shot's angle in degrees.
+func shot_spread_deg() -> float:
+	if not is_player:
+		return aim_skill_deg
+	if not aiming:
+		return DeckData.AIM_SPREAD_HIP_DEG
+	return lerpf(DeckData.AIM_SPREAD_HIP_DEG * 0.4, DeckData.AIM_SPREAD_STEADY_DEG, clampf(aim_hold_t / DeckData.AIM_STEADY_S, 0.0, 1.0))
+
+
+## Take a pull of rum: a moment with the bottle up, then 50 hit points back.
+func try_drink() -> bool:
+	if not can_act() or rum_left <= 0 or rum_cool > 0.0 or hp >= hp_max:
+		return false
+	lower_block()
+	aiming = false
+	rum_left -= 1
+	rum_cool = DeckData.RUM_COOLDOWN_S
+	state = State.DRINK
+	state_t = 0.0
+	return true
 
 
 func is_alive() -> bool:
@@ -149,7 +224,9 @@ func invulnerable() -> bool:
 func move_factor() -> float:
 	match state:
 		State.IDLE:
-			return 1.0
+			return DeckData.AIM_MOVE_FACTOR if aiming or aim_lock_left > 0.0 else 1.0
+		State.DRINK:
+			return 0.3
 		State.BLOCK:
 			return DeckData.BLOCK_MOVE_FACTOR
 		State.SWING:
@@ -161,6 +238,9 @@ func move_factor() -> float:
 func tick(dt: float, _now: float) -> void:
 	if state == State.DEAD:
 		return
+	rum_cool = maxf(rum_cool - dt, 0.0)
+	aim_lock_left = maxf(aim_lock_left - dt, 0.0)
+	aim_hold_t = aim_hold_t + dt if aiming else 0.0
 	if not block_up:
 		stamina = minf(stamina + DeckData.STAMINA_REGEN_PER_S * dt, stamina_max)
 	if stun_left > 0.0:
@@ -202,6 +282,13 @@ func tick(dt: float, _now: float) -> void:
 				state_t = 0.0
 		State.BLOCK:
 			state_t += dt
+		State.DRINK:
+			state_t += dt
+			if state_t >= DeckData.RUM_DRINK_S:
+				hp = minf(hp + DeckData.RUM_HEAL, hp_max)
+				rum_drunk += 1
+				state = State.IDLE
+				state_t = 0.0
 		State.IDLE:
 			if combo_left > 0.0:
 				combo_left -= dt
@@ -236,7 +323,8 @@ func try_swing(heavy: bool) -> bool:
 	else:
 		combo = 0
 	swing_heavy = heavy
-	swing_dur = DeckData.swing_time(melee, heavy) / maxf(morale_effic, 0.5)
+	swing_serial += 1
+	swing_dur = DeckData.swing_time(melee, heavy) / maxf(morale_effic, 0.5) / sqrt(maxf(strength, 0.5))  # a better swordsman is quicker
 	swing_struck = false
 	strike_pending = false
 	state = State.SWING
@@ -293,6 +381,8 @@ func stagger(seconds: float) -> void:
 		return
 	var carried: float = stagger_left if state == State.STAGGER else 0.0
 	block_up = false
+	aim_fire_pending = false
+	aim_lock_left = 0.0
 	swing_struck = true
 	strike_pending = false
 	state = State.STAGGER
@@ -302,6 +392,15 @@ func stagger(seconds: float) -> void:
 
 func can_fire() -> bool:
 	return ranged != "" and charges > 0 and ranged_ammo > 0 and aim_left <= 0.0 and can_act()
+
+
+## An AI man levels his gun along `direction` and fires when the lock runs out (DeckCombat does the firing).
+func begin_aim(direction: Vector2) -> void:
+	aim_dir = direction.normalized() if direction.length() > 0.001 else dir
+	dir = aim_dir
+	aim_lock_left = DeckData.AI_AIM_LOCK_S
+	aim_fire_pending = true
+	lower_block()
 
 
 ## Result of a fighter taking a melee blow. `att` may be null for traps. Returns
@@ -331,6 +430,7 @@ func receive_melee(att: FighterState, damage: float, heavy: bool, breaks_block: 
 				stamina -= drain
 				dmg *= 1.0 - DeckData.BLOCK_REDUCTION
 				result = "blocked"
+				att.stagger(DeckData.BLOCK_RECOIL_S)  # his blade bounces off the guard
 			else:
 				stamina = 0.0
 				dmg *= 0.5
@@ -365,5 +465,7 @@ func _apply_damage(dmg: float, att: FighterState, result: String, heavy: bool) -
 		strike_pending = false
 		return {"result": result, "damage": dmg, "killed": true}
 	if state == State.SWING and not swing_struck and (dmg >= DeckData.HIT_INTERRUPT_DAMAGE or heavy):
-		stagger(0.35)
+		stagger(0.35)  # a hard blow knocks the swing out of his hands
+	elif state == State.DRINK and dmg >= DeckData.KICK_DAMAGE:
+		stagger(0.35)  # any real blow and the rum is spilled
 	return {"result": result, "damage": dmg, "killed": false}

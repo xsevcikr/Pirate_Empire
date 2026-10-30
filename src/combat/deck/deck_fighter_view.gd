@@ -10,12 +10,12 @@ const MODEL_H: float = 2.7
 ## Skins by kind. Letters are the Kenney characters: p eyepatch captain, q suit, k red jacket, j policeman, a/b rough
 ## sailors, m green bandolier, c/f/e/n townsfolk, i old doctor, o orc, l zombie, r ninja.
 const SKINS: Dictionary = {
-	"captain_player": ["p"], "captain": ["k", "q"], "officer": ["q"], "marine": ["j"], "guard": ["j"], "brute": ["o", "a"],
+	"captain_player": ["p"], "captain": ["k", "q"], "officer": ["q"], "marine": ["j"], "guard": ["j"], "brute": ["o", "a"], "brawler": ["a", "b", "o"],
 	"sailor": ["a", "b", "m", "c"], "crew": ["b", "a", "m", "c", "f", "r"], "peasant": ["c", "b", "a"],
 	"merchant": ["i", "k", "q"], "townswoman": ["e", "f", "n"],
 }
 const CREW_SKINS: Dictionary = {"swordsman": ["m", "b"], "seasoned": ["a", "b"], "gunner": ["a", "r"], "musketeer": ["m", "j"], "bosun": ["k"]}
-const ANIM_LOOPS: Array[String] = ["idle", "walk", "sprint"]
+const ANIM_LOOPS: Array[String] = ["idle", "walk", "sprint", "interact-right"]
 const CLOTH: Dictionary = {"steel": Color(0.72, 0.76, 0.84), "wood": Color(0.62, 0.38, 0.2), "iron": Color(0.3, 0.32, 0.38)}
 
 var fighter: FighterState
@@ -30,6 +30,9 @@ var _arm_l: Node3D
 var _weapon: Node3D
 var _gun: Node3D
 var _shield: Node3D
+var _bottle: Node3D
+var _shot_flash: float = 0.0
+var _last_charges: int = 0
 var _label: Label3D
 var _meshes: Array[MeshInstance3D] = []
 var _flash_left: float = 0.0
@@ -106,7 +109,7 @@ func _dress() -> void:
 	_arm_r.add_child(_weapon)
 	_weapon.position = Vector3(-0.2, -0.95, 0.05)
 	match fighter.melee:
-		"none":
+		"none", "fists":
 			pass
 		"halberd":
 			_part(_weapon, Kenney.mesh("arena", "weapon-spear"), Vector3(0, 0, 0), Vector3(-90, 0, 0), 3.4)
@@ -122,7 +125,7 @@ func _dress() -> void:
 			_part(_weapon, Kenney.mesh("dungeon", "weapon-sword"), Vector3(0, 0, 0.1), Vector3(-90, 0, 0), 1.6)
 		_:
 			_part(_weapon, Kenney.mesh("dungeon", "weapon-sword"), Vector3(0, 0, 0.1), Vector3(-90, 0, 0), 2.8 if fighter.melee == "rapier" else 2.5)
-	if fighter.ranged != "" and fighter.kind != "captain_player":
+	if fighter.ranged != "":
 		_gun = Node3D.new()
 		_gun.name = "Gun"
 		_arm_l.add_child(_gun)
@@ -136,6 +139,16 @@ func _dress() -> void:
 	_shield.position = Vector3(0.28, -0.7, 0.3)
 	_part(_shield, Kenney.mesh("dungeon", "shield-round"), Vector3.ZERO, Vector3(0, 90, 0), 2.2)
 	_shield.visible = false
+	_bottle = Node3D.new()
+	_bottle.name = "Bottle"
+	_arm_l.add_child(_bottle)
+	_bottle.position = Vector3(0.2, -0.95, 0.1)
+	_part(_bottle, _stick(0.07, 0.28, Color(0.35, 0.2, 0.08)), Vector3.ZERO, Vector3(90, 0, 0), 1.0)
+	_part(_bottle, _stick(0.03, 0.12, Color(0.35, 0.2, 0.08)), Vector3(0, 0, 0.2), Vector3(90, 0, 0), 1.0)
+	_bottle.visible = false
+	if fighter.blade != "" and fighter.melee == "fists":
+		_weapon.visible = false
+	_last_charges = fighter.charges
 
 
 func _part(parent: Node3D, mesh: Mesh, at: Vector3, rot_deg: Vector3, s: float) -> void:
@@ -253,6 +266,16 @@ func _sync(delta: float) -> void:
 	if _shield != null:
 		_shield.visible = fighter.state == FighterState.State.BLOCK
 	var armed: bool = fighter.melee != "none"
+	# what is in his hands follows the captain's mode: blade, bare fists or the gun
+	_weapon.visible = fighter.melee != "fists" and fighter.melee != "none"
+	if _gun != null:
+		_gun.visible = not fighter.is_player or fighter.mode == FighterState.Mode.GUN
+	_bottle.visible = fighter.state == FighterState.State.DRINK
+	if fighter.charges < _last_charges:
+		_shot_flash = 0.25
+	_last_charges = fighter.charges
+	_shot_flash = maxf(_shot_flash - delta, 0.0)
+	var levelled: bool = fighter.aiming or fighter.aim_lock_left > 0.0
 	match fighter.state:
 		FighterState.State.SWING:
 			var dur: float = maxf(fighter.swing_dur, 0.01)
@@ -274,8 +297,18 @@ func _sync(delta: float) -> void:
 			_scrub_to("attack-kick-right", clampf(fighter.state_t / DeckData.KICK_TIME_S, 0.0, 1.0) * _anim.get_animation("attack-kick-right").length)
 		FighterState.State.DOWN, FighterState.State.DEAD:
 			_scrub_to("die", fighter.state_t)
+		FighterState.State.DRINK:
+			_scrub_to("pick-up", clampf(fighter.state_t / DeckData.RUM_DRINK_S, 0.0, 1.0) * _anim.get_animation("pick-up").length * 0.6)
+			_pivot.rotation_degrees.x = -12.0  # head back, bottle up
 		_:
-			if _speed > 3.2:
+			if _shot_flash > 0.0:
+				_play("holding-right-shoot", 0.03)
+			elif levelled and _speed < 1.5:
+				_play("holding-right", 0.08)
+				_pivot.rotation_degrees.x = 4.0
+			elif fighter.job != DeckData.Job.NONE and _speed < 0.25:
+				_play("interact-right", 0.15)
+			elif _speed > 3.2:
 				_play("sprint", 0.1)
 				_anim.speed_scale = clampf(_speed / 4.5, 0.8, 1.6)
 			elif _speed > 0.25:
@@ -286,7 +319,13 @@ func _sync(delta: float) -> void:
 				_anim.speed_scale = 1.0
 	visible = not fighter.overboard
 	var tag: String = fighter.display_name if fighter.display_name != "" else fighter.kind
-	_label.text = "%s  %d" % [tag, ceili(maxf(fighter.hp, 0.0))] if fighter.is_alive() else ""
+	# our own men show their health; the enemy's is never shown
+	if not fighter.is_alive():
+		_label.text = ""
+	elif fighter.team == 0:
+		_label.text = "%s  %d" % [tag, ceili(maxf(fighter.hp, 0.0))]
+	else:
+		_label.text = tag
 	_label.modulate = Color(1, 1, 1) if fighter.team == 0 else Color(1.0, 0.65, 0.6)
 
 static func clear_cache() -> void:
