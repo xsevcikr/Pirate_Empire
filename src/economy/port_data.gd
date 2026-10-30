@@ -29,8 +29,10 @@ const SUPPLIES: Dictionary = {
 	"small_arms": {"price": 10.0, "weight": 0.01},
 	"timber": {"good": "timber", "weight": 0.1},
 	"medicine": {"price": 40.0, "weight": 0.01},
+	"canvas": {"price": 12.0, "weight": 0.02},  ## sailcloth: fothering a hole, mending sails, jury rigs
+	"tools": {"price": 45.0, "weight": 0.03},  ## a carpenter's chest: patching goes 50% faster while one lasts
 }
-const START_SUPPLIES: Dictionary = {"food": 4.0, "water": 4.0, "rum": 1.0, "small_arms": 0.0, "timber": 0.0, "medicine": 0.0}
+const START_SUPPLIES: Dictionary = {"food": 4.0, "water": 4.0, "rum": 1.0, "small_arms": 0.0, "timber": 0.0, "medicine": 0.0, "canvas": 2.0, "tools": 0.0}
 
 ## Hand-tuned economies for the five ports the early game leans on; the other cities come from IslandData.
 const HAND_PORTS: Dictionary = {

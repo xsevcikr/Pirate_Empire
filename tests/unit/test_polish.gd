@@ -74,12 +74,12 @@ func test_rebind_refuses_conflicts_and_persists() -> void:
 	Rebind.reset_defaults()
 	assert_true(not Rebind.rebind("fire_port", KEY_E))
 	assert_eq(Rebind.conflict("fire_port", KEY_E), "fire_starboard")
-	assert_true(Rebind.rebind("fire_port", KEY_Z))
+	assert_true(Rebind.rebind("fire_port", KEY_SEMICOLON))
 	Rebind.save("user://test_input.cfg")
 	Rebind.reset_defaults()
 	assert_eq(Rebind.key_of("fire_port"), KEY_Q)
 	Rebind.load_file("user://test_input.cfg")
-	assert_eq(Rebind.key_of("fire_port"), KEY_Z)
+	assert_eq(Rebind.key_of("fire_port"), KEY_SEMICOLON)
 	Rebind.reset_defaults()
 
 

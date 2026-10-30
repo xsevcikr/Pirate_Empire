@@ -185,6 +185,25 @@ def sfx_all():
     out["dice_roll"] = normalise(mul(bandpass(noise(0.6, r), 600, 4000), [abs(math.sin(i / SR * 55)) ** 3 * (1 - i / (0.6 * SR)) for i in range(int(0.6 * SR))]), 0.6)
     out["card"] = normalise(mul(highpass(noise(0.15, r), 1500), env_ad(int(0.15 * SR), 0.002, 4)), 0.5)
     out["gulls"] = normalise(mix(*[[0.0] * int(at * SR) + mul(sweep(1900, 1300, 0.45, 1.0), [math.sin(math.pi * i / (0.45 * SR)) for i in range(int(0.45 * SR))]) for at in (0.0, 0.7, 1.5)]), 0.35)
+    # Damage control (crash damage and crew repair): own seed so the sounds above stay as they were.
+    r2 = random.Random(23)
+    crash = mix(mul(lowpass(noise(1.4, r2), 500), env_ad(int(1.4 * SR), 0.002, 3.0)), mul(sweep(110, 35, 1.4, 1.0), env_ad(int(1.4 * SR), 0.003, 2.5)))
+    crack = silence(1.4)
+    for k in range(16):
+        at = int(r2.uniform(0, 0.7) * SR)
+        c = mul(highpass(noise(0.06, r2), 1500), env_ad(int(0.06 * SR), 0.0005, 6))
+        for i, v in enumerate(c):
+            crack[at + i] += v * r2.uniform(0.3, 1.0) * (1.0 - at / (1.4 * SR))
+    out["hull_crash"] = normalise(mix(crash, crack, gains=[1.0, 0.7]))
+    knock = mix(mul(lowpass(noise(0.12, r2), 2500), env_ad(int(0.12 * SR), 0.0005, 9)), mul(sweep(420, 260, 0.12, 0.8), env_ad(int(0.12 * SR), 0.0005, 8)))
+    ham = silence(1.2)
+    for at in (0.0, 0.35, 0.7):
+        for i, v in enumerate(knock):
+            ham[int(at * SR) + i] += v
+    out["hammer"] = normalise(ham, 0.7)
+    n = int(1.6 * SR)
+    stroke = [abs(math.sin(math.pi * i / (0.8 * SR))) ** 2 for i in range(n)]
+    out["pump"] = normalise(mul(mix(bandpass(noise(1.6, r2), 180, 900), sweep(140, 120, 1.6, 0.4)), stroke), 0.45)
     return out
 
 
