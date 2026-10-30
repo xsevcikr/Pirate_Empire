@@ -517,12 +517,52 @@ func _lagoon_day() -> void:
 		streamer.lagoon.sync()
 
 
-func open_port() -> void:
+## F near a harbour: tie the ship up alongside the pier and walk ashore with the crew.
+func can_disembark() -> bool:
+	return Mooring.can_disembark(dock_port(), LagoonData.near_dock(Vector2(ship.global_position.x, ship.global_position.z)), ship.speed_knots())
+
+
+func disembark() -> void:
+	if not can_disembark():
+		return
+	var port: String = dock_port()
+	if port == "":  # the lagoon's own piers: the lagoon screen is the walk ashore there
+		_moor(Vector2(ship.global_position.x, ship.global_position.z), ship.rotation.y)
+		open_lagoon()
+		return
+	var b: Dictionary = Mooring.berth(port, ship.stats.length_m, ship.stats.beam_m)
+	_moor(b["pos"], b["yaw"])
+	open_port(true)
+
+
+## Lay the ship still at `at`, sails furled, so she is where the captain left her when he comes back aboard.
+func _moor(at: Vector2, yaw: float) -> void:
+	ship.global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(at.x, ship.global_position.y, at.y))
+	ship.linear_velocity = Vector3.ZERO
+	ship.angular_velocity = Vector3.ZERO
+	ship.sail_level = 0
+	ship.rudder_input = 0.0
+
+
+## The harbour line of the HUD: what Space and F do here, or why they do nothing yet.
+func harbour_hint() -> String:
+	if can_dock():
+		return Loc.t("hud.dock_hint")
+	if can_land_lagoon():
+		return Loc.t("lagoon.hint")
+	if can_land():
+		return Loc.t("hud.land_hint")
+	var why: String = Mooring.blocked_reason(dock_port(), LagoonData.near_dock(Vector2(ship.global_position.x, ship.global_position.z)), ship.speed_knots())
+	return Loc.t(why) if why != "" else ""
+
+
+func open_port(on_foot: bool = false) -> void:
 	if get_node_or_null("PortLayer") != null:
 		return
 	var menu := PortMenu.new()
 	menu.port_id = dock_port() if dock_port() != "" else PortData.START_PORT
 	var inspect: bool = Smuggling.rolled(Session.state, menu.port_id, _trade_rng)
+	menu.on_foot = on_foot and not inspect  # after an inspection the walk starts once it is settled
 	var fee: int = _docking_fee(menu.port_id)
 	if fee > 0:
 		Session.state["gold"] = int(Session.state["gold"]) - fee
@@ -549,10 +589,17 @@ func open_port() -> void:
 		screen.resolved.connect(func(choice: int, _o: Dictionary) -> void:
 			EventBus.inspection_resolved.emit(menu.port_id, choice)
 			if choice == Smuggling.Choice.FIGHT:
-				menu.close())
+				menu.close()
+			elif on_foot and is_instance_valid(menu):
+				menu.on_foot = true
+				menu.walk_ashore())
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if Session.has_state() and event.is_action_pressed("disembark") and can_disembark() and get_node_or_null("PauseMenu") == null and get_node_or_null("PortLayer") == null:
+		disembark()
+		get_viewport().set_input_as_handled()
+		return
 	if Session.has_state() and event.is_action_pressed("interact") and can_dock() and get_node_or_null("PauseMenu") == null:
 		open_port()
 		get_viewport().set_input_as_handled()
@@ -841,7 +888,7 @@ func _physics_process(delta: float) -> void:
 	_navigate(delta)
 	_seamanship(delta)
 	if overlay != null:
-		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("lagoon.hint") if can_land_lagoon() else (Loc.t("hud.land_hint") if can_land() else "")))
+		overlay.set_dock_hint(harbour_hint())
 		var st: Dictionary = Session.state
 		overlay.set_info(Loc.t("hud.status") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water"), PortService.cargo_used(st), PortService.cargo_capacity(st), int(st["morale"]), Loc.t("morale." + Morale.band(float(st["morale"])))])
 	wind.update(delta)

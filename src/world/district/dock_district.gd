@@ -1,7 +1,8 @@
 class_name DockDistrict
 extends Node3D
 ## The walkable dock district of a port: a street of buildings in the faction's style, signs over each door, and
-## a captain you walk with WASD. Standing at a door and pressing E opens that screen; the pier end returns to the ship.
+## a captain you walk with WASD. Standing at a door and pressing F (or E) opens that screen; the pier end returns to
+## the ship. Come ashore with F from the sea, the player's ship lies tied up at the pier and the crew walk behind him.
 
 signal door_used(kind: String)
 signal left
@@ -13,6 +14,9 @@ const STREET_LENGTH_M: float = 70.0
 const DOOR_REACH_M: float = 4.2
 const CAM_BACK_M: float = 9.0
 const CAM_UP_M: float = 5.5
+const FOLLOW_GAP_M: float = 1.6  ## a crewman keeps this far behind the man he follows
+const FOLLOW_SPEED_MS: float = 6.2  ## a little quicker than the captain, so they catch up
+const INPUT_GRACE_S: float = 0.4  ## the F that brought the captain ashore must not also take him back aboard
 
 var port_id: String = PortData.START_PORT
 var active: bool = true
@@ -23,6 +27,11 @@ var prompt: Label
 var _prev_camera: Camera3D
 var _walk_t: float = 0.0
 var _prompt_kind: String = ""
+## Set by the port menu when the captain came ashore with F: the crew types who walk with him and his ship's class.
+var shore_party: Array[String] = []
+var ship_class: String = ""
+var followers: Array[FighterState] = []
+var _grace: float = INPUT_GRACE_S
 
 
 func _init() -> void:
@@ -47,6 +56,13 @@ func _ready() -> void:
 	captain = _make_captain()
 	captain.position = Vector3(0.0, 0.0, STREET_LENGTH_M * 0.5 - 6.0)
 	add_child(captain)
+	if ship_class != "":
+		_moor_ship()
+		captain.position = Vector3(0.0, 0.0, STREET_LENGTH_M * 0.5 + 1.0)  # just stepped off the pier
+		captain.rotation.y = PI
+	_captain_f.pos = Vector2(captain.position.x, captain.position.z)
+	_captain_f.dir = Vector2(0, -1)
+	_spawn_crew()
 	camera = Camera3D.new()
 	camera.fov = 65.0
 	add_child(camera)
@@ -74,6 +90,14 @@ func _ready() -> void:
 	title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	title.position = Vector2(32, 24)
 	layer.add_child(title)
+	if ship_class != "":
+		var ashore := Label.new()
+		ashore.text = Loc.t("moor.ashore") % followers.size()
+		ashore.add_theme_font_size_override("font_size", 20)
+		ashore.add_theme_constant_override("outline_size", 6)
+		ashore.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		ashore.position = Vector2(34, 66)
+		layer.add_child(ashore)
 	_place_camera(1.0)
 
 
@@ -235,6 +259,64 @@ func _make_captain() -> Node3D:
 	return n
 
 
+## The player's own ship alongside the pier, bow out to sea, her stern level with the end of the street.
+func _moor_ship() -> void:
+	var m: Node3D = LagoonArt.moored_ship(ship_class)
+	m.name = "MooredShip"
+	m.set_meta("kind", "moored_ship")
+	var stats: ShipStats = PortService.ship_stats(ship_class if ResourceLoader.exists("res://data/ships/%s.tres" % ship_class) else "sloop")
+	var z0: float = STREET_LENGTH_M * 0.5 + 12.5  # where the green ends and the water begins
+	m.position = Vector3(2.5 + 1.2 + stats.beam_m * 0.5, -1.6, z0 + stats.length_m * 0.5 + 0.5)
+	m.rotation.y = PI  # the hull's bow is -z; point it out to sea
+	add_child(m)
+
+
+## The crew who came ashore, in pairs on the pier behind the captain.
+func _spawn_crew() -> void:
+	for i in shore_party.size():
+		var f := FighterState.new()
+		f.id = 40 + i * 13
+		f.kind = "crew"
+		f.crew_type = shore_party[i]
+		f.melee = "none"
+		f.ranged = ""
+		var row: int = i / 2 + 1
+		f.pos = Vector2(captain.position.x + (-0.9 if i % 2 == 0 else 0.9), captain.position.z + float(row) * FOLLOW_GAP_M)
+		f.dir = Vector2(0, -1)
+		var v := DeckFighterView.new()
+		v.fighter = f
+		v.show_label = false
+		v.pose_idle_only = true
+		v.set_meta("kind", "shore_crew")
+		add_child(v)
+		followers.append(f)
+
+
+## Each pair follows the pair in front (the first pair follows the captain), keeps a gap and does not bunch up.
+func follow(delta: float) -> void:
+	for i in followers.size():
+		var f: FighterState = followers[i]
+		var lead: Vector2 = _captain_f.pos if i < 2 else followers[i - 2].pos
+		var lead_dir: Vector2 = _captain_f.dir if i < 2 else followers[i - 2].dir
+		var side: Vector2 = Vector2(-lead_dir.y, lead_dir.x) * (0.9 if i % 2 == 0 else -0.9)
+		var want: Vector2 = lead - lead_dir * FOLLOW_GAP_M + side
+		var to: Vector2 = want - f.pos
+		var push := Vector2.ZERO
+		for j in followers.size():
+			var d: Vector2 = f.pos - followers[j].pos
+			if j != i and d.length() < 1.0 and d.length() > 0.001:
+				push += d.normalized() * (1.0 - d.length())
+		if to.length() > 0.25:
+			var mv: Vector2 = to.normalized() * minf(FOLLOW_SPEED_MS * delta, to.length())
+			f.pos += mv + push * delta * 2.0
+			f.dir = f.dir.lerp(to.normalized(), clampf(delta * 8.0, 0.0, 1.0)).normalized()
+			f.move_intent = to.normalized()
+		else:
+			f.pos += push * delta * 2.0
+			f.move_intent = Vector2.ZERO
+			f.dir = f.dir.lerp(lead_dir, clampf(delta * 3.0, 0.0, 1.0)).normalized()
+
+
 # ---- walking ----------------------------------------------------------------------------------------
 
 func _physics_process(delta: float) -> void:
@@ -246,11 +328,15 @@ func _physics_process(delta: float) -> void:
 		return
 	var move: Vector2 = read_move()
 	step(move, delta)
+	follow(delta)
 	if move.length() > 0.1:
 		Sfx.play("step_wood")
 	_place_camera(delta)
 	_update_prompt()
-	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("deck_use"):
+	_grace = maxf(_grace - delta, 0.0)
+	if _grace > 0.0:
+		return
+	if Input.is_action_just_pressed("disembark") or Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("deck_use"):
 		use_nearest()
 	elif Input.is_action_just_pressed("pause"):
 		leave()
@@ -316,6 +402,7 @@ func _place_camera(delta: float) -> void:
 	if not camera.is_inside_tree():
 		return
 	var focus: Vector3 = captain.position + Vector3(0, 1.4, 0)
-	var want: Vector3 = focus + Vector3(0.0, CAM_UP_M, CAM_BACK_M)
+	var lift: float = 1.6 if not followers.is_empty() else 1.0  # a little higher so the crew behind him do not hide him
+	var want: Vector3 = focus + Vector3(0.0, CAM_UP_M * lift, CAM_BACK_M * (1.0 + (lift - 1.0) * 0.5))
 	camera.position = camera.position.lerp(want, clampf(delta * 5.0, 0.0, 1.0))
 	camera.look_at(global_position + focus + Vector3(0, 0, -4.0), Vector3.UP)
