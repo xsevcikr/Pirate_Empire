@@ -134,8 +134,8 @@ func finish_prize(ship: Ship, loot: Dictionary, fate: int) -> void:
 		TradeNetwork.lose_ships(Session.state, int(ship.get_meta("convoy")), 1)
 		ship.remove_meta("convoy")
 	var info: Dictionary = {"quest": str(ship.get_meta("quest", "")), "tutorial": str(ship.get_meta("tutorial", "")), "loot": loot, "fate": fate}
-	if loot["map_fragment"] != "":
-		Session.state["map_fragments"].append(loot["map_fragment"])
+	if loot["map_fragment"] != "" and MapFragments.add(Session.state, loot["map_fragment"]):
+		bus.toast.emit(Loc.t("tour.fragment_found"))
 	if info["quest"] != "" and Session.state["quests"].has(info["quest"]):
 		Session.state["quests"].erase(info["quest"])
 		Session.state["quests_done"].append(info["quest"])
@@ -184,11 +184,14 @@ static func roll_loot(ship: Ship, state: Dictionary) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(state["seed"]) * 7919 + int(ship.get_meta("loot_seed", 7)) + int(state["day"])
 	var gold_range: Array = spec.get("gold", [0, 0])
+	var fragment: String = str(spec.get("map_fragment", ""))
+	if fragment == "":
+		fragment = MapFragments.roll_drop(state, str(ship.get_meta("loot_source", ship.get_meta("rep_faction", "merchant"))), rng)
 	return {
 		"gold": rng.randi_range(int(gold_range[0]), int(gold_range[1])),
 		"cargo": spec.get("cargo", {}).duplicate(),
 		"supplies": spec.get("supplies", {}).duplicate(),
-		"map_fragment": str(spec.get("map_fragment", "")),
+		"map_fragment": fragment,
 	}
 
 

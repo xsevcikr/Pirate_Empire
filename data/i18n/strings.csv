@@ -324,3 +324,117 @@ ship.overboard,%d of the crew were thrown overboard!,%d členů posádky spadlo 
 ship.dumped,Cargo thrown overboard. The ship floats free.,Náklad vyhozen přes palubu. Loď je volná.
 ship.freed,The ship comes free.,Loď je volná.
 ship.dock_fine,You hit the pier. The harbour guard fines you %d gold.,Narazil jsi do mola. Přístavní stráž ti dává pokutu %d zlata.
+tour.drowned_purse,The Drowned Purse,Utopený měšec
+tour.song_of_sirens,Song of the Sirens,Píseň siren
+tour.dp.read_map,Join the three map pieces and read the map.,Spoj tři kusy mapy a přečti ji.
+tour.dp.read_map.hint1,Each piece only fits when it stands upright.,"Každý kus sedí, jen když stojí rovně."
+tour.dp.read_map.hint2,Turn the pieces that are still crooked.,"Otoč kusy, které jsou ještě křivé."
+tour.dp.read_map.hint3,Turn each piece until its arrow points up. Gull Rock lies off Skull Atoll.,"Otáčej každý kus, až šipka míří nahoru. Racčí skála leží u Lebčího atolu."
+tour.dp.reef_maze,Sail to Skull Atoll when the tide is low.,Popluj k Lebčímu atolu za nízkého přílivu.
+tour.dp.reef_maze.hint1,The reef only opens at low tide.,Útes se otevře jen za odlivu.
+tour.dp.reef_maze.hint2,"Skull Atoll is in Haven Waters, south of Haven Rock. Wait for the ebb.",Lebčí atol je v Útočištních vodách. Počkej na odliv.
+tour.dp.reef_maze.hint3,Go to the marked spot at Skull Atoll and wait until the tide drops below 0.15 m.,"Popluj na označené místo u Lebčího atolu a počkej, až hladina klesne pod 0,15 m."
+tour.dp.paces,"Land at dusk, count the paces west and dig.","Přistaň za soumraku, spočítej kroky na západ a kopej."
+tour.dp.paces.hint1,"The map says dusk, and the paces go west.",Mapa říká soumrak a kroky vedou na západ.
+tour.dp.paces.hint2,Come ashore between five and eight in the evening.,Vylodění mezi pátou a osmou večer.
+tour.dp.paces.hint3,"Forty paces west from the landing stone, three either way will do.","Čtyřicet kroků na západ od přistávacího kamene, o tři méně či více nevadí."
+tour.dp.cave,Find your way through the sea cave.,Projdi mořskou jeskyní.
+tour.dp.cave.hint1,The water rises. Pull the gates before it reaches your chest.,"Voda stoupá. Otevři stavidla, než ti dojde k hrudi."
+tour.dp.cave.hint2,Every wrong lever drains the cave and starts again. No harm done.,Každá špatná páka vypustí jeskyni a začíná se znovu. Nic se neděje.
+tour.dp.cave.hint3,Use the hint button on the puzzle: level three shows the order.,Použij nápovědu u hádanky: úroveň tři ukáže pořadí.
+tour.dp.king,The Shell King guards the purse.,Králi lastur patří měšec.
+tour.dp.king.hint1,Dodge its attacks in the last second and strike while it is open.,"Uhýbej jeho útokům v poslední vteřině a udeř, když je otevřený."
+tour.dp.king.hint2,Parry the pincer and the claw cracks for good.,Odraž klepeto a to se navždy naruší.
+tour.dp.king.hint3,Its belly is the weak point right after a missed slam. Strike then.,Břicho je slabé místo hned po minutém úderu. Udeř tehdy.
+tour.dp.escape,Get the purse back to Haven Rock.,Odnes měšec na Útočištní skálu.
+tour.dp.escape.hint1,Home is Haven Rock.,Domov je Útočištní skála.
+tour.dp.escape.hint2,Sail back to the capital of the pirates.,Popluj zpět do hlavního města pirátů.
+tour.dp.escape.hint3,Dock at Blackwater Town.,Přirazit v Blackwater Town.
+tour.ss.read_map,Join the three map pieces to read the Song of the Sirens.,Spoj tři kusy mapy a přečti Píseň siren.
+tour.ss.read_map.hint1,Each piece only fits when it stands upright.,"Každý kus sedí, jen když stojí rovně."
+tour.ss.read_map.hint2,Turn the pieces that are still crooked.,"Otoč kusy, které jsou ještě křivé."
+tour.ss.read_map.hint3,Turn each piece until its arrow points up. The song starts at Pearlhome.,"Otáčej každý kus, až šipka míří nahoru. Píseň začíná v Pearlhome."
+tour.ss.rock,Sail to Pearlhome and find the weeping rock.,Popluj do Pearlhome a najdi plačící skálu.
+tour.ss.rock.hint1,The divers know the rock that weeps.,"Potápěči znají skálu, která pláče."
+tour.ss.rock.hint2,"Ask in the harbour of Pearlhome, in the Coral Isles.",Zeptej se v přístavu Pearlhome na Korálových ostrovech.
+tour.ss.rock.hint3,Go to the marked spot at Pearlhome.,Popluj na označené místo u Pearlhome.
+tour.ss.sirens,Cross the siren waters with wax in the ears or a shanty.,Přeplav vody siren s voskem v uších nebo se šantou.
+tour.ss.sirens.hint1,Something sings. Do not listen.,Cosi zpívá. Neposlouchej.
+tour.ss.sirens.hint2,Wax costs 20 gold at the tavern. Or sing a shanty with H while morale is 40 or better.,"Vosk stojí 20 zlatých v taverně. Nebo zpívej šantu klávesou H, dokud je morálka aspoň 40."
+tour.ss.sirens.hint3,Hold H the whole way to Moana Reef; the crew drowns out the choir.,Drž H celou cestu k Moana Reef; posádka přehluší sbor.
+tour.ss.serpent,The sea serpent coils round the reef.,Mořský had se vine kolem útesu.
+tour.ss.serpent.hint1,"Dodge when it rears, and shoot the head when it is open.","Uhni, když se zvedne, a střílej do hlavy, když je otevřená."
+tour.ss.serpent.hint2,A chain shot into the coil during its telegraph cuts the damage.,Řetězová střela do smyčky během varování zmírní zranění.
+tour.ss.serpent.hint3,The head is the weak point just after a missed head strike.,Hlava je slabé místo hned po minutém úderu.
+tour.ss.temple,Dive the sunken temple before the air runs out.,"Prozkoumej potopený chrám, než dojde vzduch."
+tour.ss.temple.hint1,Air pockets sit in the first room and the treasure room.,Vzduchové kapsy jsou v první místnosti a v pokladnici.
+tour.ss.temple.hint2,Turn the mirrors so the beam reaches the door.,"Natoč zrcadla tak, aby paprsek dopadl na dveře."
+tour.ss.temple.hint3,Use the hint button on the puzzle: level three shows the answer.,Použij nápovědu u hádanky: úroveň tři ukáže odpověď.
+tour.ss.escape,Bring the Song home to Pearlhome.,Odnes Píseň domů do Pearlhome.
+tour.ss.escape.hint1,Home is Pearlhome.,Domov je Pearlhome.
+tour.ss.escape.hint2,Sail back to the pearl divers.,Popluj zpět k potápěčům perel.
+tour.ss.escape.hint3,Dock at Pearlhome.,Přirazit v Pearlhome.
+puzzle.hint1.sluice,Pull the gates in the order the water allows.,"Tahej za stavidla v pořadí, které voda dovolí."
+puzzle.hint2.sluice,The next gate is marked.,Další stavidlo je označeno.
+puzzle.hint3.sluice,The whole order is shown.,Je ukázáno celé pořadí.
+puzzle.hint1.mirrors,All mirrors must stand upright.,Všechna zrcadla musí stát rovně.
+puzzle.hint2.mirrors,The next crooked mirror is marked.,Další křivé zrcadlo je označeno.
+puzzle.hint3.mirrors,Every mirror's turn count is shown.,Je ukázán počet otočení každého zrcadla.
+puzzle.hint1.rhyme,Tap the symbols in the order of the rhyme.,Klepej na znaky v pořadí říkanky.
+puzzle.hint2.rhyme,The next symbol is marked.,Další znak je označen.
+puzzle.hint3.rhyme,The whole rhyme is shown.,Je ukázána celá říkanka.
+tour.fragment_found,You found a piece of a treasure map.,Našel jsi kus pokladové mapy.
+tour.journal,Treasure journal,Deník pokladů
+tour.no_map,No map pieces yet. Look in the holds of merchants and pirates.,Zatím žádné kusy mapy. Hledej v podpalubí obchodníků a pirátů.
+tour.pieces,Map pieces: %d of 3,Kusy mapy: %d ze 3
+tour.view1,A coastline sketch.,Náčrtek pobřeží.
+tour.view2,The region is marked.,Je označena oblast.
+tour.view3,"The full map, and the first clue.",Celá mapa a první stopa.
+tour.step,Step %d of %d,Krok %d ze %d
+tour.hint_free,Ask the navigator (free),Zeptat se navigátora (zdarma)
+tour.hint_tavern,Tavern rumour (%d gold),Hospodská zvěst (%d zlatých)
+tour.hint_chart,Tavern chart (%d gold),Hospodská mapa (%d zlatých)
+tour.done,Tour complete,Cesta dokončena
+tour.step_done,Step complete.,Krok dokončen.
+tour.complete,The treasure is yours! %d gold.,Poklad je tvůj! %d zlatých.
+tour.died,You wake at the last waypoint. %d gold lost.,Probouzíš se u poslední zastávky. Ztráta %d zlatých.
+tour.rotate,Turn piece %d,Otoč kus %d
+tour.joined,The pieces join. The map is read.,Kusy do sebe zapadly. Mapa je přečtena.
+tour.perk.captains_cutlass,Captain's Cutlass,Kapitánská šavle
+tour.perk.sloop_discount_50,Half price on your next sloop,Půl ceny za příští šalupu
+tour.perk.siren_figurehead,Siren figurehead,Sirénin přídový ornament
+tour.perk.harpoon_blueprint,Harpoon blueprint,Plán harpuny
+tour.paces_ask,How many paces west?,Kolik kroků na západ?
+tour.sirens_sing,The sirens sing. Hold H to sing a shanty.,Sirény zpívají. Drž H a zpívej šantu.
+tour.wax,Wax in the ears: the song cannot touch you.,Vosk v uších: píseň se tě nedotkne.
+tour.encounter,Encounter,Střetnutí
+tour.exposed,It is open! Strike now!,Je otevřený! Udeř!
+tour.telegraph,Incoming: %s,Přichází: %s
+act.strike,Strike,Udeřit
+act.dodge,Dodge,Uhnout
+act.parry,Parry,Odrazit
+act.chain_shot,Chain shot,Řetězová střela
+atk.pincer_sweep,Pincer sweep,Máchnutí klepetem
+atk.burrow_burst,Burrow and burst,Zahrabání a výbuch
+atk.shell_spin,Shell spin,Točení krunýře
+atk.coil,Coil,Stisk
+atk.head_strike,Head strike,Úder hlavou
+atk.tail_sweep,Tail sweep,Máchnutí ocasem
+room.entry,Entrance,Vchod
+room.trap,Trap room,Pasti
+room.puzzle,Puzzle chamber,Hádanková komnata
+room.chest,Treasure room,Pokladnice
+room.guard,Skeleton guardian,Kostlivý strážce
+room.exit,Way out,Východ
+dig.title,Dig!,Kopej!
+dig.chest,A chest!,Truhla!
+dig.trap,A trap springs.,Past sklapla.
+dig.skeleton,"A skeleton, with a clue in its fist.",Kostlivec se stopou v pěsti.
+dig.nothing,Nothing but sand.,Jen písek.
+act.look,Look for traps,Hledat pasti
+act.cross,Cross,Přejít
+act.press,Pull,Zatáhnout
+act.hint,Hint,Nápověda
+act.open,Open the chest,Otevřít truhlu
+act.burn,Burn the bones,Spálit kosti
+act.onward,Go on,Pokračovat

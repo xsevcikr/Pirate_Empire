@@ -19,6 +19,7 @@ var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
 var convoys: ConvoyManager
+var tours: TourDirector
 var streamer: WorldStreamer
 var debris: DebrisManager
 var _dock_hit_cool: float = 0.0
@@ -153,6 +154,10 @@ func _start_game_layer() -> void:
 	convoys.world = self
 	convoys.prizes = prizes
 	add_child(convoys)
+	tours = TourDirector.new()
+	tours.ship = ship
+	tours.state = Session.state
+	add_child(tours)
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
 	tutorial.ship = ship
@@ -440,6 +445,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		open_port()
 		get_viewport().set_input_as_handled()
 		return
+	if Session.has_state() and event.is_action_pressed("tour_journal"):
+		open_journal()
+		get_viewport().set_input_as_handled()
+		return
 	if Session.has_state() and event.is_action_pressed("world_map"):
 		open_map()
 		get_viewport().set_input_as_handled()
@@ -560,6 +569,20 @@ func _seamanship(delta: float) -> void:
 			if b.kind == "dock" and b.is_alive():
 				b.hurt(float(hit["dock_damage"]), true)
 				break
+
+
+func open_journal() -> void:
+	if get_node_or_null("MapLayer") != null or get_node_or_null("PortLayer") != null or tours == null:
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "MapLayer"
+	layer.layer = 52
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var screen := TourJournalScreen.new()
+	screen.director = tours
+	layer.add_child(screen)
+	screen.closed.connect(layer.queue_free)
 
 
 func open_map() -> void:
