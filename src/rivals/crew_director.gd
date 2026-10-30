@@ -389,6 +389,7 @@ func after_boarded(r: Dictionary, s: Ship) -> Dictionary:
 		return {"won": true}
 	s.crew.count = maxi(int(r.get("enemy_left", 1)), 1)
 	CrewLife.add_morale(state, Morale.DELTA["defeat"])
+	CrewPersona.on_event(state, "defeat")
 	var out: Dictionary = PirateCrews.beat_player(state, id)
 	if _bus != null:
 		_bus.toast.emit(Loc.t("pcrew.plundered") % [CrewData.def(id)["name"], int(out["gold"])])

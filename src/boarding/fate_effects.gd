@@ -28,6 +28,7 @@ static func apply(state: Dictionary, effects: Dictionary, ship_class: String, sh
 	var n: int = mini(int(effects["recruits"]), maxi(room, 0))
 	for i in n:
 		state["roster"].append({"name": PortService.NAMES[(int(state["seed"]) + state["roster"].size() * 7 + i) % PortService.NAMES.size()], "type": "green", "level": 1, "xp": 0})
+		CrewPersona.ensure_last(state)
 		state["crew"] = int(state["crew"]) + 1
 	applied["recruits"] = n
 	if bool(effects["ship_added"]):

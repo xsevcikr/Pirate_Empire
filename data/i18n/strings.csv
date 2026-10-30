@@ -1447,3 +1447,36 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+orders.hail,Demand surrender,Vyzvat ke kapitulaci
+parley.nobody,No ship close enough to hear the hail.,Žádná loď není dost blízko na výzvu.
+parley.struck,They strike their colours! (%d%% chance),Stahují vlajku! (šance %d %%)
+parley.refused,"They answer with a curse and stand to arms. (%d%% chance)","Odpoví kletbou a chystají se k boji. (šance %d %%)"
+persona.loyalty,loyalty,věrnost
+persona.loyal_line,Loyal hands: %d of %d   (mutiny duel odds %d%%),Věrní muži: %d z %d   (šance v souboji při vzpouře %d %%)
+persona.ringleader,"Ringleader: %s. %d loyal hands stand with you.","Vůdce vzpoury: %s. Při tobě stojí %d věrných mužů."
+persona.deserted,%s has slipped ashore and deserted.,%s se vytratil na břeh a dezertoval.
+persona.talked_down,"Your loyal hands talk the crew down; %s backs off, for now.","Věrní muži posádku uklidnili; %s zatím ustoupil."
+persona.ev_dry,%s grumbles that a ship without rum is no ship at all.,"%s reptá, že loď bez rumu není žádná loď."
+persona.ev_omen,%s saw an ill omen in the sky and is spooked.,%s viděl na obloze zlé znamení a je vyděšený.
+persona.ev_brawl,%s started a brawl below decks.,%s rozpoutal rvačku v podpalubí.
+persona.ev_cheer,%s strikes up a shanty and the crew joins in.,%s spustil píseň a posádka se přidala.
+trait.brave,Brave,Statečný
+trait.steadfast,Steadfast,Neochvějný
+trait.greedy,Greedy,Hamižný
+trait.drunkard,Drunkard,Opilec
+trait.superstitious,Superstitious,Pověrčivý
+trait.hothead,Hothead,Horká hlava
+trait.cheerful,Cheerful,Veselý
+trait.coward,Coward,Zbabělec
+trait.brave_tip,"Hits 15% harder on deck, rallies the men near him, warms to you after every boarding won.","Na palubě bije o 15 % silněji, povzbuzuje muže kolem sebe a po každém vyhraném nalodění ti je věrnější."
+trait.steadfast_tip,"Loyalty falls only half as fast and never below 35.","Věrnost mu klesá jen poloviční rychlostí a nikdy pod 35."
+trait.greedy_tip,"Counts his loot share twice; hates a captain's cut over 35%.","Svůj podíl z kořisti počítá dvakrát; nesnáší kapitánův podíl nad 35 %."
+trait.drunkard_tip,"Loves the rum ration; sours fast without it.","Miluje příděl rumu; bez něj rychle zatrpkne."
+trait.superstitious_tip,"Storms and ill omens shake his loyalty.","Bouře a zlá znamení otřásají jeho věrností."
+trait.hothead_tip,"Hits 10% harder, but starts brawls when morale is low and takes defeat badly.","Bije o 10 % silněji, ale při nízké morálce rozpoutává rvačky a špatně nese porážky."
+trait.cheerful_tip,"Lifts the whole crew's morale a little every day.","Každý den trochu zvedne morálku celé posádky."
+trait.coward_tip,"Hits 15% softer, may panic on deck and is first to desert.","Bije o 15 % slaběji, na palubě může zpanikařit a dezertuje jako první."
+loyalty.devoted,devoted,oddaný
+loyalty.loyal,loyal,věrný
+loyalty.wavering,wavering,váhavý
+loyalty.disloyal,disloyal,nevěrný

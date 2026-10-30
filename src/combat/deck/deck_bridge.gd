@@ -42,7 +42,9 @@ static func build(committed: int, quality: float, morale: float, enemy_faction: 
 	var on_screen: int = mini(maxi(committed - 1, 0), DeckData.MAX_ON_SCREEN - 1)
 	for i in on_screen:
 		if i < ids.size():
-			crew.append({"type": str(ids[i]["type"]), "level": int(ids[i].get("level", 1)), "name": str(ids[i].get("name", "Hand"))})
+			var hand: Dictionary = {"type": str(ids[i]["type"]), "level": int(ids[i].get("level", 1)), "name": str(ids[i].get("name", "Hand"))}
+			hand.merge(CrewPersona.fight_mods(ids[i]))
+			crew.append(hand)
 		else:
 			crew.append({"type": "green", "level": 1, "name": "Hand"})
 	var theirs: Dictionary = enemy_roster(enemy_faction, enemy_count)
