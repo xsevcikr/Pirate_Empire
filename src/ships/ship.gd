@@ -261,6 +261,8 @@ func section_center(i: int) -> Vector3:
 ## Called by the projectile manager when a cannonball touches the hull.
 func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Vector3, gun_id: String,
 		ammo_id: String, distance: float, source: Node) -> Dictionary:
+	if has_meta("ghost") and ammo_id != "heated" and ammo_id != "blessed":
+		return {"killed": 0, "ricochet": false, "ghost": true}  # the shot passes through the ghost hull
 	var info := HitInfo.new()
 	var inv: Transform3D = global_transform.affine_inverse()
 	info.local_position = inv * world_pos

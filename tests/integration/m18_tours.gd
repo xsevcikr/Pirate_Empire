@@ -7,6 +7,7 @@ var _fails: Array[String] = []
 var _frames: int = 0
 var _world: Node
 var _dir: TourDirector
+const TOURS: Array[String] = ["drowned_purse", "song_of_sirens"]
 
 
 func _check(cond: bool, msg: String) -> void:
@@ -110,7 +111,7 @@ func _process(_delta: float) -> bool:
 	var drop: String = MapFragments.roll_drop(st, "rival", RandomNumberGenerator.new())
 	_check(drop == "drowned_purse_1", "first piece belongs to the first tour, got %s" % drop)
 	# full route, both tours
-	for tour: String in TourData.tour_ids():
+	for tour: String in TOURS:
 		_fresh(tour, 0)
 		var g0: int = int(st["gold"])
 		var n: int = 0
@@ -121,11 +122,11 @@ func _process(_delta: float) -> bool:
 				break
 			n += 1
 		_check(TourState.is_done(st, tour), tour + " finished start to end")
-		_check(int(st["gold"]) - g0 >= int(TourData.TOURS[tour]["reward"]["gold"]) - 25, tour + " paid the reward")
-		for perk: String in TourData.TOURS[tour]["reward"]["perks"]:
+		_check(int(st["gold"]) - g0 >= int(TourData.tour(tour)["reward"]["gold"]) - 25, tour + " paid the reward")
+		for perk: String in TourData.tour(tour)["reward"]["perks"]:
 			_check(TourState.root(st)["perks"].has(perk), "%s: perk %s won" % [tour, perk])
 	# every step: die first, read all three hints, then still finish
-	for tour: String in TourData.tour_ids():
+	for tour: String in TOURS:
 		var count: int = TourData.steps(tour).size()
 		for i in count:
 			_fresh(tour, i)

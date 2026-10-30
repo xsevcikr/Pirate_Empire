@@ -5,6 +5,7 @@ extends RefCounted
 ## Dying sends the player back to the entrance with the puzzles solved so far kept.
 
 var id: String
+var cfg: Dictionary
 var spec: Array = []
 var rng: RandomNumberGenerator
 var room: int = 0
@@ -25,13 +26,14 @@ var skeleton_done: bool = false
 var _solved: Dictionary = {}  ## room index -> true, kept across deaths
 
 
-func _init(dungeon_id: String, seed_value: int, hp_start: float = 100.0) -> void:
+func _init(dungeon_id: String, seed_value: int, hp_start: float = 100.0, rooms: Array = []) -> void:
 	id = dungeon_id
-	spec = TourData.DUNGEONS[id]["rooms"]
+	cfg = TourData.dungeon(id, rooms)
+	spec = cfg["rooms"]
 	rng = RandomNumberGenerator.new()
 	rng.seed = seed_value
 	hp = hp_start
-	air_s = float(TourData.DUNGEONS[id]["air_s"])
+	air_s = float(cfg["air_s"])
 	_enter_room()
 
 
@@ -111,7 +113,7 @@ func tick(delta: float) -> void:
 	torch_s = maxf(torch_s - delta, 0.0)
 	if puzzle != null:
 		puzzle.tick(delta)
-	if air_s > 0.0 or float(TourData.DUNGEONS[id]["air_s"]) > 0.0:
+	if air_s > 0.0 or float(cfg["air_s"]) > 0.0:
 		_tick_air(delta)
 	if skeleton_down_s > 0.0:
 		skeleton_down_s -= delta
@@ -127,12 +129,12 @@ func tick(delta: float) -> void:
 ## The sunken temple: breathing time runs down and refills in air pockets (the entry and chest rooms).
 func _tick_air(delta: float) -> void:
 	if room_kind() in ["entry", "chest", "exit"]:
-		air_s = float(TourData.DUNGEONS[id]["air_s"])
+		air_s = float(cfg["air_s"])
 		return
 	air_s -= delta
 	if air_s <= 0.0:
 		hp -= TourData.DRAWN_AIR_DAMAGE
-		air_s = float(TourData.DUNGEONS[id]["air_s"]) * 0.5
+		air_s = float(cfg["air_s"]) * 0.5
 
 
 ## Look for the trap: lit torches help.
@@ -180,7 +182,7 @@ func die() -> void:
 	room = 0
 	hp = 100.0
 	torch_s = TourData.TORCH_S
-	air_s = float(TourData.DUNGEONS[id]["air_s"])
+	air_s = float(cfg["air_s"])
 	_enter_room()
 
 

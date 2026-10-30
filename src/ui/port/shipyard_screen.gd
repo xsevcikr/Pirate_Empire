@@ -21,6 +21,9 @@ func build() -> void:
 		add_text(Loc.t("insure.active"))
 	else:
 		add_item_row("%s (%d g)" % [Loc.t("insure.label"), prem], [[Loc.t("insure.buy"), _insure if prem <= int(s["gold"]) else Callable()]])
+	for class_id in LegendaryShips.owned(s):
+		if class_id != s["ship_class"]:
+			add_item_row(Loc.t("ship." + class_id), [[Loc.t("port.take_helm"), _take_helm.bind(class_id)]])
 	add_text(Loc.t("port.ships_for_sale"))
 	for class_id in PortData.CLASS_ORDER:
 		if class_id == s["ship_class"] or not PortData.can_sell_class(port_id, class_id):
@@ -53,6 +56,12 @@ func _insure() -> void:
 
 func _repair() -> void:
 	PortService.repair(state())
+	_rebuild()
+
+
+func _take_helm(class_id: String) -> void:
+	if LegendaryShips.take_helm(state(), class_id):
+		toast("port.ship_bought", [Loc.t("ship." + class_id)])
 	_rebuild()
 
 

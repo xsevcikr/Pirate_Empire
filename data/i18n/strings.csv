@@ -438,3 +438,187 @@ act.hint,Hint,Nápověda
 act.open,Open the chest,Otevřít truhlu
 act.burn,Burn the bones,Spálit kosti
 act.onward,Go on,Pokračovat
+tour.ghost_ledger,The Ghost Admiral's Ledger,Účetní kniha Admirála duchů
+tour.iron_heart,Iron Heart of Cinder Bay,Železné srdce Popelné zátoky
+tour.frostmourn_vault,Frostmourn Vault,Trezor Frostmournu
+tour.krakens_maw,Kraken's Maw,Chřtán krakena
+tour.gen.name,Treasure map,Pokladová mapa
+tour.gl.read_map,Read the ledger map under the moon (21:00 to 04:00).,Přečti mapu knihy pod měsícem (21:00 až 04:00).
+tour.gl.read_map.hint1,The ink only shows by moonlight.,Inkoust je vidět jen za měsíčního svitu.
+tour.gl.read_map.hint2,"Wait for night, then join the pieces.",Počkej na noc a spoj kusy.
+tour.gl.read_map.hint3,Come back between nine in the evening and four in the morning and turn each piece upright.,Vrať se mezi devátou večerní a čtvrtou ranní a postav každý kus rovně.
+tour.gl.storm,Cross the ghost storm at Bonefield Shoals by night.,Přeplav za noci duchovní bouři u Kostěných mělčin.
+tour.gl.storm.hint1,Ghost sloops are hit only by heated or blessed shot.,Duchové šalupy zraňuje jen rozžhavená či posvěcená střela.
+tour.gl.storm.hint2,Load heated shot and sail north to Bonefield Shoals at night.,Nabij rozžhavené koule a popluj v noci k Kostěným mělčinám.
+tour.gl.storm.hint3,Go to the marked spot at Bonefield Shoals after nine in the evening.,Popluj na označené místo u Kostěných mělčin po deváté večerní.
+tour.gl.isle,Land at Wraith Isle.,Přistaň na Přízračném ostrově.
+tour.gl.isle.hint1,A ruined chapel stands there.,Stojí tam zřícená kaple.
+tour.gl.isle.hint2,Wraith Isle is in the Dead Reach.,Přízračný ostrov leží v Mrtvém dosahu.
+tour.gl.isle.hint3,Go to the marked spot at Wraith Isle.,Popluj na označené místo u Přízračného ostrova.
+tour.gl.crypt,Ring the bells in the crypt in the order of the drowned ships.,Zazvoň v kryptě na zvony v pořadí utonulých lodí.
+tour.gl.crypt.hint1,Skeletons rise again unless burned.,"Kostlivci vstanou, ledaže je spálíš."
+tour.gl.crypt.hint2,Ring the next bell shown by the hint.,Zazvoň na další zvon podle nápovědy.
+tour.gl.crypt.hint3,"Use hint level three on the bells for the whole order, and burn the bones.",Použij nápovědu tři u zvonů pro celé pořadí a kosti spal.
+tour.gl.admiral,The Ghost Admiral waits in the fog.,Admirál duchů čeká v mlze.
+tour.gl.admiral.hint1,Shoot the cursed lanterns off his stern.,Sestřel prokleté lucerny z jeho zádi.
+tour.gl.admiral.hint2,He is untargetable until two lanterns are shot.,"Dokud nesestřelíš dvě lucerny, nelze ho zasáhnout."
+tour.gl.admiral.hint3,"Dodge in the last second of each telegraph, shoot the lanterns, then strike.","Uhýbej v poslední vteřině varování, sestřel lucerny a pak udeř."
+tour.gl.escape,Sail the Ledger home to Haven Rock.,Odpluj s Knihou domů na Útočištní skálu.
+tour.gl.escape.hint1,Home is Haven Rock.,Domov je Útočištní skála.
+tour.gl.escape.hint2,Sail back to the pirate capital.,Popluj zpět do hlavního města pirátů.
+tour.gl.escape.hint3,Reach Haven Rock.,Dopluj k Útočištní skále.
+tour.ih.read_map,Join the stolen engineer's notes.,Spoj ukradené poznámky inženýra.
+tour.ih.read_map.hint1,The notes only fit when upright.,"Poznámky sedí, jen když stojí rovně."
+tour.ih.read_map.hint2,Turn the crooked pieces.,Otoč křivé kusy.
+tour.ih.read_map.hint3,Turn each piece until its arrow points up.,"Otáčej každý kus, až šipka míří nahoru."
+tour.ih.blockade,Run the Ironhold blockade to Cinder Bay.,Prorazí blokádu Ironholdu do Popelné zátoky.
+tour.ih.blockade.hint1,"Patrols see 600 m by day, 300 m by night.","Hlídky vidí ve dne 600 m, v noci 300 m."
+tour.ih.blockade.hint2,Sail in at night and keep wide of the four patrol points.,Pluj v noci a vyhni se čtyřem hlídkovým bodům.
+tour.ih.blockade.hint3,Go to the marked spot at Cinder Bay after dark.,Popluj po setmění na označené místo u Popelné zátoky.
+tour.ih.volcano,Cross the volcano tunnels: pass each steam vent while it is closed.,"Projdi sopečné tunely: každou páru projdi, dokud je zavřená."
+tour.ih.volcano.hint1,Vents blow three seconds in every six.,Průduchy pouštějí páru tři vteřiny ze šesti.
+tour.ih.volcano.hint2,"Wait until the marked vent stops, then go.","Počkej, až označený průduch ustane, a běž."
+tour.ih.volcano.hint3,Use hint level three on the cart ride for the switch order.,Použij nápovědu tři u jízdy vozíkem pro pořadí výhybek.
+tour.ih.colossus,The Brass Colossus guards the iron heart.,Mosazný kolos střeží železné srdce.
+tour.ih.colossus.hint1,Its core opens after a steam blast.,Jádro se otevře po výbuchu páry.
+tour.ih.colossus.hint2,"Dodge the blast, then strike while it is open.","Uhni výbuchu a udeř, když je otevřený."
+tour.ih.colossus.hint3,Cool the open core with water barrels to keep it open longer.,"Chlaď otevřené jádro vodními sudy, aby zůstalo déle otevřené."
+tour.ih.escape,Take the heart to Ironhold.,Odnes srdce do Ironholdu.
+tour.ih.escape.hint1,Ironhold is the Iron Dominion's capital.,Ironhold je hlavní město Železné říše.
+tour.ih.escape.hint2,Sail to Ironhold.,Popluj do Ironholdu.
+tour.ih.escape.hint3,Reach Ironhold.,Dopluj do Ironholdu.
+tour.fv.read_map,Read the star chart (a navigator helps).,Přečti hvězdnou mapu (pomůže navigátor).
+tour.fv.read_map.hint1,The stars mark the way; a navigator reads them best.,Hvězdy ukazují cestu; navigátor je čte nejlépe.
+tour.fv.read_map.hint2,Turn the pieces upright; a navigator at the helm helps.,Postav kusy rovně; pomůže navigátor u kormidla.
+tour.fv.read_map.hint3,Turn each piece until its arrow points up.,"Otáčej každý kus, až šipka míří nahoru."
+tour.fv.bergs,Thread the iceberg field to Frostmourn.,Proplul ledovým polem k Frostmournu.
+tour.fv.bergs.hint1,Ice hurts as much as rock.,Led zraňuje jako skála.
+tour.fv.bergs.hint2,Keep speed low and weave between the bergs.,Drž nízkou rychlost a kličkuj mezi krami.
+tour.fv.bergs.hint3,Go to the marked spot at Frostmourn.,Popluj na označené místo u Frostmournu.
+tour.fv.glacier,Slide across the glacier cave floor to the vault door.,Sklouzni po ledové podlaze jeskyně ke dveřím trezoru.
+tour.fv.glacier.hint1,You slide until something stops you.,"Klouzáš, dokud tě něco nezastaví."
+tour.fv.glacier.hint2,The hint shows the next slide.,Nápověda ukáže další skluz.
+tour.fv.glacier.hint3,Use hint level three for the whole route.,Použij nápovědu tři pro celou cestu.
+tour.fv.leviathan,The Ice Leviathan breaks the ice beneath you.,Ledový leviatan láme led pod tebou.
+tour.fv.leviathan.hint1,Aim at the eyes and gills.,Miř na oči a žábry.
+tour.fv.leviathan.hint2,Explosive shells hurt it twice as much.,Výbušné střely ho zraňují dvakrát víc.
+tour.fv.leviathan.hint3,"Dodge the ice break, then fire explosive shells while it is open.","Uhni lámání ledu a střílej výbušné střely, dokud je otevřený."
+tour.fv.escape,Sail the vault's treasure home.,Odpluj s pokladem z trezoru domů.
+tour.fv.escape.hint1,Home is Haven Rock.,Domov je Útočištní skála.
+tour.fv.escape.hint2,Sail back to the pirate capital.,Popluj zpět do hlavního města pirátů.
+tour.fv.escape.hint3,Reach Haven Rock.,Dopluj k Útočištní skále.
+tour.km.read_map,Join the map to the Kraken's Maw (all five tours must be done).,Spoj mapu ke Chřtánu krakena (všech pět cest musí být hotových).
+tour.km.read_map.hint1,Only a captain who has finished every other tour holds the pieces.,"Kusy drží jen kapitán, který dokončil všechny ostatní cesty."
+tour.km.read_map.hint2,Turn the pieces upright.,Postav kusy rovně.
+tour.km.read_map.hint3,Turn each piece until its arrow points up.,"Otáčej každý kus, až šipka míří nahoru."
+tour.km.whirl,Sail the whirlpool outward while the sea pulls you in.,"Pluj ven z vírů, zatímco tě moře táhne dovnitř."
+tour.km.whirl.hint1,The current swirls round the atoll.,Proud víří kolem atolu.
+tour.km.whirl.hint2,Steer outward and against the swirl.,Zamiř ven a proti vírům.
+tour.km.whirl.hint3,Go to the marked spot at Kraken's Maw and stay out of the core.,Popluj na označené místo u Chřtánu krakena a vyhni se jádru.
+tour.km.kraken,The Kraken rises from the whirlpool.,Kraken se zvedá z víru.
+tour.km.kraken.hint1,Sever all eight tentacles to raise the head.,"Utni všech osm chapadel, aby se zvedla hlava."
+tour.km.kraken.hint2,"Dodge each slam, then strike the head and the eye while it is up.","Uhni každému úderu a pak udeř hlavu a oko, dokud je nahoře."
+tour.km.kraken.hint3,The tentacles grow back when the head sinks.,"Chapadla dorostou, když hlava klesne."
+tour.km.city,Walk the drowned city of the first Pirate King.,Projdi utopené město prvního pirátského krále.
+tour.km.city.hint1,Light and rhymes guard the throne.,Trůn střeží světlo a říkanky.
+tour.km.city.hint2,Follow the hints on each puzzle.,Následuj nápovědy u každé hádanky.
+tour.km.city.hint3,Use hint level three on every puzzle.,Použij nápovědu tři u každé hádanky.
+tour.km.escape,Escape the maw with the crown's secrets.,Uteč z chřtánu s tajemstvími koruny.
+tour.km.escape.hint1,Home is Haven Rock.,Domov je Útočištní skála.
+tour.km.escape.hint2,Sail back to the pirate capital.,Popluj zpět do hlavního města pirátů.
+tour.km.escape.hint3,Reach Haven Rock.,Dopluj k Útočištní skále.
+tour.gen.clue_riddle,Solve the riddle on the map.,Vyluš hádanku na mapě.
+tour.gen.clue_riddle.hint1,Every clue names a landmark indirectly.,Každá stopa jmenuje místo nepřímo.
+tour.gen.clue_riddle.hint2,Look at the island the pieces point to.,"Podívej se na ostrov, kam kusy ukazují."
+tour.gen.clue_riddle.hint3,Go to the marked spot.,Popluj na označené místo.
+tour.gen.clue_bearing,Follow the bearing written on the map.,Následuj azimut napsaný na mapě.
+tour.gen.clue_bearing.hint1,Every clue names a landmark indirectly.,Každá stopa jmenuje místo nepřímo.
+tour.gen.clue_bearing.hint2,Look at the island the pieces point to.,"Podívej se na ostrov, kam kusy ukazují."
+tour.gen.clue_bearing.hint3,Go to the marked spot.,Popluj na označené místo.
+tour.gen.clue_star_chart,Read the star chart.,Přečti hvězdnou mapu.
+tour.gen.clue_star_chart.hint1,Every clue names a landmark indirectly.,Každá stopa jmenuje místo nepřímo.
+tour.gen.clue_star_chart.hint2,Look at the island the pieces point to.,"Podívej se na ostrov, kam kusy ukazují."
+tour.gen.clue_star_chart.hint3,Go to the marked spot.,Popluj na označené místo.
+tour.gen.clue_landmark,Find the landmark the map describes.,"Najdi místo, které mapa popisuje."
+tour.gen.clue_landmark.hint1,Every clue names a landmark indirectly.,Každá stopa jmenuje místo nepřímo.
+tour.gen.clue_landmark.hint2,Look at the island the pieces point to.,"Podívej se na ostrov, kam kusy ukazují."
+tour.gen.clue_landmark.hint3,Go to the marked spot.,Popluj na označené místo.
+tour.gen.voyage,Sail on through the hazard.,Pluj dál nebezpečím.
+tour.gen.voyage.hint1,The sea fights back.,Moře se brání.
+tour.gen.voyage.hint2,Keep to deep water.,Drž se hlubin.
+tour.gen.voyage.hint3,Go to the marked spot.,Popluj na označené místo.
+tour.gen.landing,Go ashore at the island.,Vylodíš se na ostrově.
+tour.gen.landing.hint1,The island is the one on the map.,Ostrov je ten z mapy.
+tour.gen.landing.hint2,Sail close to it.,Přiblíž se k němu.
+tour.gen.landing.hint3,Go to the marked spot.,Popluj na označené místo.
+tour.gen.dungeon,Make your way through the dungeon.,Projdi kobkami.
+tour.gen.dungeon.hint1,Look for traps and use the hints.,Hledej pasti a používej nápovědy.
+tour.gen.dungeon.hint2,Each puzzle has hints.,Každá hádanka má nápovědy.
+tour.gen.dungeon.hint3,Use hint level three on each puzzle.,Použij nápovědu tři u každé hádanky.
+tour.gen.guardian,Defeat the guardian.,Poraz strážce.
+tour.gen.guardian.hint1,Dodge its telegraphed attacks.,Uhýbej jeho ohlášeným útokům.
+tour.gen.guardian.hint2,Strike when it is open.,"Udeř, když je otevřený."
+tour.gen.guardian.hint3,"Dodge in the last second, then strike.",Uhni v poslední vteřině a pak udeř.
+tour.gen.escape,Take the treasure home.,Odnes poklad domů.
+tour.gen.escape.hint1,Home is Haven Rock.,Domov je Útočištní skála.
+tour.gen.escape.hint2,Sail back to the pirate capital.,Popluj zpět do hlavního města pirátů.
+tour.gen.escape.hint3,Reach Haven Rock.,Dopluj k Útočištní skále.
+puzzle.hint1.bells,Ring the bells in the order of the drowned ships.,Zvoň v pořadí utonulých lodí.
+puzzle.hint2.bells,The next bell is marked.,Další zvon je označen.
+puzzle.hint3.bells,The whole order is shown.,Je ukázáno celé pořadí.
+puzzle.hint1.vents,Pass each vent while it is closed.,"Projdi každý průduch, když je zavřený."
+puzzle.hint2.vents,The next vent is marked; wait for it to close.,"Další průduch je označen; počkej, až se zavře."
+puzzle.hint3.vents,All three vents are marked in order.,Všechny tři průduchy jsou označeny v pořadí.
+puzzle.hint1.cart,Throw the rail switches in the right order.,Přehoď výhybky ve správném pořadí.
+puzzle.hint2.cart,The next switch is marked.,Další výhybka je označena.
+puzzle.hint3.cart,The whole route is shown.,Je ukázána celá trasa.
+puzzle.hint1.ice,Slide until something stops you.,"Klouzej, dokud tě něco nezastaví."
+puzzle.hint2.ice,The next slide is marked.,Další skluz je označen.
+puzzle.hint3.ice,The whole route is shown.,Je ukázána celá trasa.
+atk.steam_blast,Steam blast,Výbuch páry
+atk.ground_slam,Ground slam,Úder do země
+atk.flame_jets,Flame jets,Plameny
+atk.break_ice,Ice break,Lámání ledu
+atk.hurl_ice,Ice hurl,Vrh ledu
+atk.freezing_breath,Freezing breath,Ledový dech
+atk.teleport_behind,Teleport behind you,Teleport za záda
+atk.phase_out,Phase out,Zmizení
+atk.summon_ghost_sloops,Ghost sloops,Duchové šalupy
+atk.lightning_storm,Lightning storm,Bouře blesků
+atk.skeletal_boarders,Skeletal boarders,Kostlivčí nájezdníci
+atk.cursed_lantern,Cursed lantern,Prokletá lucerna
+atk.tentacle_slam,Tentacle slam,Úder chapadlem
+atk.grab_and_crush,Grab and crush,Sevření
+atk.pull_into_whirlpool,Pull into the whirlpool,Stažení do víru
+atk.ink_cloud,Ink cloud,Inkoustový mrak
+atk.head_emerges,Head strike,Úder hlavou
+atk.ram_it,Ram,Ramování
+atk.line_ahead_broadsides,Line-ahead broadsides,Boční salvy v řadě
+atk.board_if_close,Boarding,Nalodění
+atk.fire_ships,Fire ships,Ohnivé lodě
+atk.iron_bulwark,Iron bulwark,Železná hráz
+atk.ram_and_board,Ram and board,Ramování a nalodění
+atk.captain_duel,Captain's duel,Souboj kapitánů
+atk.fleet_duel,Fleet duel,Souboj flotil
+atk.frigate_formation,Frigate formation,Formace fregat
+atk.mortar_rain,Mortar rain,Déšť z minometů
+atk.bombard_bases,Base bombardment,Bombardování základen
+atk.burning_deck_duel,Burning-deck duel,Souboj na hořící palubě
+atk.attack_pattern_three,Attack pattern three,Útočný vzorec tři
+act.shoot_lantern,Shoot the lantern,Sestřelit lucernu
+act.cool_core,Cool the core,Chladit jádro
+act.explosive_shot,Explosive shell,Výbušná střela
+ship.revenant,The Revenant,Přízrak
+ship.sovereign,Sovereign of Brass,Mosazný vládce
+port.take_helm,Take the helm,Převzít kormidlo
+tour.perk.ship_revenant,The Revenant ghost frigate,Přízračná fregata Přízrak
+tour.perk.ship_sovereign,Sovereign of Brass,Mosazný vládce
+tour.perk.explosive_blueprint,Explosive shell blueprint,Plán výbušné střely
+tour.perk.armor_t5,Tier 5 armor,Pancéř stupně 5
+tour.perk.frost_sails,Frost-proof sails,Mrazuvzdorné plachty
+tour.perk.white_flag,White flag set,Sada bílých vlajek
+tour.perk.kraken_ink,Kraken Ink,Krakení inkoust
+tour.perk.heart_of_the_deep,Heart of the Deep,Srdce hlubin
+tour.perk.unlock_black_ibrahim,The way to Black Ibrahim opens,Otevírá se cesta k Černému Ibrahimovi
+tour.perk.pirate_king_crown,Pirate King's crown,Koruna pirátského krále
+tour.locked,Finish the other five tours first.,Nejdřív dokonči ostatních pět cest.

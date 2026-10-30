@@ -32,6 +32,16 @@ const DEFS: Dictionary = {
 		"actions": [["coil", "head_strike"], ["tail_sweep", "coil"], ["head_strike", "coil"]],
 		"untargetable_phases": [], "captain_hp": 0.0, "reward": "Song of the Sirens",
 	},
+	"brass_colossus": {
+		"name": "The Brass Colossus", "hp": 5000.0, "phases": 3, "thresholds": [1.0, 0.66, 0.33],
+		"actions": [["steam_blast", "ground_slam"], ["flame_jets", "steam_blast"], ["ground_slam", "flame_jets"]],
+		"untargetable_phases": [], "captain_hp": 0.0, "reward": "Iron Heart",
+	},
+	"ice_leviathan": {
+		"name": "The Ice Leviathan", "hp": 9000.0, "phases": 3, "thresholds": [1.0, 0.66, 0.33],
+		"actions": [["break_ice", "hurl_ice"], ["freezing_breath", "break_ice"], ["hurl_ice", "freezing_breath"]],
+		"untargetable_phases": [], "captain_hp": 0.0, "reward": "Frostmourn Vault",
+	},
 	"black_ibrahim": {
 		"name": "Black Ibrahim", "hp": 20000.0, "phases": 3, "thresholds": [1.0, 0.6, 0.3],
 		"actions": [["fleet_duel", "frigate_formation"], ["mortar_rain", "bombard_bases"], ["burning_deck_duel", "attack_pattern_three"]],

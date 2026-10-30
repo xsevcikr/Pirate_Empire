@@ -33,7 +33,7 @@ static func current_step(state: Dictionary, tour_id: String) -> Dictionary:
 
 
 static func tick(state: Dictionary, delta: float) -> void:
-	for id: String in TourData.tour_ids():
+	for id: String in TourData.all_ids():
 		var p: Dictionary = progress(state, id)
 		if not p["done"] and MapFragments.owned(state, id) > 0:
 			p["step_time"] = float(p["step_time"]) + delta
@@ -42,15 +42,17 @@ static func tick(state: Dictionary, delta: float) -> void:
 ## Tours the player has at least one fragment for and has not finished.
 static func active(state: Dictionary) -> Array[String]:
 	var out: Array[String] = []
-	for id: String in TourData.tour_ids():
+	for id: String in TourData.all_ids():
 		if MapFragments.owned(state, id) > 0 and not is_done(state, id):
 			out.append(id)
 	return out
 
 
 ## The map is read once the third fragment is in and the rotate puzzle is joined. Moves on to the first voyage.
-static func read_map(state: Dictionary, tour_id: String, turns: Array[int]) -> bool:
+static func read_map(state: Dictionary, tour_id: String, turns: Array[int], hour: float = 12.0) -> bool:
 	var p: Dictionary = progress(state, tour_id)
+	if bool(current_step(state, tour_id).get("night", false)) and not TourHazards.moonlit(hour):
+		return false  # the ink only shows under the moon
 	if int(p["step"]) != 0 or MapFragments.owned(state, tour_id) < TourData.FRAGMENTS_PER_TOUR:
 		return false
 	if not MapFragments.is_joined(turns):
@@ -66,6 +68,8 @@ static func arrived(step: Dictionary, pos: Vector2, hour: float, tide: float) ->
 	if step.has("tide_below") and tide > float(step["tide_below"]):
 		return false
 	if bool(step.get("dusk", false)) and (hour < TourData.DUSK_FROM_H or hour > TourData.DUSK_TO_H):
+		return false
+	if bool(step.get("night", false)) and not TourHazards.moonlit(hour):
 		return false
 	return true
 
@@ -91,15 +95,24 @@ static func finish(state: Dictionary, tour_id: String) -> void:
 	if bool(p["done"]):
 		return
 	p["done"] = true
-	var r: Dictionary = TourData.TOURS[tour_id]["reward"]
+	var r: Dictionary = TourData.tour(tour_id)["reward"]
 	state["gold"] = int(state["gold"]) + int(r["gold"])
 	var t: Dictionary = root(state)
 	for perk: String in r["perks"]:
-		if not t["perks"].has(perk):
-			t["perks"].append(perk)
+		TourRewards.grant_perk(state, perk)
 	t["pearls"] = int(t["pearls"]) + int(r["pearls"])
 	state["fame"] = int(state["fame"]) + 50
 	CrewLife.award_xp(state, "tour")
+
+
+## A tour with prerequisites is open once they are all done.
+static func available(state: Dictionary, tour_id: String) -> bool:
+	if not TourData.tour(tour_id).has("requires"):
+		return true
+	for req: String in TourData.tour(tour_id)["requires"]:
+		if not is_done(state, req):
+			return false
+	return true
 
 
 ## Ask for a hint at a level. Level 1 is the navigator and always free. Levels 2 and 3 cost gold at a tavern, but

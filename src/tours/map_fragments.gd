@@ -15,6 +15,8 @@ static func roll_drop(state: Dictionary, source: String, rng: RandomNumberGenera
 static func next_missing(state: Dictionary) -> String:
 	var have: Array = state["map_fragments"]
 	for tour: String in TourData.tour_ids():
+		if TourState.is_done(state, tour) or not TourState.available(state, tour):
+			continue
 		for n in range(1, TourData.FRAGMENTS_PER_TOUR + 1):
 			var id: String = TourData.fragment_id(tour, n)
 			if not have.has(id):
@@ -23,6 +25,8 @@ static func next_missing(state: Dictionary) -> String:
 
 
 static func owned(state: Dictionary, tour_id: String) -> int:
+	if TourData.is_generated(tour_id):
+		return TourData.FRAGMENTS_PER_TOUR  # a generated map is found whole
 	var c: int = 0
 	for n in range(1, TourData.FRAGMENTS_PER_TOUR + 1):
 		if state["map_fragments"].has(TourData.fragment_id(tour_id, n)):
