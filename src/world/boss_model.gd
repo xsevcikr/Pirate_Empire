@@ -3,12 +3,26 @@ extends Node3D
 ## The bosses as they loom over their arenas, built from primitives: the kraken's mantle and suckered arms, the
 ## serpent's coils and fanged jaws, the Shell King's armoured claws, the Ghost Admiral's spectral hulk, the brass
 ## colossus and the ice leviathan. Every model has glowing eyes; parts tagged "sway" move in _process.
+## Each model has a rig (body, head, arm_l, arm_r and a mouth marker) so it can act out its attacks: windup()
+## holds the tell pose (a fist raised, a head reared back, a mouth glowing with poison), unleash() swings it.
 
 const KINDS: Array[String] = ["kraken", "sea_serpent", "shell_king", "ghost_admiral", "brass_colossus", "ice_leviathan"]
 
+const SIZE: Dictionary = {"kraken": 60.0, "sea_serpent": 60.0, "shell_king": 12.0, "ghost_admiral": 45.0, "brass_colossus": 34.0, "ice_leviathan": 40.0}
+const STRIKE_S: float = 0.7
+
 var kind: String = ""
+var size: float = 40.0
+var pose_fx: String = ""
+var pose_part: String = ""
+var pose_p: float = 0.0  ## how far into the tell, 0..1
 var _t: float = 0.0
 var _sway: Array[Node3D] = []
+var _rig: Dictionary = {}
+var _rest: Dictionary = {}  ## rig node -> its resting transform
+var _strike_t: float = -1.0
+var _glow: MeshInstance3D
+var _glow_mat: StandardMaterial3D
 
 
 static func make(id: String) -> BossModel:
@@ -23,6 +37,7 @@ static func has_model(id: String) -> bool:
 
 
 func _ready() -> void:
+	size = float(SIZE.get(kind, 40.0))
 	match kind:
 		"kraken":
 			_kraken()
@@ -36,6 +51,154 @@ func _ready() -> void:
 			_colossus()
 		"ice_leviathan":
 			_leviathan()
+	_build_rig()
+
+
+## Everything built so far goes under a Body node; the parts that move on their own are already named in _rig.
+func _build_rig() -> void:
+	var body := Node3D.new()
+	body.name = "Body"
+	for c in get_children():
+		remove_child(c)
+		body.add_child(c)
+	add_child(body)
+	if _sway.has(self):
+		_sway.erase(self)
+		_sway.append(body)
+	_rig["body"] = body
+	for k in ["head", "arm_l", "arm_r"]:
+		if not _rig.has(k):
+			_rig[k] = body
+	if not _rig.has("mouth"):
+		_marker(body, Vector3(0, size * 0.3, size * 0.3), "mouth")
+	for k in ["body", "head", "arm_l", "arm_r"]:
+		var n: Node3D = _rig[k]
+		_rest[n] = n.transform
+	_glow_mat = StandardMaterial3D.new()
+	_glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_glow_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_glow = MeshInstance3D.new()
+	_glow.mesh = _sphere(size * 0.035)
+	_glow.material_override = _glow_mat
+	_glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_glow.visible = false
+	(_rig["mouth"] as Node3D).add_child(_glow)
+
+
+func _marker(parent: Node3D, at: Vector3, key: String) -> Marker3D:
+	var m := Marker3D.new()
+	m.name = key.capitalize()
+	m.position = at
+	parent.add_child(m)
+	_rig[key] = m
+	return m
+
+
+func part_node(part: String) -> Node3D:
+	return _rig.get(part, _rig.get("body", self))
+
+
+func mouth_global() -> Vector3:
+	return (_rig["mouth"] as Node3D).global_position
+
+
+## Where a limb's business end is now: the tip of a raised fist or claw, for the stage's effects.
+func part_global(part: String) -> Vector3:
+	var n: Node3D = part_node(part)
+	if n.has_meta("tip"):
+		return n.to_global(n.get_meta("tip"))
+	return n.global_position
+
+
+## Hold the tell pose of an attack, p from 0 (just started) to 1 (about to land). c tints the mouth glow.
+func windup(fx: String, part: String, p: float, c: Color = Color(1, 0.3, 0.2)) -> void:
+	if _strike_t >= 0.0 and pose_fx == fx:
+		return
+	pose_fx = fx
+	pose_part = part
+	pose_p = clampf(p, 0.0, 1.0)
+	_strike_t = -1.0
+	if _glow != null:
+		var mouthy: bool = fx in ["spit", "breath", "roar", "freeze", "nova", "volley", "rain", "summon", "grab"]
+		_glow.visible = mouthy and p > 0.05
+		_glow_mat.albedo_color = Color(c.r, c.g, c.b, 0.85)
+		var gs: float = 0.4 + pose_p * 1.4 + sin(_t * 18.0) * 0.08 * pose_p
+		_glow.scale = Vector3.ONE * (gs * (2.2 if fx == "nova" else 1.0))
+
+
+## Let the attack go: the raised limb comes down, the head snaps forward. Plays for STRIKE_S.
+func unleash(fx: String, part: String) -> void:
+	pose_fx = fx
+	pose_part = part
+	pose_p = 1.0
+	_strike_t = 0.0
+	if _glow != null:
+		_glow.visible = false
+
+
+func calm() -> void:
+	pose_fx = ""
+	pose_p = 0.0
+	_strike_t = -1.0
+	if _glow != null:
+		_glow.visible = false
+
+
+## Weight of the pose now: the tell eases in to 1, the strike snaps past the rest pose to -0.6 and settles back.
+func pose_weight() -> float:
+	if _strike_t >= 0.0:
+		if _strike_t < 0.12:
+			return 1.0 - _strike_t / 0.12 * 1.6
+		return -0.6 * maxf(1.0 - (_strike_t - 0.12) / (STRIKE_S - 0.12), 0.0)
+	return ease(pose_p, 0.6)
+
+
+func _apply_pose() -> void:
+	for n: Node3D in _rest.keys():
+		var tr: Transform3D = _rest[n]
+		n.position = tr.origin
+		n.scale = tr.basis.get_scale()
+		n.rotation = tr.basis.get_euler()
+	if pose_fx == "":
+		return
+	var w: float = pose_weight()
+	var body: Node3D = _rig["body"]
+	var head: Node3D = _rig["head"]
+	var limb: Node3D = part_node(pose_part)
+	match pose_fx:
+		"slam", "quake":
+			if limb == body:
+				body.rotation.x += -0.22 * w
+				body.position.y += size * 0.12 * maxf(w, 0.0)
+			else:
+				limb.rotation.x += -1.2 * w
+			if pose_fx == "quake":
+				body.position.y += size * 0.06 * w
+		"sweep":
+			if limb == body:
+				body.rotation.y += 0.7 * w
+			else:
+				limb.rotation.y += (0.9 if pose_part == "arm_r" else -0.9) * w
+				limb.rotation.x += -0.4 * absf(w)
+		"throw":
+			limb.rotation.x += -1.3 * w
+			body.rotation.y += 0.15 * w
+		"spit", "breath", "roar", "freeze", "lunge":
+			head.rotation.x += -0.4 * w
+			if pose_fx == "lunge":
+				head.position.z += size * 0.5 * -minf(w, 0.0) * 2.0
+				head.rotation.x += 0.9 * -minf(w, 0.0)
+			if head == body:
+				body.position.y += size * 0.05 * w
+		"dive":
+			body.position.y -= size * 0.9 * clampf(w, 0.0, 1.0)
+		"spin":
+			body.rotation.y += _t * 14.0 * maxf(w, 0.2 if _strike_t >= 0.0 else 0.0)
+		"teleport":
+			body.scale *= maxf(1.0 - 0.95 * clampf(w, 0.0, 1.0), 0.05)
+		_:
+			body.scale *= 1.0 + 0.06 * w
+			body.position.y += size * 0.04 * w
 
 
 func _mat(c: Color, _rough: float = 0.6, emit: float = 0.0, alpha: float = 1.0, _metal: float = 0.0) -> Material:
@@ -123,6 +286,7 @@ func _arm(parent: Node3D, base: Vector3, yaw: float, length: float, thick: float
 		cur.add_child(nxt)
 		cur = nxt
 	_sway.append(root)
+	root.set_meta("tip", Vector3(0, length * 0.8, length * 0.25))
 	return root
 
 
@@ -139,7 +303,12 @@ func _kraken() -> void:
 	_part(self, _cone(6.0, 10.0), _mat(Color(0.1, 0.07, 0.05), 0.3), Vector3(0, 0, 25), Vector3(90, 0, 0))
 	for i in 8:
 		var yaw: float = TAU * float(i) / 8.0
-		_arm(self, Vector3(cos(yaw) * 22.0, 2.0, sin(yaw) * 22.0), -yaw + PI * 0.5, 90.0 + float(i % 3) * 14.0, 6.0, skin, true)
+		var arm: Node3D = _arm(self, Vector3(cos(yaw) * 22.0, 2.0, sin(yaw) * 22.0), -yaw + PI * 0.5, 90.0 + float(i % 3) * 14.0, 6.0, skin, true)
+		if i == 2:
+			_rig["arm_r"] = arm  # the two arms nearest the front do the slapping
+		elif i == 1:
+			_rig["arm_l"] = arm
+	_marker(self, Vector3(0, 4, 32), "mouth")
 
 
 func _serpent() -> void:
@@ -172,6 +341,8 @@ func _serpent() -> void:
 	_part(head, _cone(2.0, 14.0), _mat(Color(0.7, 0.18, 0.15), 0.5), Vector3(7, 8, -5), Vector3(0, 0, -30))
 	_eye(head, Vector3(-7, 3, 7), 2.6, Color(1.0, 0.2, 0.1))
 	_eye(head, Vector3(7, 3, 7), 2.6, Color(1.0, 0.2, 0.1))
+	_marker(head, Vector3(0, -4, 24), "mouth")
+	_rig["head"] = head
 	_sway.append(neck)
 
 
@@ -192,13 +363,15 @@ func _shell_king() -> void:
 		_part(claw, _sphere(3.6, 0.8), _mat(shell.lightened(0.1), 0.45), Vector3.ZERO)
 		_part(claw, _cone(1.8, 7.0), _mat(Color(0.9, 0.75, 0.55), 0.35), Vector3(s * 1.4, 0, 5.0), Vector3(90, 0, 0))
 		_part(claw, _cone(1.5, 6.0), _mat(Color(0.9, 0.75, 0.55), 0.35), Vector3(-s * 1.4, -0.5, 4.5), Vector3(90, 0, 0))
-		_sway.append(arm)
+		arm.set_meta("tip", Vector3(s * 6.0, 0, 13.0))
+		_rig["arm_r" if s > 0.0 else "arm_l"] = arm
 	for i in 3:
 		for s in [-1.0, 1.0]:
 			_part(self, _cyl(0.7, 0.35, 8.0), _mat(shell.darkened(0.2), 0.5), Vector3(s * 9.0, 2.0, -3.0 + float(i) * 3.0), Vector3(0, 0, s * -60.0))
 	for s in [-1.0, 1.0]:
 		_part(self, _cyl(0.35, 0.35, 3.0), _mat(shell, 0.5), Vector3(s * 3.0, 11.0, 8.0))
 		_eye(self, Vector3(s * 3.0, 12.8, 8.5), 1.1, Color(1.0, 0.4, 0.1))
+	_marker(self, Vector3(0, 7.5, 9.5), "mouth")
 
 
 func _ghost_ship() -> void:
@@ -209,9 +382,14 @@ func _ghost_ship() -> void:
 	ship.scale = Vector3.ONE * sc
 	ship.position.y = -ShipModel.WATER_Y * sc
 	add_child(ship)
-	_part(self, _sphere(3.0), _mat(Color(0.9, 0.95, 0.9), 0.5, 0.8), Vector3(0, 28, -40))
-	_eye(self, Vector3(-1.2, 28.5, -37.0), 0.7, Color(0.3, 1.0, 0.7))
-	_eye(self, Vector3(1.2, 28.5, -37.0), 0.7, Color(0.3, 1.0, 0.7))
+	var head := Node3D.new()
+	head.position = Vector3(0, 28, -40)
+	add_child(head)
+	_part(head, _sphere(3.0), _mat(Color(0.9, 0.95, 0.9), 0.5, 0.8), Vector3.ZERO)
+	_eye(head, Vector3(-1.2, 0.5, 3.0), 0.7, Color(0.3, 1.0, 0.7))
+	_eye(head, Vector3(1.2, 0.5, 3.0), 0.7, Color(0.3, 1.0, 0.7))
+	_marker(head, Vector3(0, -0.5, 4.0), "mouth")
+	_rig["head"] = head
 	for k in 5:
 		var l := OmniLight3D.new()
 		l.light_color = Color(0.3, 1.0, 0.7)
@@ -232,15 +410,28 @@ func _colossus() -> void:
 	var dark := _mat(Color(0.25, 0.18, 0.1), 0.5, 0.0, 1.0, 0.7)
 	_part(self, _box(Vector3(14, 16, 9)), brass, Vector3(0, 22, 0))
 	_part(self, _cyl(3.0, 3.0, 6.0), dark, Vector3(0, 33, 0))
-	_part(self, _box(Vector3(6, 6, 6)), brass, Vector3(0, 37, 1))
-	_eye(self, Vector3(-1.6, 37.5, 4.2), 0.9, Color(1.0, 0.35, 0.05))
-	_eye(self, Vector3(1.6, 37.5, 4.2), 0.9, Color(1.0, 0.35, 0.05))
+	var head := Node3D.new()
+	head.position = Vector3(0, 35, 1)
+	add_child(head)
+	_part(head, _box(Vector3(6, 6, 6)), brass, Vector3(0, 2, 0))
+	_eye(head, Vector3(-1.6, 2.5, 3.2), 0.9, Color(1.0, 0.35, 0.05))
+	_eye(head, Vector3(1.6, 2.5, 3.2), 0.9, Color(1.0, 0.35, 0.05))
+	_part(head, _box(Vector3(3.5, 0.8, 0.6)), _mat(Color(1.0, 0.4, 0.05), 0.3, 3.0), Vector3(0, 0.4, 3.1))
+	_marker(head, Vector3(0, 0.4, 3.8), "mouth")
+	_rig["head"] = head
 	for s in [-1.0, 1.0]:
 		_part(self, _box(Vector3(5, 18, 5)), brass, Vector3(s * 5.0, 9, 0))
 		_part(self, _box(Vector3(7, 3, 9)), dark, Vector3(s * 5.0, 1.5, 1.5))
-		_part(self, _sphere(4.0), dark, Vector3(s * 10.0, 28, 0))
-		_part(self, _box(Vector3(4.0, 16, 4.0)), brass, Vector3(s * 11.0, 18, 2.0), Vector3(-25, 0, 0))
-		_part(self, _box(Vector3(7, 7, 7)), dark, Vector3(s * 11.0, 9, 8.0))
+		var arm := Node3D.new()  # pivots at the shoulder so the fist can be raised and slammed
+		arm.position = Vector3(s * 10.0, 28, 0)
+		add_child(arm)
+		_part(arm, _sphere(4.0), dark, Vector3.ZERO)
+		_part(arm, _box(Vector3(4.0, 16, 4.0)), brass, Vector3(s * 1.0, -10, 2.0), Vector3(-25, 0, 0))
+		_part(arm, _box(Vector3(7, 7, 7)), dark, Vector3(s * 1.0, -19, 8.0))
+		for k in 4:
+			_part(arm, _box(Vector3(1.4, 1.6, 2.0)), brass, Vector3(s * 1.0 - 2.4 + float(k) * 1.6, -16.2, 11.4))
+		arm.set_meta("tip", Vector3(s * 1.0, -19, 8.0))
+		_rig["arm_r" if s > 0.0 else "arm_l"] = arm
 	for i in 3:
 		_part(self, _cyl(0.9, 1.1, 10.0), dark, Vector3(-4.0 + float(i) * 4.0, 33, -4.0))
 		_part(self, _sphere(2.6, 0.6), _mat(Color(0.85, 0.85, 0.85), 0.9, 0.0, 0.4), Vector3(-4.0 + float(i) * 4.0, 41.0 + float(i % 2) * 2.0, -4.0))
@@ -254,26 +445,40 @@ func _leviathan() -> void:
 	for i in 8:
 		var r: float = 9.0 - float(i) * 0.5
 		_part(self, _sphere(r, 0.9), m, Vector3(sin(float(i)) * 14.0, 0.0, float(i) * -10.0))
-	_part(self, _sphere(13.0, 0.9), m, Vector3(0, 12, 22), Vector3(-20, 0, 0))
-	_part(self, _cyl(8.0, 6.0, 20.0), m, Vector3(0, 8, 36), Vector3(80, 0, 0))
+	var head := Node3D.new()  # pivots at the neck so it can rear back and breathe
+	head.position = Vector3(0, 12, 22)
+	add_child(head)
+	_part(head, _sphere(13.0, 0.9), m, Vector3.ZERO, Vector3(-20, 0, 0))
+	_part(head, _cyl(8.0, 6.0, 20.0), m, Vector3(0, -4, 14), Vector3(80, 0, 0))
 	for k in 7:
 		var x: float = -6.0 + float(k) * 2.0
-		_part(self, _cone(1.2, 7.0), _mat(Color(0.95, 0.98, 1.0), 0.15), Vector3(x, 14.0, 41.0), Vector3(180, 0, 0))
-		_part(self, _cone(1.2, 7.0), _mat(Color(0.95, 0.98, 1.0), 0.15), Vector3(x, 2.0, 41.0))
+		_part(head, _cone(1.2, 7.0), _mat(Color(0.95, 0.98, 1.0), 0.15), Vector3(x, 2.0, 19.0), Vector3(180, 0, 0))
+		_part(head, _cone(1.2, 7.0), _mat(Color(0.95, 0.98, 1.0), 0.15), Vector3(x, -10.0, 19.0))
+	_eye(head, Vector3(-9, 6, 8), 2.8, Color(0.4, 0.9, 1.0))
+	_eye(head, Vector3(9, 6, 8), 2.8, Color(0.4, 0.9, 1.0))
+	_marker(head, Vector3(0, -4, 25), "mouth")
+	_rig["head"] = head
 	for k in 9:
 		var a: float = float(k) * 0.9
 		_part(self, _cone(2.5 + float(k % 3), 14.0 + float(k % 4) * 5.0), _mat(Color(0.85, 0.95, 1.0), 0.1, 0.0, 0.9), Vector3(sin(a) * 6.0, 14.0, 18.0 - float(k) * 5.0))
-	_eye(self, Vector3(-9, 18, 30), 2.8, Color(0.4, 0.9, 1.0))
-	_eye(self, Vector3(9, 18, 30), 2.8, Color(0.4, 0.9, 1.0))
 
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _strike_t >= 0.0:
+		_strike_t += delta
+		if _strike_t >= STRIKE_S:
+			calm()
+	if not _rest.is_empty():
+		_apply_pose()
 	for i in _sway.size():
 		var n: Node3D = _sway[i]
-		if n == self:
-			n.position.y = sin(_t * 0.6) * 1.6
-			n.rotation.z = sin(_t * 0.5) * 0.03
+		if n == _rig.get("body"):
+			n.position.y += sin(_t * 0.6) * 1.6
+			n.rotation.z += sin(_t * 0.5) * 0.03
+		elif _rest.has(n):  # a rigged limb: the pose was just set, sway on top of it
+			n.rotation.x += sin(_t * 0.8 + float(i)) * 0.09
+			n.rotation.z += cos(_t * 0.6 + float(i) * 1.7) * 0.07
 		else:
 			n.rotation.x = sin(_t * 0.8 + float(i)) * 0.09
 			n.rotation.z = cos(_t * 0.6 + float(i) * 1.7) * 0.07

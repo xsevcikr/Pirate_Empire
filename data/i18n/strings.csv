@@ -1216,6 +1216,92 @@ cat.lagoon_pier_desc,Each berth moors one ship of your fleet.,Každé kotviště
 cat.lagoon_unclaimed,Claim Skull Atoll first,Nejdřív obsaď Lebčí atol
 cat.stat_berths,Berths,Kotviště
 cat.stat_next,Next level,Další úroveň
+atk.claw_smash,Giant claw smash,Úder obřím klepetem
+atk.bubble_spit,Acid bubble spit,Plivnutí kyselých bublin
+atk.venom_spit,Venom spit,Plivnutí jedu
+atk.siren_shriek,Siren shriek,Sirénin skřek
+atk.tidal_slap,Tidal slap,Přílivová facka
+atk.ink_spit,Ink spit,Plivnutí inkoustu
+atk.maw_from_below,Maw from below,Chřtán zespodu
+atk.phantom_broadside,Phantom broadside,Přízračná salva
+atk.soul_chains,Soul chains,Řetězy duší
+atk.death_wail,Death wail,Smrtelný nářek
+atk.fist_slam,Giant fist slam,Úder obří pěstí
+atk.rocket_fist,Rocket fist,Raketová pěst
+atk.overheat,Overheat,Přehřátí
+atk.icicle_rain,Icicle rain,Déšť rampouchů
+atk.glacier_dive,Glacier dive,Ledovcový ponor
+atk.frost_lock,Frost lock,Mrazivé sevření
+tell.pincer_sweep,The Shell King draws its pincer back low.,Král lastur stahuje klepeto nízko dozadu.
+tell.claw_smash,The Shell King lifts its giant claw high over you!,Král lastur zvedá obří klepeto vysoko nad tebe!
+tell.bubble_spit,Its mouth foams with green acid bubbles.,Z tlamy mu pění zelené kyselé bubliny.
+tell.burrow_burst,It digs into the sand. The ground under you trembles.,Zahrabává se do písku. Zem pod tebou se chvěje.
+tell.shell_spin,It pulls into its shell and starts to spin.,Zatahuje se do krunýře a začíná se točit.
+tell.venom_spit,The serpent's throat swells green with venom.,Hadovi se hrdlo nadouvá zeleným jedem.
+tell.head_strike,The serpent rears its head back to strike.,Had zaklání hlavu k úderu.
+tell.coil,Its coils rise around your hull.,Jeho smyčky se zvedají kolem trupu.
+tell.tail_sweep,A huge tail lifts out of the water beside you.,Vedle tebe se z vody zvedá obrovský ocas.
+tell.siren_shriek,The serpent opens its jaws wide and draws breath.,Had rozevírá čelisti a nabírá dech.
+tell.tentacle_slam,A tentacle rises high above the deck!,Nad palubou se vysoko zvedá chapadlo!
+tell.tidal_slap,A tentacle swings back flat across the water.,Chapadlo se rozmachuje naplocho nad vodou.
+tell.grab_and_crush,A tentacle reaches for the hull. Cut it!,Chapadlo se natahuje po trupu. Usekni ho!
+tell.ink_spit,The Kraken's beak swells black.,Krakenovi černá zobák.
+tell.pull_into_whirlpool,The water starts to turn around the Kraken.,Voda se kolem Krakena začíná točit.
+tell.maw_from_below,The Kraken sinks. Bubbles rise right under you!,Kraken se noří. Přímo pod tebou stoupají bubliny!
+tell.teleport_behind,The ghost ship fades into the fog.,Přízračná loď mizí v mlze.
+tell.phantom_broadside,Green fire glows in the ghost ship's gun ports.,Ve střílnách přízračné lodi žhne zelený oheň.
+tell.soul_chains,Chains of light hang from its lantern toward you.,Z její lucerny k tobě visí řetězy světla.
+tell.lightning_storm,The sky over you turns green and crackles.,Nebe nad tebou zezelená a praská.
+tell.skeletal_boarders,Skeletons climb onto the ghost ship's rail.,Na zábradlí přízračné lodi šplhají kostlivci.
+tell.cursed_lantern,The Admiral swings his cursed lantern back.,Admirál se rozmachuje prokletou lucernou.
+tell.death_wail,The Admiral throws back his head to wail.,Admirál zaklání hlavu k nářku.
+tell.fist_slam,The Colossus raises its giant brass fist!,Kolos zvedá obří mosaznou pěst!
+tell.steam_blast,Steam hisses from the Colossus's vents.,Z průduchů kolosu syčí pára.
+tell.rocket_fist,Its fist spins up on its chain. It will fly!,Pěst se na řetězu roztáčí. Poletí!
+tell.flame_jets,Its mouth glows orange.,Tlama mu žhne oranžově.
+tell.ground_slam,The Colossus lifts both fists for a slam.,Kolos zvedá obě pěsti k úderu.
+tell.overheat,Its core glows white hot. Cool it down!,Jeho jádro žhne do běla. Zchlaď ho!
+tell.hurl_ice,The Leviathan rips a block of ice from the floe.,Leviatan vytrhává z kry kus ledu.
+tell.freezing_breath,Frost gathers in the Leviathan's jaws.,V čelistech leviatana se sbírá mráz.
+tell.icicle_rain,The Leviathan roars at the sky. Icicles form above you.,Leviatan řve k nebi. Nad tebou rostou rampouchy.
+tell.break_ice,The Leviathan rears up over the ice field.,Leviatan se vztyčuje nad ledovým polem.
+tell.glacier_dive,The Leviathan dives. The ice under you cracks.,Leviatan se noří. Led pod tebou praská.
+tell.frost_lock,Ice creeps up your hull. Blast it free!,Po trupu se plazí led. Rozstřel ho!
+tell.line_ahead_broadsides,Valcourt's line turns broadside on.,Valcourtova linie se stáčí bokem.
+tell.board_if_close,Grapnels swing on Valcourt's rail.,Na Valcourtově zábradlí se houpou háky.
+tell.fire_ships,Burning ships drift out of Valcourt's line.,Z Valcourtovy linie vyplouvají hořící lodě.
+tell.iron_bulwark,Valcourt's ships close up shoulder to shoulder.,Valcourtovy lodě se sevřou bok po boku.
+tell.ram_and_board,Valcourt's flagship turns its bow at you.,Valcourtova vlajková loď se k tobě stáčí přídí.
+tell.captain_duel,Valcourt draws his sword on the rail.,Valcourt na zábradlí tasí meč.
+tell.fleet_duel,Black Ibrahim's fleet runs out its guns.,Flotila Černého Ibrahima vysouvá děla.
+tell.frigate_formation,His frigates swing into a wedge.,Jeho fregaty se řadí do klínu.
+tell.mortar_rain,Mortars thump. Shells whistle overhead!,Bouchají minomety. Nad hlavou hvízdají granáty!
+tell.bombard_bases,His fleet turns its guns on your harbour.,Jeho flotila míří děly na tvůj přístav.
+tell.burning_deck_duel,Ibrahim's men throw fire onto your deck.,Ibrahimovi muži házejí oheň na tvou palubu.
+tell.attack_pattern_three,Every ship of his fleet turns toward you.,Každá loď jeho flotily se stáčí k tobě.
+answer.dodge,Dodge it!,Uhni!
+answer.block,Block it! It cannot be dodged.,Blokuj! Uhnout se nedá.
+answer.either,Dodge or block!,Uhni nebo blokuj!
+answer.strike,Strike the arm before it closes!,"Udeř do chapadla, než sevře!"
+answer.chain_shot,"Chain shot the coils, or brace!","Řetězovou střelou do smyček, nebo se připrav!"
+answer.shoot_lantern,"Shoot the lantern, or brace!","Sestřel lucernu, nebo se připrav!"
+answer.cool_core,Cool the core now!,Hned chlaď jádro!
+answer.explosive_shot,Fire an explosive shell into the ice!,Vystřel do ledu výbušný granát!
+answer.none,Nothing to do but wait.,Nezbývá než čekat.
+act.block,Block / brace,Blokovat / připravit se
+fight.outcome.hit,%s hits you!,%s tě zasáhl!
+fight.outcome.dodged,You dodged the %s. It is open!,Uhnul jsi před: %s. Je otevřený!
+fight.outcome.blocked,You blocked the %s.,Zablokoval jsi: %s.
+fight.outcome.countered,You broke the %s. It is open!,Překazil jsi: %s. Je otevřený!
+fight.you,You %d / %d,Ty %d / %d
+fight.hull,Hull %d / %d,Trup %d / %d
+fight.effect.poison,Poisoned,Otrávený
+fight.effect.burn,Burning,Hoříš
+fight.effect.blind,Blinded,Oslepený
+fight.effect.slow,Stuck: cannot dodge,Uvízlý: nemůžeš uhnout
+fight.effect.stun,Stunned,Omráčený
+fight.phase.1,It roars in fury and comes on faster!,Zařve vzteky a útočí rychleji!
+fight.phase.2,It is desperate now. Watch out!,Teď už je zoufalý. Pozor!
 ship.pinnace,Pinnace,Pinasa
 ship.xebec,Xebec,Šebeka
 ship.corvette,Corvette,Korveta
