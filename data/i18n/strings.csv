@@ -64,7 +64,7 @@ tut.sell_fish,Open the market and sell the fish.,Otevři trh a prodej ryby.
 tut.hire_crew,Hire four deckhands at the tavern. Crew eat every day.,Najmi v hospodě čtyři lodníky. Posádka jí každý den.
 tut.buy_food,Buy food at the market. One unit feeds four crew for a day.,Kup na trhu jídlo. Jedna jednotka nasytí čtyři muže na den.
 tut.quest_board,Take a job from the quest board.,Vezmi si zakázku z nástěnky.
-hud.dock_hint,Press Space to dock,Mezerníkem zakotvíš
+hud.dock_hint,"Space: harbour menu   F: tie up the ship and go ashore with the crew","Mezerník: přístav   F: přivaž loď a vystup s posádkou na břeh"
 hud.status,Gold %d   Food %.1f d   Water %.1f d   Cargo %.2f / %.1f t   Morale %d (%s),Zlato %d   Jídlo %.1f d   Voda %.1f d   Náklad %.2f / %.1f t   Morálka %d (%s)
 port.header,Gold %d   Cargo %.2f / %.1f t   Food %.1f days,Zlato %d   Náklad %.2f / %.1f t   Jídlo %.1f dne
 port.market,Market,Trh
@@ -300,7 +300,7 @@ tide.rising,rising,stoupá
 tide.falling,falling,klesá
 port.walk,Walk the docks,Projít přístavem
 dock.district,Dock district,Přístavní čtvrť
-dock.use,Press E: %s,Stiskni E: %s
+dock.use,Press F: %s,Stiskni F: %s
 dock.sign_market,Market,Trh
 dock.sign_shipyard,Shipyard,Loděnice
 dock.sign_tavern,Tavern,Hospoda
@@ -1189,7 +1189,7 @@ cat.stat_vs_crew,vs crew,na posádku
 cat.stat_units,Crates,Bedny
 cat.small_arms_desc,Each crate of small-arms shot loads %d pistol shots.,Každá bedna střeliva nabije %d pistolových ran.
 cat.no_small_arms,Buy small-arms shot at the market first,Nejdřív kup střelivo na trhu
-lagoon.hint,Press Space to go ashore at your lagoon,Mezerníkem vystoupíš ve své laguně
+lagoon.hint,Press Space or F to go ashore at your lagoon,Mezerníkem nebo F vystoupíš ve své laguně
 lagoon.unclaimed,"No one lives on Skull Atoll. Claim it and build a pirate lagoon where you and your crew live, with houses, a tavern, a harbour for your fleet and defences against the navy.","Na Lebkovém atolu nikdo nežije. Zaber ho a postav si pirátskou lagunu, kde budeš žít se svou posádkou: domy, krčma, přístav pro tvou flotilu a obrana proti námořnictvu."
 lagoon.claim,Claim Skull Atoll (%d gold),Zabrat Lebkový atol (%d zlaťáků)
 lagoon.claimed,Skull Atoll is yours! Build your pirate lagoon.,Lebkový atol je tvůj! Postav si pirátskou lagunu.
@@ -1447,3 +1447,5 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+moor.too_fast,Slow down to tie up at the harbour,"Zpomal, abys mohl přivázat loď v přístavu"
+moor.ashore,Your ship is tied up at the pier. %d crew came ashore with you.,Loď je přivázaná u mola. Na břeh s tebou vystoupilo %d mužů.

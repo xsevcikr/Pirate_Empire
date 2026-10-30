@@ -4,6 +4,8 @@ extends MenuScreen
 
 var port_id: String = PortData.START_PORT
 var world: Node
+## Came ashore with F: straight into the street with the crew, and walking back onto the pier sets sail again.
+var on_foot: bool = false
 var _district: DockDistrict
 
 
@@ -16,6 +18,9 @@ func _ready() -> void:
 	_title_key = ""
 	get_tree().paused = true
 	super()
+	if on_foot:
+		visible = false
+		walk_ashore.call_deferred()
 
 
 func build() -> void:
@@ -37,15 +42,29 @@ func build() -> void:
 
 
 func _walk_the_docks() -> void:
+	if _district != null and is_instance_valid(_district):
+		return
 	_district = DockDistrict.new()
 	_district.port_id = port_id
+	if on_foot and Session.has_state():
+		_district.shore_party = Mooring.shore_party(Session.state["roster"])
+		_district.ship_class = str(Session.state["ship_class"])
 	get_tree().current_scene.add_child(_district)
 	visible = false
 	_district.door_used.connect(_on_door)
 	_district.left.connect(func() -> void:
 		_district = null
+		if on_foot:  # back up the gangway: the walk ashore was the whole visit
+			close()
+			return
 		visible = true
 		_rebuild())
+
+
+## Ashore with the crew: the dock district at once, with the ship tied up at the pier behind them.
+func walk_ashore() -> void:
+	if is_inside_tree():
+		_walk_the_docks()
 
 
 func _on_door(kind: String) -> void:
