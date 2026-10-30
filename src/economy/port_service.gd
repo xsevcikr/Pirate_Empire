@@ -22,6 +22,7 @@ static func market_of(state: Dictionary, port_id: String) -> Market:
 	var saved: Dictionary = state["markets"].get(port_id, {})
 	if not saved.is_empty():
 		m.load_dict(saved)
+	m.rep_mod = float(TradeData.REP_MOD[Reputation.tier(float(state["rep"].get(PortData.PORTS[port_id]["faction"], 0.0)))])
 	return m
 
 

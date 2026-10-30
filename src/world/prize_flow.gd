@@ -130,6 +130,9 @@ func finish_prize(ship: Ship, loot: Dictionary, fate: int) -> void:
 	var bus: Node = Svc.node("EventBus")
 	CrewLife.add_morale(Session.state, Morale.DELTA["victory"])
 	CrewLife.award_xp(Session.state, "battle")
+	if ship.has_meta("convoy"):
+		TradeNetwork.lose_ships(Session.state, int(ship.get_meta("convoy")), 1)
+		ship.remove_meta("convoy")
 	var info: Dictionary = {"quest": str(ship.get_meta("quest", "")), "tutorial": str(ship.get_meta("tutorial", "")), "loot": loot, "fate": fate}
 	if loot["map_fragment"] != "":
 		Session.state["map_fragments"].append(loot["map_fragment"])
