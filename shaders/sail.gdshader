@@ -12,6 +12,8 @@ uniform vec3 trim_color : source_color = vec3(0.42, 0.05, 0.04);
 uniform float trim_width = 0.045;
 uniform vec3 stain_color : source_color = vec3(0.55, 0.45, 0.32);
 uniform float time_offset = 0.0;
+uniform int pattern = 0;  // 0 plain, 1 striped, 2 skull, 3 torn, 4 black
+uniform vec3 mark_color : source_color = vec3(0.1, 0.1, 0.1);
 
 varying vec2 v_uv;
 varying vec3 v_obj;
@@ -63,8 +65,20 @@ void fragment() {
 	float trim = smoothstep(trim_width, trim_width - 0.012, edge_d);
 	float reef = smoothstep(0.012, 0.0, abs(v_uv.y - 0.82) - 0.01) * 0.35;
 	col = mix(col, trim_color * (0.9 + 0.2 * weave), max(trim, reef));
+	if (pattern == 1) {
+		col = mix(col, mark_color, step(0.5, fract(v_uv.y * 6.0)) * 0.85);
+	} else if (pattern == 2) {
+		vec2 sp = (v_uv - vec2(0.5, 0.45)) * vec2(1.6, 1.0);
+		float head = 1.0 - smoothstep(0.17, 0.19, length(sp * vec2(1.0, 1.1)));
+		float eyes = step(min(length(sp - vec2(-0.07, 0.04)), length(sp - vec2(0.07, 0.04))), 0.045);
+		float bone = step(abs(abs(sp.x) - abs(sp.y + 0.2)), 0.025) * step(abs(sp.y + 0.2), 0.14);
+		col = mix(col, mark_color, clamp(head * (1.0 - eyes) + bone, 0.0, 1.0));
+	} else if (pattern == 4) {
+		col = mix(col, mark_color, 0.92);
+	}
+	float tear_bias = pattern == 3 ? 0.35 : 0.0;
 	float hole = fbm(v_uv * 9.0 + 7.0);
-	if (hole < damage * 0.55) {
+	if (hole < max(damage, tear_bias * smoothstep(0.55, 1.0, v_uv.y)) * 0.55) {
 		discard;
 	}
 	float edge = smoothstep(damage * 0.55, damage * 0.55 + 0.04, hole);

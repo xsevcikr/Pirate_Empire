@@ -95,7 +95,7 @@ static func sell_good(state: Dictionary, market: Market, good: String, units: in
 	var n: int = mini(units, have)
 	if n <= 0:
 		return 0
-	var gain: int = floori(market.player_sell(good, n))
+	var gain: int = floori(market.player_sell(good, n) * Progression.stat(state, "sell_price_mult"))
 	state["cargo"][good] = float(have - n)
 	if have - n <= 0:
 		state["cargo"].erase(good)
@@ -146,7 +146,7 @@ static func hire(state: Dictionary, tier: String, port_id: String) -> bool:
 	var cm := CrewManager.new()
 	cm.gold = int(state["gold"])
 	var level: int = PortData.PORTS[port_id]["tavern_level"]
-	if not cm.hire(1, tier, level, int(state["crew"]), ship_stats(state["ship_class"]).crew_max):
+	if not cm.hire(1, tier, level, int(state["crew"]), ship_stats(state["ship_class"]).crew_max, Progression.stat(state, "hire_cost_mult")):
 		return false
 	state["gold"] = cm.gold
 	var rng := RandomNumberGenerator.new()

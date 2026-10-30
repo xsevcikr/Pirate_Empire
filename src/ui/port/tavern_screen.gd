@@ -37,6 +37,10 @@ func build() -> void:
 	add_text("  " + Loc.t("rumour.%d" % (int(s["day"]) % 3)))
 	if TutorialData.index_of(s["tutorial"]) <= TutorialData.index_of("hunt_lugger"):
 		add_item_row(Loc.t("port.old_finn"), [[Loc.t("port.talk"), _talk_finn]])
+	add_button("games.title", func() -> void:
+		var menu := MiniGameMenu.new()
+		menu.port_id = port_id
+		open_child(menu))
 	add_button("menu.back", close)
 
 

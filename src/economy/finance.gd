@@ -31,7 +31,7 @@ static func accrue(state: Dictionary, days: float) -> int:
 
 
 static func insurance_premium(state: Dictionary) -> int:
-	return ceili(float(PortService.ship_stats(state["ship_class"]).price) * TradeData.INSURANCE_PREMIUM)
+	return ceili(float(PortService.ship_stats(state["ship_class"]).price) * TradeData.INSURANCE_PREMIUM * Progression.stat(state, "insurance_cost_mult"))
 
 
 static func buy_insurance(state: Dictionary) -> bool:

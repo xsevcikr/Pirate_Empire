@@ -15,6 +15,8 @@ var ammo_id: String = "round"
 var ammo: Dictionary = {"round": 300, "chain": 60, "grape": 60, "heated": 0, "explosive": 0}
 var elevation_deg: float = 3.0
 var spread_scale: float = 1.0
+var double_shot_chance: float = 0.0  ## gunnery skill: a gun sometimes sends a second ball for free
+var mast_crit: float = 0.0  ## gunnery skill: extra chance a hit snaps a weakened mast
 var reload_scale: float = 1.0  ## gunners aboard shorten the reload
 var projectiles: ProjectileManager
 var shots_fired: int = 0
@@ -132,6 +134,8 @@ func _shoot(side: int, idx: int) -> void:
 	var muzzle_world: Vector3 = ship.to_global(muzzle_local(side, idx))
 	var vel: Vector3 = dir * muzzle_speed() + ship.linear_velocity
 	projectiles.fire(muzzle_world, vel, gun_id, ammo_id, ship)
+	if double_shot_chance > 0.0 and _rng.randf() < double_shot_chance:
+		projectiles.fire(muzzle_world, vel.rotated(Vector3.UP, deg_to_rad(_rng.randfn(0.0, 1.0))), gun_id, ammo_id, ship)
 	Vfx.muzzle(ship.get_parent(), muzzle_world, dir)
 	var ball_mass: float = GunData.GUNS[gun_id]["damage"] / 40.0 * 2.7
 	ship.apply_impulse(-dir * ball_mass * muzzle_speed() * RECOIL_SCALE, ship.to_global(muzzle_local(side, idx)) - ship.global_position)

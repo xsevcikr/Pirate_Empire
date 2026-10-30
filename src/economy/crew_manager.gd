@@ -39,12 +39,12 @@ static func efficiency_mult(morale_value: float) -> float:
 
 
 ## Hire `count` crew of `tier`. Refused when funds are short, the tier needs a tavern level you lack, or the ship is full.
-func hire(count: int, tier: String, tavern_level: int, current_crew: int, crew_max: int) -> bool:
+func hire(count: int, tier: String, tavern_level: int, current_crew: int, crew_max: int, cost_mult: float = 1.0) -> bool:
 	if count <= 0 or current_crew + count > crew_max:
 		return false
 	if tier == "seasoned" and tavern_level < 2:
 		return false
-	var cost: int = HIRE_COST[tier] * count
+	var cost: int = ceili(float(HIRE_COST[tier] * count) * cost_mult)
 	if cost > gold:
 		return false
 	gold -= cost

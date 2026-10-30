@@ -18,3 +18,10 @@ signal player_defeated(result: Dictionary)
 signal inspection_resolved(port_id: String, choice: int)
 signal ship_sunk(pos: Vector2, class_id: String)
 signal building_destroyed(port_id: String, kind: String, by_player: bool)
+## Progression: a boarding fight ended (parries are the captain's in a deck fight, 0 otherwise).
+signal boarding_resolved(player_won: bool, parries: int, outnumbered: bool)
+## Progression: any counter for achievements and lifetime stats ("kedged_free", "convoy_goods_sold", ...).
+signal stat_event(stat_name: String, amount: float)
+signal level_up(level: int)
+signal achievement_unlocked(id: String)
+signal island_found(island_name: String)

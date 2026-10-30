@@ -156,6 +156,9 @@ func apply_hit(hit: HitInfo) -> Dictionary:
 		mast_hp[m] = maxf(mast_hp[m] - sdmg * 0.25, 0.0)
 		result["sail"] = sdmg
 		var snap: bool = hit.ammo_id == "chain" and mast_hp[m] < mast_max * 0.25 and rng.randf() < 0.15
+		var crit: float = (hit.source as Ship).broadside.mast_crit if hit.source is Ship else 0.0
+		if crit > 0.0 and mast_hp[m] < mast_max * 0.5 and rng.randf() < crit:
+			snap = true
 		if (mast_hp[m] <= 0.0 or snap) and not mast_down[m]:
 			mast_down[m] = true
 			result["mast_fell"] = m
