@@ -29,9 +29,19 @@ const ACTIONS: Dictionary = {
 
 
 static func register() -> void:
+	if not InputMap.has_action("pause"):
+		InputMap.add_action("pause")
+		var esc := InputEventKey.new()
+		esc.physical_keycode = KEY_ESCAPE
+		InputMap.action_add_event("pause", esc)
+		var start := InputEventJoypadButton.new()
+		start.button_index = JOY_BUTTON_START
+		InputMap.action_add_event("pause", start)
 	for action: String in ACTIONS:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)
+		elif not InputMap.action_get_events(action).is_empty():
+			continue
 		for key: int in ACTIONS[action]:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = key as Key

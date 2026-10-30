@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 2
+const VERSION: int = 3
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -12,6 +12,7 @@ static func new_state() -> Dictionary:
 		"crew": 12, "morale": 70.0, "cargo": {}, "upgrades": {}, "officers": [],
 		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "act": 0, "beat": 0,
 		"fleet": [], "bases": [], "marque": "", "seed": 1, "difficulty": 1,
+		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 3, "playtime": 0.0, "saved_at": 0,
 	}
 
 
@@ -28,7 +29,7 @@ static func from_json(text: String) -> Dictionary:
 
 ## JSON turns ints into floats; put the integer fields back so a round trip compares equal.
 static func _restore_types(d: Dictionary) -> Dictionary:
-	for k in ["version", "gold", "day", "crew", "act", "beat", "seed", "difficulty"]:
+	for k in ["version", "gold", "day", "crew", "act", "beat", "seed", "difficulty", "saved_at"]:
 		if d.has(k):
 			d[k] = int(d[k])
 	return d
@@ -50,6 +51,9 @@ static func migrate(d: Dictionary) -> Dictionary:
 		d["bases"] = d.get("bases", [])
 		d["marque"] = ""
 		d["version"] = 2
+	if v < 3:
+		# v3 adds the world position and slot metadata; the defaults below fill them in.
+		d["version"] = 3
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

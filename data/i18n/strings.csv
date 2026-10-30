@@ -9,3 +9,47 @@ hud.wind,Wind,Vítr
 hud.grapple,Hold to grapple,Podrž pro přichycení
 boarding.victory,Victory! The ship is yours.,Vítězství! Loď je tvoje.
 mutiny.warning,The crew is close to mutiny.,Posádka se blíží vzpouře.
+game.title,Pirate Empire,Pirate Empire
+menu.continue,Continue,Pokračovat
+menu.new_game,New Game,Nová hra
+menu.settings,Settings,Nastavení
+menu.back,Back,Zpět
+menu.start,Set sail,Vyplout
+menu.captain_name,Captain name,Jméno kapitána
+menu.default_captain,Captain,Kapitán
+menu.difficulty,Difficulty,Obtížnost
+menu.diff_0,Deckhand,Lodník
+menu.diff_1,Buccaneer,Bukanýr
+menu.diff_2,Corsair,Korzár
+menu.diff_3,Dread Pirate,Hrůzný pirát
+menu.seed,World seed,Seed světa
+menu.paused,Paused,Pozastaveno
+menu.resume,Resume,Pokračovat ve hře
+menu.quit_to_menu,Quit to main menu,Zpět do hlavní nabídky
+menu.slot,Slot %d,Slot %d
+menu.autosave,Autosave,Automatické uložení
+menu.empty_slot,Empty,Prázdný
+menu.slot_summary,"%s, day %d, %d gold, %d crew, saved %s","%s, den %d, %d zlaťáků, %d mužů, uloženo %s"
+menu.loading,Loading...,Načítání...
+menu.tip_0,Sail with the wind on your beam for top speed.,Pro nejvyšší rychlost plují s větrem z boku.
+menu.tip_1,Shoot at the sails to catch a fleeing ship.,Střílej do plachet a dohoň prchající loď.
+menu.tip_2,Keep your crew fed and paid or they will mutiny.,Krm a plať posádku jinak se vzbouří.
+menu.page_general,General,Obecné
+menu.page_access,Accessibility,Přístupnost
+menu.page_keys,Controls,Ovládání
+menu.graphics,Graphics preset,Grafika
+menu.preset_low,Low,Nízká
+menu.preset_medium,Medium,Střední
+menu.preset_high,High,Vysoká
+menu.preset_ultra,Ultra,Ultra
+menu.preset_deck,Steam Deck,Steam Deck
+menu.volume,Master volume,Hlasitost
+menu.language,Language,Jazyk
+menu.lang_en,English,English
+menu.lang_cs,Čeština,Čeština
+menu.camera_shake,Camera shake,Otřesy kamery
+menu.fov,Field of view,Zorné pole
+menu.subtitles,Subtitles,Titulky
+menu.colorblind,Colorblind markers,Značky pro barvoslepé
+menu.reset_keys,Reset keys to default,Obnovit výchozí klávesy
+menu.press_key,Press a key...,Stiskni klávesu...
