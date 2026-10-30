@@ -7,6 +7,7 @@ signal loaded
 var target_path: String = ""
 var _bar: ProgressBar
 var _requested: bool = false
+var _clock_was_paused: bool = false
 
 
 func _ready() -> void:
@@ -38,6 +39,18 @@ func _ready() -> void:
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(tip)
 	_requested = ResourceLoader.load_threaded_request(target_path) == OK
+	# No game time passes behind the loading screen. A slow load used to run the clock past midnight, so the crew ate
+	# a day's food before the captain had even set sail (and M12's loot check failed on slow machines).
+	var clock: Node = Svc.node("GameClock")
+	if clock != null:
+		_clock_was_paused = bool(clock.paused)
+		clock.paused = true
+
+
+func _exit_tree() -> void:
+	var clock: Node = Svc.node("GameClock")
+	if clock != null:
+		clock.paused = _clock_was_paused
 
 
 func _process(_delta: float) -> void:

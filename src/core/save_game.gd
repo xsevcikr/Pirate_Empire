@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 14
+const VERSION: int = 17
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -18,7 +18,7 @@ static func new_state() -> Dictionary:
 		"mutiny_shield_day": -99, "last_tick_day": 1, "offers_window": -1, "offers_taken": [], "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
 		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "streams_known": [], "course": [], "wrecks": [], "destroyed": {}, "tours": {}, "rivals": {}, "sea_events": {}, "prizes_taken": 0, "captain_xp": 0, "skills": {}, "skill_points_spent": 0, "stats": {}, "achievements": {}, "islands_seen": [], "trade_rem": 0, "custom": {}, "siren_paid": false, "act": 0, "beat": 0,
 		"landings": {},
-		"fleet": [], "bases": [], "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
+		"fleet": [], "bases": [], "lagoon": {}, "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
 	}
 
@@ -39,6 +39,8 @@ static func _restore_types(d: Dictionary) -> Dictionary:
 	for k in ["version", "gold", "day", "crew", "act", "beat", "seed", "difficulty", "saved_at", "wounded", "starve_days", "thirst_days", "unpaid_days", "mutiny_shield_day", "last_tick_day", "captain_level", "captain_xp", "skill_points_spent", "trade_rem", "bank", "convoy_seq", "convoys_lost"]:
 		if d.has(k):
 			d[k] = int(d[k])
+	if d.get("lagoon") is Dictionary:
+		Lagoon.restore_types(d)
 	return d
 
 
@@ -95,9 +97,14 @@ static func migrate(d: Dictionary) -> Dictionary:
 		d["landings"] = {}
 		d["version"] = 13
 	if v < 14:
-		# v14: every man on deck, the captain too, has 200 hit points, and the captain's now carry between fights.
-		d["captain_hp"] = 200.0
+		# v14 adds the player's own lagoon on Skull Atoll. Old saves start with it unclaimed.
+		d["lagoon"] = {}
 		d["version"] = 14
+	if v < 17:
+		# v17: every man on deck, the captain too, has 200 hit points, and the captain's now carry between fights.
+		# (v15 and v16 belong to the rival crews and crash damage.)
+		d["captain_hp"] = 200.0
+		d["version"] = 17
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

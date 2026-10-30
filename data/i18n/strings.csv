@@ -1091,6 +1091,166 @@ orders.repair,Repair,Opravy
 orders.rum,Drink rum,Napít se rumu
 hud.captain_hp,Captain %d/%d health   rum for %d drinks,Kapitán %d/%d zdraví   rum na %d doušků
 hud.rum_drunk,A pull of rum: %d health,Doušek rumu: %d zdraví
+cat.title,Catalogue,Katalog
+cat.ships,Ships,Lodě
+cat.upgrades,Upgrades,Vylepšení
+cat.services,Yard services,Služby loděnice
+cat.weapons,Weapons,Zbraně
+cat.ammo,Cannon shot,Dělové střelivo
+cat.supplies,Small arms,Ruční zbraně
+cat.buy,Buy,Koupit
+cat.cannot,You cannot buy that yet.,Tohle zatím koupit nemůžeš.
+cat.bought,Bought: %s.,Koupeno: %s.
+cat.gold,%s g,%s zl
+cat.owned,Owned,Vlastníš
+cat.maxed,Fully upgraded,Plně vylepšeno
+cat.free,Free,Zdarma
+cat.stat_speed,Speed,Rychlost
+cat.stat_cargo,Cargo,Náklad
+cat.stat_guns,Guns,Děla
+cat.stat_crew,Crew,Posádka
+cat.stat_hull,Hull,Trup
+cat.stat_turn,Turning,Otáčení
+cat.stat_rudder,Rudder,Kormidlo
+cat.kn,%.1f kn,%.1f uzlů
+cat.tons,%d t,%d t
+cat.legendary,"Legendary ship, yours to command","Legendární loď, je tvoje"
+cat.trade_in,"List %s g, your ship trades in for %s g","Cena %s zl, tvoje loď se započte za %s zl"
+cat.pct_now,+%d%% (now +%d%%),+%d%% (teď +%d%%)
+cat.needs_yard,Needs a level %d shipyard,Vyžaduje loděnici úrovně %d
+cat.upg_desc.hull,Thicker planking: more hull points.,Silnější obšívka: víc bodů trupu.
+cat.upg_desc.armor,Iron plates turn aside light shot.,Železné pláty odrazí lehké koule.
+cat.upg_desc.sails,New canvas: faster and nimbler.,Nové plátno: rychlejší a obratnější.
+cat.upg_desc.rudder,A stronger rudder that turns quicker.,"Silnější kormidlo, rychlejší obraty."
+cat.upg_desc.cannons,Better guns for heavier broadsides.,Lepší děla pro těžší boční salvy.
+cat.upg_desc.ram,A reinforced bow for ramming.,Zesílená příď na taranování.
+cat.upg_desc.quarters,More bunks: room for more crew.,Víc kavalců: místo pro víc posádky.
+cat.upg_desc.specialty,Rare fittings from the master shipwright.,Vzácné vybavení od mistra loďaře.
+cat.repair_desc,Patch every hole in the hull.,Zalátat všechny díry v trupu.
+cat.insure_desc,Lose the ship and get most of it back.,"Když loď ztratíš, většinu dostaneš zpět."
+cat.kind.melee,Blade,Čepel
+cat.kind.offhand,Off-hand blade,Čepel do druhé ruky
+cat.kind.pistol,Pistol,Pistole
+cat.kind.long,Long gun,Dlouhá zbraň
+cat.kind.grenade,Throwing bomb,Vrhací bomba
+cat.stat_damage,Damage,Poškození
+cat.stat_reload,Reload,Nabíjení
+cat.stat_range,Range,Dostřel
+cat.stat_swing,Swing,Úder
+cat.seconds,%.1f s,%.1f s
+cat.metres,%d m,%d m
+cat.per_10,"10 shots per order, you have %d","10 ran v balení, máš %d"
+cat.stat_vs_hull,vs hull,na trup
+cat.stat_vs_sails,vs sails,na plachty
+cat.stat_vs_crew,vs crew,na posádku
+cat.stat_units,Crates,Bedny
+cat.small_arms_desc,Each crate of small-arms shot loads %d pistol shots.,Každá bedna střeliva nabije %d pistolových ran.
+cat.no_small_arms,Buy small-arms shot at the market first,Nejdřív kup střelivo na trhu
+lagoon.hint,Press Space to go ashore at your lagoon,Mezerníkem vystoupíš ve své laguně
+lagoon.unclaimed,"No one lives on Skull Atoll. Claim it and build a pirate lagoon where you and your crew live, with houses, a tavern, a harbour for your fleet and defences against the navy.","Na Lebkovém atolu nikdo nežije. Zaber ho a postav si pirátskou lagunu, kde budeš žít se svou posádkou: domy, krčma, přístav pro tvou flotilu a obrana proti námořnictvu."
+lagoon.claim,Claim Skull Atoll (%d gold),Zabrat Lebkový atol (%d zlaťáků)
+lagoon.claimed,Skull Atoll is yours! Build your pirate lagoon.,Lebkový atol je tvůj! Postav si pirátskou lagunu.
+lagoon.rank_hideout,Pirate Hideout,Pirátský úkryt
+lagoon.rank_cove,Pirate Cove,Pirátská zátoka
+lagoon.rank_haven,Pirate Haven,Pirátské útočiště
+lagoon.rank_capital,Pirate Capital,Pirátské hlavní město
+lagoon.landing,"Ashore: +%d gold from the chest, +%d food from the larder, morale +%d, %d wounded tended, hull +%d%%","Na břehu: +%d zlaťáků z truhly, +%d jídla ze spíže, morálka +%d, ošetřeno raněných: %d, trup +%d %%"
+lagoon.summary,Pirates living here: %d / %d beds   Income: %d gold a day   Chest: %d / %d,Pirátů tu žije: %d / %d lůžek   Příjem: %d zlaťáků denně   Truhla: %d / %d
+lagoon.summary2,"Morale on landing: +%d   Defence: %d (a raid brings %d)   Fleet: %d ships, %d berths","Morálka při přistání: +%d   Obrana: %d (nájezd má sílu %d)   Flotila: %d lodí, %d kotvišť"
+lagoon.build,Build and upgrade,Stavět a vylepšovat
+lagoon.harbour,Harbour and fleet,Přístav a flotila
+lagoon.rank_up,Grow into a %s (%d gold),Rozrůst na %s (%d zlaťáků)
+lagoon.ranked,Your lagoon is now a %s! More plots and piers are open.,Tvá laguna je teď %s! Otevřely se další parcely a mola.
+lagoon.berths,Berths in use: %d / %d,Obsazená kotviště: %d / %d
+lagoon.pier,"Pier %d, level %d (%d berths)","Molo %d, úroveň %d (%d kotvišť)"
+lagoon.upgrade,Upgrade,Vylepšit
+lagoon.new_pier,New pier (%d gold),Nové molo (%d zlaťáků)
+lagoon.build_it,Build,Postavit
+lagoon.piers_full,Every pier slot is built. Grow the lagoon for more.,Všechna místa pro mola jsou zastavěná. Pro další rozšiř lagunu.
+lagoon.fleet,Your fleet,Tvá flotila
+lagoon.no_fleet,No ships yet. Capture prizes or lay down a ship at your shipyard.,Zatím žádné lodě. Zajmi kořist nebo si dej postavit loď ve své loděnici.
+lagoon.at_pier,at the pier,u mola
+lagoon.at_anchor,"at anchor, no berth","na kotvě, bez kotviště"
+lagoon.command,Take command,Převzít velení
+lagoon.sell,Sell (%d g),Prodat (%d zl.)
+lagoon.yard,Your shipyard,Tvá loděnice
+lagoon.no_yard,Build a shipyard in the lagoon to lay down new ships.,Postav v laguně loděnici a můžeš stavět nové lodě.
+lagoon.guns,guns,děl
+lagoon.why_yard,the shipyard is too small,loděnice je příliš malá
+lagoon.why_berth,no free berth,žádné volné kotviště
+lagoon.why_fame,not famous enough,nedostatek slávy
+lagoon.why_gold,not enough gold,nedostatek zlata
+lagoon.lay_down,Build ship,Postavit loď
+lagoon.took_command,You take command of the %s.,Přebíráš velení na lodi %s.
+lagoon.sold,Ship sold for %d gold.,Loď prodána za %d zlaťáků.
+lagoon.launched,The %s slides down the slipway into your harbour!,%s sjíždí ze skluzu do tvého přístavu!
+lagoon.build_title,Build mode,Stavební režim
+lagoon.done,Done,Hotovo
+lagoon.build_hint,"Pick a building, point at a green plot and click (or Enter). R turns it, wheel zooms. Click a building to upgrade, turn, repair or pull it down. Esc goes back.","Vyber stavbu, ukaž na zelenou parcelu a klikni (nebo Enter). R otáčí, kolečko přibližuje. Kliknutím na stavbu ji vylepšíš, otočíš, opravíš nebo zbouráš. Esc tě vrátí zpět."
+lagoon.gold,Gold: %d,Zlato: %d
+lagoon.place_ok,Click to build here.,Klikni a postav tady.
+lagoon.place_closed,This plot opens when the lagoon grows.,"Tato parcela se otevře, až laguna vyroste."
+lagoon.place_taken,Something already stands here.,Tady už něco stojí.
+lagoon.place_gold,Not enough gold.,Nedostatek zlata.
+lagoon.pick_hint,Pick a building on the left to build here.,"Vlevo vyber stavbu, kterou tu chceš postavit."
+lagoon.raided,(burnt in a raid),(vypáleno při nájezdu)
+lagoon.upgrade_cost,Upgrade (%d g),Vylepšit (%d zl.)
+lagoon.repair_cost,Repair (%d g),Opravit (%d zl.)
+lagoon.rotate,Turn,Otočit
+lagoon.demolish,Pull down,Zbourat
+lagoon.stat_beds,%d beds,%d lůžek
+lagoon.stat_income,%d gold a day,%d zlaťáků denně
+lagoon.stat_morale,+%d morale,+%d morálky
+lagoon.stat_defence,%d defence,%d obrany
+lagoon.stat_storage,chest +%d,truhla +%d
+lagoon.stat_food,%d food a day,%d jídla denně
+lagoon.stat_heal,tends %d wounded,ošetří %d raněných
+lagoon.stat_repair,shipyard level %d,loděnice úrovně %d
+lagoon.raid_repelled,The navy raided your lagoon and your guns drove them off!,"Námořnictvo přepadlo tvou lagunu, ale tvá děla je zahnala!"
+lagoon.raid_lost,The navy raided your lagoon! They took %d gold from the chest and burnt a building.,Námořnictvo přepadlo tvou lagunu! Vzali z truhly %d zlaťáků a vypálili jednu stavbu.
+lagoon.b_hut,Crew hut,Chýše pro posádku
+lagoon.d_hut,Beds for your pirates. Pirates who live here pay into the chest every day.,"Lůžka pro tvé piráty. Kdo tu bydlí, platí každý den do truhly."
+lagoon.b_tavern,Tavern,Krčma
+lagoon.d_tavern,"Rum and songs: morale for the crew when you land, tends the wounded, earns gold and draws new pirates faster.","Rum a písně: morálka posádky při přistání, ošetří raněné, vydělává a láká nové piráty rychleji."
+lagoon.b_market,Market stalls,Tržiště
+lagoon.d_market,Traders sell your loot: gold every day.,Obchodníci prodávají tvou kořist: zlato každý den.
+lagoon.b_warehouse,Warehouse,Skladiště
+lagoon.d_warehouse,"A bigger chest, so more gold piles up while you are at sea.","Větší truhla, takže se během plavby nahromadí víc zlata."
+lagoon.b_shipyard,Shipyard,Loděnice
+lagoon.d_shipyard,"Mends the ships at your piers and your flagship, and builds new ships.",Opravuje lodě u tvých mol i tvou vlajkovou loď a staví nové lodě.
+lagoon.b_tower,Watchtower,Strážní věž
+lagoon.d_tower,Defence against navy raids.,Obrana proti nájezdům námořnictva.
+lagoon.b_battery,Cannon battery,Dělová baterie
+lagoon.d_battery,Heavy guns facing the sea: lots of defence.,Těžká děla mířící na moře: hodně obrany.
+lagoon.b_farm,Farm,Farma
+lagoon.d_farm,Grows food for your larder; you take it aboard when you land.,Pěstuje jídlo do spíže; při přistání si ho vezmeš na palubu.
+lagoon.b_campfire,Campfire,Táborák
+lagoon.d_campfire,A fire to sit round: a little morale.,"Oheň, u kterého se sedí: trochu morálky."
+lagoon.b_flagpole,Jolly Roger,Pirátská vlajka
+lagoon.d_flagpole,Your colours over the lagoon: a little morale.,Tvá vlajka nad lagunou: trochu morálky.
+lagoon.b_lanterns,Lantern square,Náměstíčko s lucernami
+lagoon.d_lanterns,Lanterns and a plank square: a little morale.,Lucerny a prkenné náměstíčko: trochu morálky.
+lagoon.b_palms,Palm grove,Palmový háj
+lagoon.d_palms,Shade for the crew: a little morale.,Stín pro posádku: trochu morálky.
+lagoon.b_well,Well,Studna
+lagoon.d_well,Fresh water: morale and a little food.,Čerstvá voda: morálka a trochu jídla.
+lagoon.b_treasure,Treasure heap,Hromada pokladů
+lagoon.d_treasure,Your gold on show: the crew love it.,Tvé zlato na odiv: posádka ho miluje.
+lagoon.b_statue,Captain's statue,Socha kapitána
+lagoon.d_statue,A statue of you: lots of morale.,Tvá socha: hodně morálky.
+cat.lagoon_title,Lagoon catalogue,Katalog laguny
+cat.lagoon_open,Shipyard and piers catalogue,Katalog loděnice a mol
+cat.lagoon_ships,New ships,Nové lodě
+cat.lagoon_piers,Piers,Mola
+cat.lagoon_berths,Built at your own shipyard. Berths in use: %d / %d,Postavena ve tvé loděnici. Obsazená kotviště: %d / %d
+cat.lagoon_need_yard,Needs a bigger lagoon shipyard,Vyžaduje větší loděnici v laguně
+cat.lagoon_need_berth,Needs a free berth: build or upgrade a pier,Vyžaduje volné kotviště: postav nebo vylepši molo
+cat.lagoon_pier,Pier %d,Molo %d
+cat.lagoon_new_pier,New pier,Nové molo
+cat.lagoon_pier_desc,Each berth moors one ship of your fleet.,Každé kotviště pojme jednu loď tvé flotily.
+cat.lagoon_unclaimed,Claim Skull Atoll first,Nejdřív obsaď Lebčí atol
+cat.stat_berths,Berths,Kotviště
+cat.stat_next,Next level,Další úroveň
 atk.claw_smash,Giant claw smash,Úder obřím klepetem
 atk.bubble_spit,Acid bubble spit,Plivnutí kyselých bublin
 atk.venom_spit,Venom spit,Plivnutí jedu
@@ -1199,3 +1359,6 @@ land.kind.chapel,"The shore party searches the old chapel of %s and finds:","Vý
 land.kind.wreck,"The crew salvage the wrecks on %s:","Posádka vyprostila z vraků na ostrově %s:"
 land.kind.ice,"The crew cut ice on %s and bring back:","Posádka nasekala led na ostrově %s a přivezla:"
 land.kind.atoll,"The shore party combs the beach of %s and finds:","Výsadek prošel pláž ostrova %s a našel:"
+cat.giant,Giant ship.,Obří loď.
+cat.giant_title,Giant ships,Obří lodě
+cat.giant_desc,"Treasure galleons, dreadnoughts and leviathans.","Pokladové galeony, dreadnoughty a leviatani."
