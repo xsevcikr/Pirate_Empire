@@ -20,7 +20,7 @@ func test_every_boss_changes_phase_at_its_thresholds() -> void:
 			assert_true(b.phase >= i or id == "ghost_admiral", "%s phase %d at %f" % [id, i, th[i]])
 
 
-func test_every_boss_telegraphs_two_seconds_ahead() -> void:
+func test_every_boss_telegraphs_its_attack_ahead() -> void:
 	for id: String in Boss.DEFS.keys():
 		var b := Boss.new(id, 1)
 		var guard: int = 0
@@ -28,7 +28,8 @@ func test_every_boss_telegraphs_two_seconds_ahead() -> void:
 			b.tick(0.1)
 			guard += 1
 		assert_true(b.special_pending != "", id)
-		assert_near(b.telegraph_left_s, Boss.TELEGRAPH_S, 0.11, id)
+		assert_near(b.telegraph_left_s, BossAttacks.tele_s(id, b.special_pending), 0.11, id)
+		assert_true(b.telegraph_left_s >= 1.5, "%s gives at least 1.5 s to react" % id)
 
 
 func test_bosses_heal_20_percent_a_minute_outside_the_arena() -> void:
