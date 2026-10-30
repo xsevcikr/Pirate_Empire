@@ -24,6 +24,7 @@ var convoys: ConvoyManager
 var tours: TourDirector
 var rivals: RivalDirector
 var crews: CrewDirector
+var guards: CityGuards
 var progress: ProgressDirector
 var world_audio: WorldAudio
 var streamer: WorldStreamer
@@ -175,6 +176,11 @@ func _start_game_layer() -> void:
 	crews.world = self
 	crews.state = Session.state
 	add_child(crews)
+	guards = CityGuards.new()
+	guards.ship = ship
+	guards.world = self
+	guards.state = Session.state
+	add_child(guards)
 	progress = ProgressDirector.new()
 	progress.ship = ship
 	progress.state = Session.state
