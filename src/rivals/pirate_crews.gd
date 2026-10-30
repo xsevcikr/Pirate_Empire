@@ -258,13 +258,29 @@ static func resolve_threats(state: Dictionary, now_h: float) -> Array[Dictionary
 			continue
 		if not is_alive(state, str(t["crew"])):
 			continue
+		if str(t["holding"]) == "lagoon" and lagoon_holds(state, str(t["crew"])):
+			var lag: Dictionary = state["lagoon"]
+			lag["raids"] = int(lag.get("raids", 0)) + 1
+			lag["repelled"] = int(lag.get("repelled", 0)) + 1
+			made.append(_news(state, "pcrew.news.repelled_at_lagoon", [CrewData.def(str(t["crew"]))["name"]]))
+			continue
 		var taken: int = _raid_holding(state, str(t["holding"]))
+		if str(t["holding"]) == "lagoon":
+			state["lagoon"]["raids"] = int(state["lagoon"].get("raids", 0)) + 1
 		var c: Dictionary = get_crew(state, str(t["crew"]))
 		c["gold"] = int(c["gold"]) + taken
 		c["renown"] = int(c["renown"]) + CrewData.RAID_RENOWN * 2
 		made.append(_news(state, "pcrew.news.raided_you", [CrewData.def(str(t["crew"]))["name"], t["name"], taken]))
 	root(state)["threats"] = keep
 	return made
+
+
+## Whether the player's lagoon beats a crew's raiders on its own: its guns and moored ships against the strength a
+## navy raid at its rank would bring, made harder by the crew's grit.
+static func lagoon_holds(state: Dictionary, id: String) -> bool:
+	if not Lagoon.claimed(state) or not (state["lagoon"] as Dictionary).has("buildings"):
+		return false
+	return Lagoon.defence(state) >= Lagoon.raid_strength(state) * (1.0 + float(CrewData.def(id)["grit"]))
 
 
 ## Takes HOLDING_RAID_FRACTION of the gold a holding stores, or of the player's purse when it stores none.
@@ -276,7 +292,7 @@ static func _raid_holding(state: Dictionary, holding_id: String) -> int:
 		var i: int = int(holding_id.substr(5))
 		if i < (state.get("bases", []) as Array).size() and state["bases"][i] is Dictionary:
 			store = state["bases"][i]
-	for key: String in ["gold", "gold_stored", "stash"]:
+	for key: String in ["chest", "gold", "gold_stored", "stash"]:
 		if store.has(key):
 			var t: int = int(float(store[key]) * CrewData.HOLDING_RAID_FRACTION)
 			store[key] = float(store[key]) - t if store[key] is float else int(store[key]) - t

@@ -171,10 +171,18 @@ func test_raiders_sail_for_the_players_lagoon_and_take_a_share() -> void:
 	assert_eq(PirateCrews.holdings(s).size(), 1)
 	var plain: Dictionary = _state()
 	assert_true(PirateCrews.holdings(plain).is_empty(), "no lagoon, nothing to raid")
-	plain["lagoon"] = {"rank": 1}
+	plain["lagoon"] = Lagoon.new_lagoon()
 	var hs: Array[Dictionary] = PirateCrews.holdings(plain)
 	assert_eq(hs.size(), 1, "a claimed lagoon without a position is on Skull Atoll")
 	assert_true((hs[0]["pos"] as Vector2) != Vector2.ZERO, "Skull Atoll found")
+	plain["lagoon"]["chest"] = 1000.0
+	PirateCrews.get_crew(plain, "red_hand")["grudge"] = 50.0
+	PirateCrews.act(plain, "red_hand", "raid_port", _rng())
+	var undefended: bool = not PirateCrews.lagoon_holds(plain, "red_hand")
+	PirateCrews.resolve_threats(plain, 1000.0)
+	if undefended:
+		assert_near(float(plain["lagoon"]["chest"]), 850.0, 0.01, "raiders take from the lagoon chest")
+	assert_eq(int(plain["lagoon"]["raids"]), 1, "the lagoon counts the raid")
 	PirateCrews.get_crew(s, "bone_tide")["grudge"] = 50.0
 	var n: Dictionary = PirateCrews.act(s, "bone_tide", "raid_port", _rng())
 	assert_eq(n["key"], "pcrew.news.threat", "a crew with a grudge goes for the lagoon")

@@ -13,6 +13,7 @@ var _child: MenuScreen = null
 func _init() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	theme = Look.ui_theme()  # pages sit under CanvasLayers, which stop the root window's theme
 
 
 func _ready() -> void:
