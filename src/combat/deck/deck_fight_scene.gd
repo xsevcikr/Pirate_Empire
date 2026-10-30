@@ -17,6 +17,8 @@ var hud: DeckHud
 var camera: Camera3D
 var _men: Dictionary = {}  ## fighter id -> DeckFighterView
 var _kegs: Array[Node3D] = []
+var _lasers: Dictionary = {}  ## fighter id -> MeshInstance3D: the line of a levelled gun
+var _deck_gun: Node3D
 var _prev_camera: Camera3D
 var _hold_left: float = -1.0
 var _announced: bool = false
@@ -52,6 +54,9 @@ func start(c: DeckCombat) -> void:
 	combat.fighter_hit.connect(_on_hit)
 	combat.keg_exploded.connect(_on_keg)
 	combat.ranged_fired.connect(_on_shot)
+	combat.cannon_fired.connect(_on_cannon)
+	combat.deck_gun_ready.connect(func() -> void: hud.note("deck.note_loaded"))
+	hud.order_pressed.connect(give_order)
 	_place_camera(1.0)
 
 
@@ -88,6 +93,7 @@ func _build_deck() -> void:
 		fuse.position = Vector3(0.0, 1.05, 0.0)
 		keg.add_child(fuse)
 		_kegs.append(keg)
+	_deck_gun = Kenney.place(self, "pirate", "cannon", Vector3(DeckData.CANNON_POS.x, 0.0, DeckData.CANNON_POS.y), 90.0, 0.85)
 	for r in combat.ropes:
 		DeckArt._rope(self, Vector3(r["pos"].x, 0.1, r["pos"].y), Vector3(r["pos"].x, 9.5, r["pos"].y), 0.03, DeckArt.plain(Color(0.7, 0.58, 0.35), 0.95))
 	var sun := DirectionalLight3D.new()
@@ -137,6 +143,7 @@ func _physics_process(delta: float) -> void:
 		for f in combat.fighters:
 			if not _men.has(f.id):
 				_add_view(f)
+		_update_lasers()
 	elif not _announced:
 		_announced = true
 		_hold_left = RESULT_HOLD_S
@@ -151,36 +158,86 @@ func _physics_process(delta: float) -> void:
 	_place_camera(delta)
 
 
-## Read the keyboard and pad into one intent dictionary.
+## Read the keyboard, mouse and pad into one intent dictionary.
 func read_input() -> Dictionary:
 	var move := Vector2(
 		Input.get_action_strength("sail_up") - Input.get_action_strength("sail_down"),
 		Input.get_action_strength("steer_right") - Input.get_action_strength("steer_left"))
 	var cmd: int = -1
-	for i in 5:
-		if Input.is_physical_key_pressed((KEY_1 + i) as Key):
+	for i in DeckHud.ORDER_KEYS.size():
+		if Input.is_physical_key_pressed((KEY_1 + i) as Key) and not _keys_down.has(i):
 			cmd = i
-	return {
+	_keys_down.clear()
+	for i in DeckHud.ORDER_KEYS.size():
+		if Input.is_physical_key_pressed((KEY_1 + i) as Key):
+			_keys_down[i] = true
+	var out: Dictionary = {
 		"move": move, "light": Input.is_action_just_pressed("deck_light"), "heavy": Input.is_action_just_pressed("deck_heavy"),
-		"block": Input.is_action_pressed("deck_block"), "dodge": Input.is_action_just_pressed("deck_dodge"),
-		"kick": Input.is_action_just_pressed("deck_kick"), "fire": Input.is_action_just_pressed("deck_fire"),
-		"use": Input.is_action_just_pressed("deck_use"), "grenade": Input.is_action_just_pressed("deck_grenade"), "command": cmd,
+		"heavy_held": Input.is_action_pressed("deck_heavy"), "block": Input.is_action_pressed("deck_block"),
+		"dodge": Input.is_action_just_pressed("deck_dodge"), "kick": Input.is_action_just_pressed("deck_kick"),
+		"fire": Input.is_action_just_pressed("deck_fire"), "use": Input.is_action_just_pressed("deck_use"),
+		"grenade": Input.is_action_just_pressed("deck_grenade"), "switch": Input.is_action_just_pressed("deck_switch"),
+		"rum": Input.is_action_just_pressed("drink_rum"), "command": cmd,
 	}
+	var at: Variant = mouse_on_deck()
+	if at != null:
+		out["aim_point"] = at
+	return out
+
+
+var _keys_down: Dictionary = {}
+
+
+## Where the mouse points on the deck (x across, y along), or null when there is no mouse over the window.
+func mouse_on_deck() -> Variant:
+	var vp: Viewport = get_viewport()
+	if vp == null or camera == null or not camera.is_inside_tree():
+		return null
+	var m: Vector2 = vp.get_mouse_position()
+	if not vp.get_visible_rect().has_point(m):
+		return null
+	var o: Vector3 = camera.project_ray_origin(m)
+	var n: Vector3 = camera.project_ray_normal(m)
+	var plane_y: float = global_position.y + 1.2  # chest height
+	if absf(n.y) < 0.0001:
+		return null
+	var t: float = (plane_y - o.y) / n.y
+	if t <= 0.0:
+		return null
+	var hit: Vector3 = o + n * t - global_position
+	return Vector2(hit.x, hit.z)
 
 
 ## Turn an intent into actions on the captain. Public so tests can play the captain.
 func apply_input(i: Dictionary) -> void:
 	var p: FighterState = combat.player
+	var cmd: int = int(i.get("command", -1))
+	if cmd >= 0:
+		give_order(cmd)
 	if not p.is_standing():
 		p.move_intent = Vector2.ZERO
+		p.aiming = false
 		return
 	var move: Vector2 = i.get("move", Vector2.ZERO)
 	p.move_intent = move.normalized() if move.length() > 0.1 else Vector2.ZERO
 	if p.move_intent != Vector2.ZERO:
 		Sfx.play("step_wood")
-	# face the nearest enemy when one is close, otherwise the way we walk
+	if bool(i.get("switch", false)):
+		p.cycle_mode()
+		Sfx.play("ui_click")
+	if p.mode == FighterState.Mode.GUN and (p.ranged == "" or p.ranged_ammo <= 0):
+		p.cycle_mode()  # out of shot: the blade, or the fists, come out
 	var foe: FighterState = combat.nearest_enemy(p)
-	if foe != null and foe.pos.distance_to(p.pos) <= LOCK_ON_M:
+	var gun: bool = p.mode == FighterState.Mode.GUN
+	p.aiming = gun and bool(i.get("heavy_held", false)) and p.state != FighterState.State.DRINK
+	# Aiming: the captain turns to the mouse (or holds on the nearest man in front when there is no mouse).
+	# Otherwise he faces the nearest enemy when one is close, or the way he walks.
+	var aim_point: Variant = i.get("aim_point", null)
+	if p.aiming and aim_point is Vector2 and (aim_point as Vector2).distance_to(p.pos) > 0.3:
+		p.dir = ((aim_point as Vector2) - p.pos).normalized()
+	elif p.aiming and foe != null:
+		p.dir = (foe.pos - p.pos).normalized()
+	elif foe != null and foe.pos.distance_to(p.pos) <= LOCK_ON_M:
 		p.dir = (foe.pos - p.pos).normalized()
 	elif p.move_intent != Vector2.ZERO:
 		p.dir = p.move_intent
@@ -189,24 +246,89 @@ func apply_input(i: Dictionary) -> void:
 	elif p.state == FighterState.State.BLOCK:
 		p.lower_block()
 	if bool(i.get("dodge", false)):
+		p.aiming = false
 		p.try_dodge(p.move_intent if p.move_intent != Vector2.ZERO else -p.dir)
-	if bool(i.get("light", false)):
-		p.try_swing(false)
-	if bool(i.get("heavy", false)):
-		p.try_swing(true)
+	if gun:
+		if bool(i.get("light", false)) or bool(i.get("fire", false)):
+			combat.fire_ranged(p, p.dir)
+	else:
+		if bool(i.get("light", false)):
+			p.try_swing(false)
+		if bool(i.get("heavy", false)):
+			p.try_swing(true)
+		if bool(i.get("fire", false)):
+			# a quick shot from the hip at the nearest man, without putting the blade away
+			var aim: Vector2 = foe.pos - p.pos if foe != null and foe.pos.distance_to(p.pos) <= LOCK_ON_M * 3.0 else p.dir
+			combat.fire_ranged(p, aim)
 	if bool(i.get("kick", false)):
 		p.try_kick()
-	if bool(i.get("fire", false)) and foe != null:
-		combat.fire_ranged(p, foe.pos - p.pos if foe.pos.distance_to(p.pos) <= LOCK_ON_M * 3.0 else p.dir)
-	elif bool(i.get("fire", false)):
-		combat.fire_ranged(p, p.dir)
+	if bool(i.get("rum", false)):
+		if p.try_drink():
+			Sfx.play("ui_confirm")
+		elif hud != null:
+			hud.note("deck.note_no_rum" if p.rum_left <= 0 else ("deck.note_full_hp" if p.hp >= p.hp_max else "deck.note_rum_wait"))
 	if bool(i.get("use", false)):
 		combat.use_rope(p)
 	if bool(i.get("grenade", false)) and foe != null:
 		combat.throw_grenade(p, foe.pos)
-	var cmd: int = int(i.get("command", -1))
-	if cmd >= 0 and cmd < 5:
-		combat.command = cmd as DeckData.Command
+
+
+## An order from the buttons or keys 1-8: a squad stance, or a job for a few hands.
+func give_order(order: int) -> void:
+	var key: String = ""
+	match order:
+		DeckHud.Order.LOAD_CANNON:
+			key = "deck.note_loading" if combat.order_load_cannon() else ("deck.note_loaded" if combat.cannon_loaded else "deck.note_no_hands")
+		DeckHud.Order.FIRE_CANNON:
+			var hits: int = combat.order_fire_cannon()
+			key = "deck.note_not_loaded" if hits < 0 else ""
+		DeckHud.Order.REPAIR:
+			if combat.order_repair():
+				key = "deck.note_repairing"
+			else:
+				key = "deck.note_repair_stop"
+		_:
+			if order >= 0 and order <= DeckHud.Order.RETREAT:
+				combat.command = order as DeckData.Command
+				key = DeckHud.COMMAND_KEYS[order]
+	if key != "" and hud != null:
+		hud.note(key)
+	Sfx.play("ui_click")
+
+
+## A thin line along every levelled gun: the captain's while he aims (gold), and each enemy's for the moment
+## before he fires (red), so a man can see the shot coming and get out of its way.
+func _update_lasers() -> void:
+	for f in combat.fighters:
+		var on: bool = f.is_standing() and ((f.is_player and f.aiming) or f.aim_lock_left > 0.0)
+		var l: MeshInstance3D = _lasers.get(f.id)
+		if not on:
+			if l != null:
+				l.visible = false
+			continue
+		if l == null:
+			l = MeshInstance3D.new()
+			var b := BoxMesh.new()
+			b.size = Vector3(0.035, 0.035, 1.0)
+			l.mesh = b
+			var mat := StandardMaterial3D.new()
+			mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			mat.albedo_color = Color(1.0, 0.85, 0.3, 0.7) if f.team == 0 else Color(1.0, 0.2, 0.15, 0.75)
+			l.material_override = mat
+			l.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			l.set_meta("kind", "aim_line")
+			add_child(l)
+			_lasers[f.id] = l
+		l.visible = true
+		var d: Vector2 = f.dir if f.is_player else f.aim_dir
+		var length: float = float(WeaponData.WEAPONS[f.ranged]["range"]) if f.ranged != "" else 10.0
+		length = minf(length, 16.0)
+		var from := Vector3(f.pos.x, 1.3, f.pos.y)
+		var to := from + Vector3(d.x, 0.0, d.y) * length
+		l.position = (from + to) * 0.5
+		l.scale = Vector3(1.0, 1.0, length)
+		l.look_at_from_position(l.position, to, Vector3.UP)
 
 
 func _place_camera(delta: float) -> void:
@@ -229,9 +351,24 @@ func _on_hit(_a: int, t_id: int, info: Dictionary) -> void:
 	if t_id == combat.player.id:
 		_shake = 1.0
 	var res: String = str(info.get("result", "hit"))
-	Sfx.play("parry_ring" if res == "parried" else "sword_clash")
+	var att: FighterState = combat.by_id(_a)
+	if res == "parried":
+		Sfx.play("parry_ring")
+	elif att != null and att.melee == "fists" and att.state == FighterState.State.SWING:
+		Sfx.play("wood_impact")  # a fist on a jaw
+	else:
+		Sfx.play("sword_clash")
 	if hud != null:
-		hud.on_hit(info, v.fighter.pos if v != null else Vector2.ZERO)
+		hud.on_hit(info, v.fighter.pos if v != null else Vector2.ZERO, v.fighter.team if v != null else 1)
+
+
+func _on_cannon(from_pos: Vector2, direction: Vector2) -> void:
+	Sfx.play("cannon_swivel")
+	var at := global_position + Vector3(from_pos.x, 1.0, from_pos.y)
+	Vfx.muzzle(self, at, Vector3(direction.x, 0.0, direction.y))
+	if _deck_gun != null:
+		_deck_gun.rotation.y = atan2(direction.x, direction.y)
+	_shake = 1.2
 
 
 func _on_keg(at: Vector2) -> void:

@@ -17,7 +17,7 @@ func test_starting_state_matches_brief() -> void:
 	assert_near(s["supplies"]["rum"], 1.0, 0.0001)
 	assert_eq(s["ammo"]["round"], 40)
 	assert_eq(s["pistol_shots"], 10)
-	assert_eq(s["captain_hp"], 100)
+	assert_eq(s["captain_hp"], 200.0)
 	assert_eq(s["melee"], "rusty_cutlass")
 	assert_eq(s["docked_at"], "blackwater")
 	assert_near(s["rep"]["navy"], -30.0, 0.0001)

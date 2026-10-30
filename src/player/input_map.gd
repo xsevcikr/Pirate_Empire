@@ -43,6 +43,8 @@ const ACTIONS: Dictionary = {
 	"deck_fire": [KEY_F],
 	"deck_use": [KEY_E],
 	"deck_grenade": [KEY_G],
+	"deck_switch": [KEY_Q],
+	"drink_rum": [KEY_Z],
 	"wind_stronger": [KEY_EQUAL, KEY_KP_ADD],
 	"wind_weaker": [KEY_MINUS, KEY_KP_SUBTRACT],
 }
@@ -51,6 +53,7 @@ const ACTIONS: Dictionary = {
 const DECK_PAD: Dictionary = {
 	"deck_light": JOY_BUTTON_X, "deck_heavy": JOY_BUTTON_Y, "deck_block": JOY_BUTTON_LEFT_SHOULDER, "deck_dodge": JOY_BUTTON_B,
 	"deck_kick": JOY_BUTTON_RIGHT_SHOULDER, "deck_fire": JOY_BUTTON_RIGHT_STICK, "deck_use": JOY_BUTTON_A,
+	"deck_switch": JOY_BUTTON_DPAD_UP, "drink_rum": JOY_BUTTON_DPAD_DOWN,
 }
 
 

@@ -174,6 +174,11 @@ func _start_game_layer() -> void:
 	add_child(progress)
 	tours.step_completed.connect(progress.on_tour_step)
 	tours.tour_completed.connect(progress.on_tour_done)
+	var orders := SeaOrderBar.new()
+	orders.name = "SeaOrderBar"
+	orders.controller = player_controller
+	orders.drink_pressed.connect(drink_rum)
+	add_child(orders)
 	world_audio = WorldAudio.new()
 	world_audio.world = self
 	add_child(world_audio)
@@ -495,6 +500,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			call(pair[1])
 			get_viewport().set_input_as_handled()
 			return
+	if Session.has_state() and event.is_action_pressed("drink_rum"):
+		drink_rum()
+		get_viewport().set_input_as_handled()
+		return
 	if Session.has_state() and event.is_action_pressed("rivals"):
 		open_rivals()
 		get_viewport().set_input_as_handled()
@@ -737,10 +746,24 @@ func open_map() -> void:
 	screen.closed.connect(layer.queue_free)
 
 
+## The captain takes a pull of rum at sea: 50 hit points back, one tot off the ship's rum.
+func drink_rum() -> void:
+	if not Session.has_state():
+		return
+	var st: Dictionary = Session.state
+	if CaptainHealth.drink(st):
+		Sfx.play("ui_confirm")
+		if overlay != null:
+			overlay.add_toast(Loc.t("hud.rum_drunk") % ceili(CaptainHealth.hp(st)))
+	elif overlay != null:
+		overlay.add_toast(Loc.t("deck.note_full_hp") if CaptainHealth.hp(st) >= DeckData.FIGHTER_HP else Loc.t("deck.note_no_rum"))
+
+
 func _physics_process(delta: float) -> void:
 	Session.playtime_s += delta
 	if Session.has_state():
 		_game_tick()
+		CaptainHealth.regen(Session.state, delta)  # his wounds close slowly between fights
 	_navigate(delta)
 	_seamanship(delta)
 	if overlay != null:

@@ -325,6 +325,25 @@ func tick(dt: float, repair_crew: float) -> void:
 	_check_sunk()
 
 
+## Hands patching the hull (the deck-fight repair party): `amount` hit points go to the weakest standing sections in
+## turn, and a section patched back past 60% stops leaking. Returns the hit points actually restored.
+func repair_hull(amount: float) -> float:
+	var left: float = amount
+	while left > 0.001 and not sunk:
+		var worst: int = -1
+		for i in section_count:
+			if section_hp[i] > 0.0 and section_hp[i] < section_max and (worst < 0 or section_hp[i] < section_hp[worst]):
+				worst = i
+		if worst < 0:
+			break
+		var add: float = minf(left, section_max - section_hp[worst])
+		section_hp[worst] += add
+		left -= add
+		if section_hp[worst] >= section_max * 0.6:
+			leak_rate[worst] = 0.0
+	return amount - left
+
+
 func _spread_fire() -> void:
 	var rain_factor: float = 0.5 if rain else 1.0
 	var snapshot: PackedInt32Array = fire_level.duplicate()
