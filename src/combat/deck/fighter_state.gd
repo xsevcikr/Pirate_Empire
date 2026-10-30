@@ -50,6 +50,8 @@ var swing_dur: float = 0.5
 var swing_struck: bool = false
 var strike_pending: bool = false
 var combo: int = 0
+var swing_serial: int = 0  ## counts swings, so an AI man reads each blow coming at him once
+var reacted_key: int = -1
 var combo_left: float = 0.0
 var charge_t: float = 0.0
 
@@ -321,6 +323,7 @@ func try_swing(heavy: bool) -> bool:
 	else:
 		combo = 0
 	swing_heavy = heavy
+	swing_serial += 1
 	swing_dur = DeckData.swing_time(melee, heavy) / maxf(morale_effic, 0.5) / sqrt(maxf(strength, 0.5))  # a better swordsman is quicker
 	swing_struck = false
 	strike_pending = false
@@ -427,6 +430,7 @@ func receive_melee(att: FighterState, damage: float, heavy: bool, breaks_block: 
 				stamina -= drain
 				dmg *= 1.0 - DeckData.BLOCK_REDUCTION
 				result = "blocked"
+				att.stagger(DeckData.BLOCK_RECOIL_S)  # his blade bounces off the guard
 			else:
 				stamina = 0.0
 				dmg *= 0.5
@@ -460,6 +464,8 @@ func _apply_damage(dmg: float, att: FighterState, result: String, heavy: bool) -
 		swing_struck = true
 		strike_pending = false
 		return {"result": result, "damage": dmg, "killed": true}
-	if (state == State.SWING and not swing_struck or state == State.DRINK) and (dmg >= DeckData.HIT_INTERRUPT_DAMAGE or heavy):
-		stagger(0.35)  # a blow knocks the swing, or the bottle, out of his hands
+	if state == State.SWING and not swing_struck and (dmg >= DeckData.HIT_INTERRUPT_DAMAGE or heavy):
+		stagger(0.35)  # a hard blow knocks the swing out of his hands
+	elif state == State.DRINK and dmg >= DeckData.KICK_DAMAGE:
+		stagger(0.35)  # any real blow and the rum is spilled
 	return {"result": result, "damage": dmg, "killed": false}

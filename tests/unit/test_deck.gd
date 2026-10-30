@@ -58,7 +58,8 @@ func test_late_block_is_only_a_block() -> void:
 	var r: Dictionary = me.receive_melee(foe, 20.0, false, false, 10.21)
 	assert_eq(r["result"], "blocked")
 	assert_near(me.hp, me.hp_max - 4.0, 0.0001)  # 80% off
-	assert_eq(foe.state, FighterState.State.IDLE)
+	assert_eq(foe.state, FighterState.State.STAGGER)  # his blade bounced off the guard
+	assert_near(foe.stagger_left, DeckData.BLOCK_RECOIL_S, 0.0001)
 
 
 func test_parry_window_edges() -> void:
@@ -244,6 +245,7 @@ func test_light_and_heavy_hit_for_table_damage() -> void:
 	var foe: FighterState = _enemy(c)
 	_face(me, foe)
 	foe.think_left = 1000.0  # keep the dummy still
+	foe.block_skill = 0.0
 	me.stamina = 100.0
 	_swing_and_resolve(c, me, false)
 	assert_near(foe.hp, 200.0 - 30.0, 0.01)
@@ -252,6 +254,7 @@ func test_light_and_heavy_hit_for_table_damage() -> void:
 	foe = _enemy(c)
 	_face(me, foe)
 	foe.think_left = 1000.0
+	foe.block_skill = 0.0
 	_swing_and_resolve(c, me, true)
 	assert_near(foe.hp, 200.0 - 45.0, 0.01)
 
@@ -333,6 +336,7 @@ func test_fists_when_there_is_no_blade() -> void:
 	var foe: FighterState = _enemy(c)
 	_face(me, foe)
 	foe.think_left = 1000.0
+	foe.block_skill = 0.0
 	_swing_and_resolve(c, me, false)
 	assert_near(foe.hp, 200.0 - 20.0, 0.01)
 

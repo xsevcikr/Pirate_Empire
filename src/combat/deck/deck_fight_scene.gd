@@ -326,9 +326,7 @@ func _update_lasers() -> void:
 		length = minf(length, 16.0)
 		var from := Vector3(f.pos.x, 1.3, f.pos.y)
 		var to := from + Vector3(d.x, 0.0, d.y) * length
-		l.position = (from + to) * 0.5
-		l.scale = Vector3(1.0, 1.0, length)
-		l.look_at_from_position(l.position, to, Vector3.UP)
+		l.transform = Transform3D(Basis.looking_at(to - from, Vector3.UP) * Basis.from_scale(Vector3(1.0, 1.0, length)), (from + to) * 0.5)
 
 
 func _place_camera(delta: float) -> void:
@@ -359,7 +357,12 @@ func _on_hit(_a: int, t_id: int, info: Dictionary) -> void:
 	else:
 		Sfx.play("sword_clash")
 	if hud != null:
-		hud.on_hit(info, v.fighter.pos if v != null else Vector2.ZERO, v.fighter.team if v != null else 1)
+		var at := Vector2(-1.0, -1.0)
+		if v != null and camera != null and camera.is_inside_tree():
+			var head: Vector3 = v.global_position + Vector3(0.0, 2.3, 0.0)
+			if not camera.is_position_behind(head):
+				at = camera.unproject_position(head)
+		hud.on_hit(info, at, v.fighter.team if v != null else 1)
 
 
 func _on_cannon(from_pos: Vector2, direction: Vector2) -> void:
@@ -392,5 +395,5 @@ func _on_shot(_id: int, from_pos: Vector2, to_pos: Vector2) -> void:
 	tracer.material_override = mat
 	add_child(tracer)
 	tracer.position = Vector3(from_pos.x, 1.3, from_pos.y) + Vector3(d.x, 0.0, d.y).normalized() * 3.0
-	tracer.look_at_from_position(tracer.position, tracer.position + Vector3(d.x, 0.0, d.y), Vector3.UP)
+	tracer.transform = Transform3D(Basis.looking_at(Vector3(d.x, 0.0, d.y), Vector3.UP), tracer.position)  # local: the arena sits high above the sea
 	get_tree().create_timer(0.08).timeout.connect(tracer.queue_free)

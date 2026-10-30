@@ -3,6 +3,7 @@ extends RefCounted
 ## Decisions for every fighter the player does not control: the enemy, and the crew following squad commands.
 
 static func think(c: DeckCombat, f: FighterState, dt: float) -> void:
+	_react(c, f)
 	f.think_left -= dt
 	if f.think_left > 0.0:
 		_maintain(c, f)
@@ -36,7 +37,38 @@ static func _maintain(c: DeckCombat, f: FighterState) -> void:
 		f.think_left = 0.0
 
 
-## A man who sees a gun levelled at him, or a heavy blow about to land, may throw himself aside.
+## Every frame, whatever he is busy with: a man who sees a blow about to land on him decides once how to meet it,
+## by his skill: step out of a heavy one, raise his guard (on time, a parry), or take it. When the blow is spent he
+## drops his guard and answers at once.
+static func _react(c: DeckCombat, f: FighterState) -> void:
+	var incoming: bool = false
+	for o in c.fighters:
+		if o.team == f.team or o.state != FighterState.State.SWING or (o.swing_struck and not o.strike_pending):
+			continue
+		if o.pos.distance_to(f.pos) > DeckData.MELEE_RANGE_M + 0.4 or not c._in_arc(o, f.pos, DeckData.MELEE_RANGE_M + 0.4, DeckData.MELEE_ARC_DEG):
+			continue
+		incoming = true
+		var time_to_hit: float = o.swing_dur * DeckData.STRIKE_POINT - o.state_t
+		var key: int = o.id * 100000 + o.swing_serial
+		if time_to_hit > DeckData.AI_REACT_S or f.reacted_key == key:
+			continue
+		f.reacted_key = key
+		if f.state == FighterState.State.BLOCK:
+			continue
+		if o.swing_heavy and f.stamina >= DeckData.DODGE_STAMINA + 10.0 and c.rng.randf() < DeckData.AI_DODGE_CHANCE * (0.5 + f.block_skill):
+			if f.try_dodge((f.pos - o.pos).normalized()):
+				continue
+		if c.rng.randf() < f.block_skill and f.raise_block(c.time_s):
+			if c.rng.randf() >= f.parry_skill:
+				f.block_started = c.time_s - DeckData.PARRY_WINDOW_S * 2.0  # a plain block, not a timed parry
+			else:
+				f.block_started = c.time_s + maxf(time_to_hit - DeckData.PARRY_WINDOW_S * 0.5, 0.0)  # timed to meet it
+	if not incoming and f.state == FighterState.State.BLOCK and f.state_t > 0.15:
+		f.lower_block()
+		f.think_left = minf(f.think_left, 0.05)  # the riposte
+
+
+## A man who sees a gun levelled at him may throw himself aside.
 static func _dodge_danger(c: DeckCombat, f: FighterState) -> bool:
 	if f.stamina < DeckData.DODGE_STAMINA + 10.0 or not f.can_act():
 		return false
@@ -51,10 +83,6 @@ static func _dodge_danger(c: DeckCombat, f: FighterState) -> bool:
 			if c.rng.randf() < DeckData.AI_DODGE_CHANCE * 0.3:
 				var side: Vector2 = to_me.orthogonal().normalized() * (1.0 if c.rng.randf() < 0.5 else -1.0)
 				return f.try_dodge(side)
-		if o.state == FighterState.State.SWING and o.swing_heavy and not o.swing_struck and dist < DeckData.MELEE_RANGE_M + 0.3:
-			var time_to_hit: float = o.swing_dur * DeckData.STRIKE_POINT - o.state_t
-			if time_to_hit > 0.0 and time_to_hit < 0.4 and c.rng.randf() < DeckData.AI_DODGE_CHANCE:
-				return f.try_dodge(to_me.normalized())
 	return false
 
 
@@ -184,16 +212,9 @@ static func _fight(c: DeckCombat, f: FighterState, t: FighterState, aggression: 
 		if f.ranged != "" and dist < 4.0 and f.charges > 0 and f.kind != "marine":
 			f.move_intent = Vector2.ZERO
 		return
-	# in reach
-	if t.state == FighterState.State.SWING and not t.swing_struck:
-		var time_to_hit: float = t.swing_dur * DeckData.STRIKE_POINT - t.state_t
-		if time_to_hit < 0.35 and time_to_hit > 0.0:
-			if c.rng.randf() < f.block_skill:
-				if f.raise_block(c.time_s) and c.rng.randf() >= f.parry_skill:
-					f.block_started = c.time_s - DeckData.PARRY_WINDOW_S * 1.5  # a plain block, not timed
-				return
-	if f.state == FighterState.State.BLOCK and (t.state != FighterState.State.SWING or t.swing_struck):
-		f.lower_block()
+	# in reach: blocking and parrying is _react's job, every frame
+	if f.state == FighterState.State.BLOCK:
+		return
 	# a man who hides behind his guard gets a boot in it
 	if t.state == FighterState.State.BLOCK and t.state_t > DeckData.AI_KICK_BLOCKER_S and dist < DeckData.KICK_RANGE_M and f.state == FighterState.State.IDLE:
 		if c.rng.randf() < 0.5 * aggression and f.try_kick():

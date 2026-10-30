@@ -32,8 +32,8 @@ const PLAYER_HP_BASE: float = FIGHTER_HP
 const PLAYER_HP_PER_LEVEL: float = 0.0
 const STAMINA_MAX: float = 100.0
 const STAMINA_REGEN_PER_S: float = 25.0  ## not while blocking
-const ATTACK_STAMINA_LIGHT: float = 5.0
-const ATTACK_STAMINA_HEAVY: float = 12.0
+const ATTACK_STAMINA_LIGHT: float = 12.0  ## swinging non-stop slowly winds a man
+const ATTACK_STAMINA_HEAVY: float = 22.0
 
 # ---- melee ----
 const MELEE_RANGE_M: float = 2.0
@@ -64,7 +64,8 @@ const KICK_RANGE_M: float = 1.7
 const KICK_TIME_S: float = 0.4
 const KICK_STAGGER_S: float = 0.8
 const KICK_PUSH_M: float = 1.5
-const HIT_INTERRUPT_DAMAGE: float = 12.0
+const HIT_INTERRUPT_DAMAGE: float = 35.0  ## a plain 30 blow does not stop a man mid-swing; a heavy or a combo does
+const BLOCK_RECOIL_S: float = 0.3  ## a blow that lands on a raised guard throws the attacker off for a moment
 
 # ---- ranged and cover ----
 const COVER_RANGED_REDUCTION: float = 0.7
@@ -103,6 +104,7 @@ const AI_AIM_S: Array[float] = [2.5, 6.0]  ## seconds between an AI shooter's sh
 const AI_ATTACK_PAUSE_S: Array[float] = [0.7, 1.5]  ## rest after an AI swing
 const AI_DODGE_CHANCE: float = 0.35  ## an AI man who sees a heavy blow or a levelled gun coming throws himself aside
 const AI_KICK_BLOCKER_S: float = 0.7  ## an AI man kicks a guard held up this long
+const AI_REACT_S: float = 0.3  ## an AI man sees a blow coming this long before it lands, and decides once per blow
 
 ## Enemy archetypes: hit points, melee weapon, ranged weapon ("" for none), traits.
 const ENEMIES: Dictionary = {

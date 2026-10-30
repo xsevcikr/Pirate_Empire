@@ -56,9 +56,9 @@ func _ready() -> void:
 	var bottom := VBoxContainer.new()
 	bottom.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	bottom.offset_left = 24.0
-	bottom.offset_top = -200.0
+	bottom.offset_top = -300.0
 	bottom.offset_bottom = -20.0
-	bottom.custom_minimum_size = Vector2(360, 0)
+	bottom.custom_minimum_size = Vector2(430, 0)
 	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bottom)
 	_hp_text = _label(bottom, 18)
@@ -174,7 +174,8 @@ func _process(delta: float) -> void:
 	_counts.text = Loc.t("deck.counts") % [combat.standing_on_screen(0) + combat.reserve_of(0), combat.standing_on_screen(1) + combat.reserve_of(1)]
 	var pistol: String = Loc.t("deck.pistol") % [p.charges, p.ranged_ammo] if p.ranged != "" else ""
 	var hand: String = Loc.t("weapon." + p.melee) if p.mode != FighterState.Mode.GUN else Loc.t("weapon." + p.ranged)
-	_weapon.text = "%s: %s    %s" % [Loc.t(MODE_KEYS[p.mode]), hand, pistol]
+	var held: String = Loc.t(MODE_KEYS[p.mode]) if p.mode == FighterState.Mode.FISTS else "%s: %s" % [Loc.t(MODE_KEYS[p.mode]), hand]
+	_weapon.text = "%s    %s" % [held, pistol]
 	_rum.text = Loc.t("deck.rum") % p.rum_left if p.rum_cool <= 0.0 or p.rum_left <= 0 else Loc.t("deck.rum_wait") % [p.rum_left, ceili(p.rum_cool)]
 	_command.text = "%s: %s" % [Loc.t("deck.command"), Loc.t(COMMAND_KEYS[combat.command])]
 	_update_crew_rows()
@@ -250,7 +251,8 @@ func note(key: String) -> void:
 
 
 ## A hit on one of ours shows the damage; a hit on the enemy only says it landed.
-func on_hit(info: Dictionary, _at: Vector2, target_team: int = 1) -> void:
+## `at` is the screen point over the man who was hit ((-1, -1) when he is off screen: the middle is used).
+func on_hit(info: Dictionary, at: Vector2, target_team: int = 1) -> void:
 	var dmg: float = float(info.get("damage", 0.0))
 	var res: String = str(info.get("result", ""))
 	var l := Label.new()
@@ -267,7 +269,7 @@ func on_hit(info: Dictionary, _at: Vector2, target_team: int = 1) -> void:
 	l.add_theme_color_override("font_outline_color", Color.BLACK)
 	l.add_theme_constant_override("outline_size", 5)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.position = Vector2(size.x * 0.5 + randf_range(-60.0, 60.0), size.y * 0.45)
+	l.position = (at if at.x >= 0.0 else Vector2(size.x * 0.5, size.y * 0.45)) + Vector2(randf_range(-30.0, 10.0), randf_range(-10.0, 10.0))
 	if res == "parried":
 		l.text = Loc.t("deck.parry")
 		l.add_theme_color_override("font_color", Color(1.0, 1.0, 0.4))
