@@ -65,7 +65,7 @@ func _physics_process(delta: float) -> void:
 		p["vel"] = out[1]
 		p["age"] += delta
 		var done: bool = false
-		var q := PhysicsRayQueryParameters3D.create(prev, p["pos"], 2)
+		var q := PhysicsRayQueryParameters3D.create(prev, p["pos"], 2 | 4)
 		if p["age"] < SELF_HIT_GRACE_S and p["source"] is CollisionObject3D:
 			q.exclude = [(p["source"] as CollisionObject3D).get_rid()]
 		var res: Dictionary = space.intersect_ray(q)
@@ -73,6 +73,12 @@ func _physics_process(delta: float) -> void:
 			var dir: Vector3 = (p["pos"] - prev).normalized()
 			var dist: float = (res["position"] as Vector3).distance_to(p["origin"])
 			(res["collider"] as Ship).receive_cannonball(res["position"], res["normal"], dir, p["gun"], p["ammo"], dist, p["source"])
+			hits += 1
+			done = true
+		elif not res.is_empty() and (res["collider"] as Object).has_method("take_shot"):
+			var dir2: Vector3 = (p["pos"] - prev).normalized()
+			var dist2: float = (res["position"] as Vector3).distance_to(p["origin"])
+			res["collider"].take_shot(res["position"], res["normal"], dir2, p["gun"], p["ammo"], dist2, p["source"])
 			hits += 1
 			done = true
 		elif not res.is_empty():

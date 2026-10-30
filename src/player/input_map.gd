@@ -20,6 +20,8 @@ const ACTIONS: Dictionary = {
 	"photo_mode": [KEY_P],
 	"interact": [KEY_SPACE],
 	"world_map": [KEY_M],
+	"kedge": [KEY_X],
+	"dump_cargo": [KEY_B],
 	"ammo_1": [KEY_1],
 	"ammo_2": [KEY_2],
 	"ammo_3": [KEY_3],

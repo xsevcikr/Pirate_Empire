@@ -9,6 +9,8 @@ const CHECK_S: float = 0.25
 
 var gen: WorldGen
 var player: Node3D
+var world: Node
+signal building_destroyed(building: DestructibleBuilding, by_player: bool)
 var loaded: Dictionary = {}  ## island index -> Island
 var ports: Dictionary = {}  ## port id -> PortScene
 var peak_loaded: int = 0
@@ -72,6 +74,8 @@ func pump() -> void:
 		var id: String = IslandData.port_id_of(isl["city"])
 		var ps := PortScene.new()
 		ps.port_id = id
+		ps.world = world
+		ps.building_destroyed.connect(func(b: DestructibleBuilding, by_player: bool) -> void: building_destroyed.emit(b, by_player))
 		add_child(ps)
 		ports[id] = ps
 

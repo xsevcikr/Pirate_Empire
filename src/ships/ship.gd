@@ -40,6 +40,12 @@ var last_attacker: Node = null
 var has_surrendered: bool = false
 var ai: ShipAI
 
+## Velocity at the start of the physics step, from before any contact changed it; collisions read this.
+var prev_velocity: Vector3 = Vector3.ZERO
+var grounding := Grounding.new()
+var mast_drag_s: float = 0.0
+var _mast_side: float = 1.0
+var _bump_cool: float = 0.0
 var _points: PackedVector3Array = PackedVector3Array()
 var _k_point: float = 0.0
 var _c_point: float = 0.0
@@ -68,6 +74,9 @@ func _ready() -> void:
 	angular_damp = 0.0
 	continuous_cd = false
 	can_sleep = false
+	contact_monitor = true
+	max_contacts_reported = 6
+	body_entered.connect(_on_contact)
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
 	box.size = Vector3(stats.beam_m, stats.draft_m + stats.freeboard_m, stats.length_m)
@@ -109,6 +118,11 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if flat_fwd.length() < 0.001:
 		return
 	var vel: Vector3 = state.linear_velocity
+	prev_velocity = vel
+	if grounding.stuck:
+		state.linear_velocity = Vector3(0.0, vel.y, 0.0)
+		state.angular_velocity = Vector3(0.0, state.angular_velocity.y * 0.5, 0.0)
+		vel = state.linear_velocity
 
 	# Buoyancy
 	var wet: int = 0
@@ -143,7 +157,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		var thrust: float = _f_ref * ratio * ratio * factor * factor * level * condition
 		state.apply_central_force(forward * thrust)
 		# Hull drag
-		state.apply_central_force(-forward * _k_drag * speed_forward_ms * absf(speed_forward_ms))
+		state.apply_central_force(-forward * _k_drag * speed_forward_ms * absf(speed_forward_ms) * (1.0 + (0.5 if mast_drag_s > 0.0 else 0.0)))
+		if mast_drag_s > 0.0:  # a fallen mast dragging in the water turns the ship toward the side it fell
+			state.apply_torque(Vector3.UP * _mast_side * stats.mass_kg * stats.length_m * 0.05)
 		state.apply_central_force(-right * stats.mass_kg * WATER_LATERAL_DAMP * lateral)
 		# Heel away from the wind
 		var side: float = wind.direction.x * right.x + wind.direction.y * right.z
@@ -196,9 +212,19 @@ func _build_visuals() -> void:
 	_hull_material = visuals.hull_material
 
 
+const CUT_LOOSE_S: float = 10.0
+
+
 func _physics_process(delta: float) -> void:
 	if damage == null:
 		return
+	_bump_cool = maxf(_bump_cool - delta, 0.0)
+	if mast_drag_s > 0.0:
+		mast_drag_s -= delta * maxf(float(crew.count) / 6.0, 0.25)  # more hands cut it loose sooner
+		if mast_drag_s <= 0.0:
+			var debris: DebrisManager = get_tree().get_first_node_in_group("debris") as DebrisManager
+			if debris != null:
+				debris.spawn_spar(global_position + global_transform.basis.x * _mast_side * stats.beam_m, stats.length_m * 0.5)
 	var rc: float = crew.repair_crew()
 	damage.tick(delta, rc)
 	_fire_fx_timer += delta
@@ -264,6 +290,8 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 
 
 func _on_mast_fell(index: int) -> void:
+	mast_drag_s = CUT_LOOSE_S
+	_mast_side = 1.0 if index % 2 == 0 else -1.0
 	if visuals and index < visuals.mast_groups.size():
 		var g: Node3D = visuals.mast_groups[index]
 		Vfx.splinters(get_parent(), g.global_position + Vector3.UP * 4.0)
@@ -271,7 +299,117 @@ func _on_mast_fell(index: int) -> void:
 		visuals.set_mast_visible(index, false)
 
 
+## Two bodies touched. Turns the closing speed into hull damage, leaks, a broken mast, men overboard,
+## floating crates and (on sand) running aground.
+func _on_contact(body: Node) -> void:
+	if damage == null or damage.sunk or _bump_cool > 0.0:
+		return
+	var other_mass: float = 0.0
+	var v2: Vector3 = Vector3.ZERO
+	var material: String = "ship"
+	var away: Vector3 = global_position - (body as Node3D).global_position
+	if body is Ship:
+		other_mass = (body as Ship).mass
+		v2 = (body as Ship).prev_velocity
+	elif body.has_meta("island"):
+		material = _island_material(body as Island)
+	else:
+		return
+	away.y = 0.0
+	var n: Vector3 = (-away).normalized()  # from us towards the other body
+	var rel: Vector3 = prev_velocity - v2
+	var closing: float = maxf(rel.dot(n), 0.0)
+	if closing < 0.6:
+		return
+	_bump_cool = 0.5
+	var player: bool = ai == null
+	var rams: bool = player and Session.has_state() and int(Session.state["upgrades"].get("ram", 0)) > 0 and (-global_transform.basis.z).dot(n) > 0.8
+	var e: float = CollisionModel.impact_energy(mass, other_mass, closing)
+	var dmg: float = CollisionModel.hull_damage(e, material, rams, false)
+	if body is Ship:
+		var theirs: Ship = body as Ship
+		var their_ram: bool = theirs.ai == null and Session.has_state() and int(Session.state["upgrades"].get("ram", 0)) > 0
+		dmg = CollisionModel.hull_damage(e, material, rams, their_ram)
+	var verdict: String = "bump"
+	if material in ["sand", "rock", "ice", "reef"]:
+		var tide: float = OceanCurrent.tide_m(_game_hours())
+		verdict = grounding.touch(material, MathUtils.ms_to_knots(closing), tide, Vector2(away.x, away.z).normalized())
+		if verdict == "stuck":
+			EventBus_toast("ship.aground" if player else "")
+	var local_contact: Vector3 = to_local(global_position + n * stats.length_m * 0.45)
+	var section: int = damage.section_for(local_contact)
+	var cons: Dictionary = CollisionModel.consequences(dmg, stats.hull_hp, crew.count, stats.cargo_t if player else 0.0, damage.rng)
+	var res: Dictionary = damage.apply_impact(section, dmg, CollisionModel.LEAK_T_PER_S if cons["leak"] else (CollisionModel.hole_leak() if verdict == "hole" else 0.0), cons["mast_breaks"])
+	if int(cons["overboard"]) > 0:
+		crew.kill(int(cons["overboard"]))
+		if player:
+			EventBus_toast("ship.overboard", int(cons["overboard"]))
+	_drop_crates(int(cons["crates"]), player)
+	Vfx.splinters(get_parent(), global_position + n * stats.length_m * 0.4 + Vector3.UP)
+	if body is Ship:  # the other ship feels it too, scaled by who has the ram
+		var other: Ship = body as Ship
+		var their: float = CollisionModel.hull_damage(e, "ship", false, rams)
+		if rams:
+			their = CollisionModel.hull_damage(e, "ship", true, false)
+		var their_section: int = other.damage.section_for(other.to_local(other.global_position - n * other.stats.length_m * 0.45))
+		other.damage.apply_impact(their_section, their, CollisionModel.LEAK_T_PER_S if their / other.stats.hull_hp > CollisionModel.LEAK_FRACTION else 0.0, false)
+		other._bump_cool = 0.5
+	hit_taken.emit({"collision": true, "hull": dmg, "section": section, "verdict": verdict, "mast": res["mast_fell"]})
+	_update_damage_visuals()
+
+
+func _island_material(isl: Island) -> String:
+	if isl.biome == "ice":
+		return "ice"
+	var toward: Vector3 = isl.global_position - global_position
+	var local := Vector2(-toward.x, -toward.z)  # our position relative to the island centre
+	var probe: Vector2 = local - local.normalized() * 10.0
+	return "sand" if isl.ground_y(probe) < 3.0 else "rock"
+
+
+func _game_hours() -> float:
+	var clock: Node = get_node_or_null("/root/GameClock")
+	return (float(clock.day) * 24.0 + float(clock.hour)) if clock != null else 0.0
+
+
+func _drop_crates(n: int, player: bool) -> void:
+	if n <= 0:
+		return
+	var debris: DebrisManager = get_tree().get_first_node_in_group("debris") as DebrisManager
+	if debris == null:
+		return
+	for i in n:
+		var cargo: Dictionary = {}
+		if player and Session.has_state():
+			var best: String = ""
+			for g: String in Session.state["cargo"]:
+				if best == "" or float(Session.state["cargo"][g]) > float(Session.state["cargo"][best]):
+					best = g
+			if best != "":
+				var take: float = minf(float(Session.state["cargo"][best]), 10.0)
+				Session.state["cargo"][best] = float(Session.state["cargo"][best]) - take
+				cargo[best] = take
+		if cargo.is_empty():
+			cargo = {"timber": 5.0}
+		debris.spawn_crate(global_position + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)), cargo)
+
+
+func EventBus_toast(key: String, arg: int = -1) -> void:
+	if key == "":
+		return
+	var bus: Node = Svc.node("EventBus")
+	if bus != null:
+		bus.toast.emit(Loc.t(key) % arg if arg >= 0 else Loc.t(key))
+
+
 func _on_sank() -> void:
+	var debris: DebrisManager = get_tree().get_first_node_in_group("debris") as DebrisManager
+	if debris != null:
+		var cargo: Dictionary = Session.state["cargo"].duplicate() if (ai == null and Session.has_state()) else {}
+		debris.break_up(global_position, stats, cargo)
+	var bus: Node = Svc.node("EventBus")
+	if bus != null:
+		bus.ship_sunk.emit(Vector2(global_position.x, global_position.z), stats.class_id)
 	sink_started = true
 	sank_signal.emit()
 	get_tree().create_timer(45.0).timeout.connect(queue_free)
