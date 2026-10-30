@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 13
+const VERSION: int = 15
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -17,6 +17,7 @@ static func new_state() -> Dictionary:
 		"starve_days": 0, "thirst_days": 0, "unpaid_days": 0, "death_accum": 0.0, "wound_accum": 0.0, "desert_accum": 0.0,
 		"mutiny_shield_day": -99, "last_tick_day": 1, "offers_window": -1, "offers_taken": [], "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
 		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "streams_known": [], "course": [], "wrecks": [], "destroyed": {}, "tours": {}, "rivals": {}, "crews": {}, "sea_events": {}, "prizes_taken": 0, "captain_xp": 0, "skills": {}, "skill_points_spent": 0, "stats": {}, "achievements": {}, "islands_seen": [], "trade_rem": 0, "custom": {}, "siren_paid": false, "act": 0, "beat": 0,
+		"landings": {},
 		"fleet": [], "bases": [], "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
 	}
@@ -90,9 +91,14 @@ static func migrate(d: Dictionary) -> Dictionary:
 		d["captain_xp"] = ProgressionData.xp_to_reach(int(d.get("captain_level", 1)))
 		d["version"] = 12
 	if v < 13:
-		# v13 adds the rival pirate crews. They start fresh in an old save, as they would in a new game.
-		d["crews"] = {}
+		# v13 adds the day of the last visit to each beach landing; no landing has been visited yet.
+		d["landings"] = {}
 		d["version"] = 13
+	if v < 15:
+		# v15 adds the rival pirate crews. They start fresh in an old save, as they would in a new game.
+		# (v14 is the shop catalogues and lagoon, merged separately.)
+		d["crews"] = {}
+		d["version"] = 15
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

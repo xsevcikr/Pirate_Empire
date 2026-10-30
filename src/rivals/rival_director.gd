@@ -185,11 +185,12 @@ func _spawn_event_ship(kind: String, monster: String) -> void:
 		"merchant_convoy":
 			var n: int = rng.randi_range(int(SeaEventData.EVENTS["merchant_convoy"]["ships"][0]), int(SeaEventData.EVENTS["merchant_convoy"]["ships"][1]))
 			for i in n:
-				_spawn("brigantine" if i % 2 == 0 else "schooner", "merchant", _ahead(SPAWN_DIST_M + 90.0 * i, 70.0 * i), {"gold": [150, 500], "cargo": {"sugar": 8}})
+				var cls: String = ShipRoster.merchant(rng, int(state.get("fame", 0)))
+				_spawn(cls, "merchant", _ahead(SPAWN_DIST_M + 90.0 * i, 70.0 * i), {"gold": [150, 500], "cargo": {"sugar": 8 * (6 if PortData.is_giant(cls) else 1)}})
 			for i in rng.randi_range(0, 2):
 				_spawn("sloop", "navy", _ahead(SPAWN_DIST_M - 120.0, -90.0 * (i + 1)), {"gold": [100, 300]})
 		"navy_patrol":
-			_spawn("frigate", "navy", _ahead(SPAWN_DIST_M), {"gold": [300, 800]})
+			_spawn(ShipRoster.navy(rng, int(state.get("fame", 0))), "navy", _ahead(SPAWN_DIST_M), {"gold": [300, 800]})
 		"ghost_ship":
 			world.spawn_ghost_sloops(pos2() + Vector2(0.0, -SPAWN_DIST_M))
 		"monster":
@@ -209,7 +210,7 @@ func _start_monster(kind: String) -> void:
 func _spawn(class_id: String, faction: String, at: Vector3, loot: Dictionary) -> Ship:
 	var s: Ship = world._make_ship(load("res://data/ships/%s.tres" % class_id), Vector3(at.x, 0.5, at.z), rng.randf_range(0.0, 360.0), faction)
 	s.sail_level = 2
-	s.crew.count = 14
+	s.crew.count = ShipRoster.ai_crew(s.stats)
 	s.set_meta("rep_faction", faction)
 	s.set_meta("loot_seed", rng.randi())
 	s.set_meta("loot", loot)

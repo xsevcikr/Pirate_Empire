@@ -152,10 +152,11 @@ static func _subset(arrays: Array, tris: Array, shift: Vector3, mat: Material) -
 	return m
 
 
-## Which Kenney hull a ship class uses: small for the one-masters, medium for the two-masters, large for the rest.
+## Which Kenney hull a ship class uses: small for the one-masters, medium for the two-masters and the lateen
+## three-masters, large for the square-rigged three-masters and everything over 40 m.
 static func model_for(stats: ShipStats, faction: String) -> String:
 	var size: String = "small"
-	if stats.mast_count >= 3 or stats.length_m >= 40.0:
+	if stats.length_m >= 40.0 or (stats.mast_count >= 3 and stats.square_rig):
 		size = "large"
 	elif stats.mast_count == 2 or stats.length_m >= 22.0:
 		size = "medium"
