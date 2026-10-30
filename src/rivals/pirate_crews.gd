@@ -4,6 +4,7 @@ extends RefCounted
 ## hold, their grudge against the player, the islands they have claimed and the news of what they did. The daily
 ## tick runs their raids, claims, expansion and clashes; the live world (CrewDirector) puts their ships on the sea.
 
+const LAGOON_ISLAND: String = "Skull Atoll"  ## where the player's own lagoon is when its record has no position
 const ACTIONS: Array[String] = ["raid_trade", "raid_port", "claim_island", "expand", "hunt"]
 
 
@@ -209,18 +210,25 @@ static func _target_holding(state: Dictionary, id: String) -> Dictionary:
 	return hs[0] if not hs.is_empty() else {}
 
 
-## The player's own places a crew can raid: the pirate lagoon (state["lagoon"]) and any base with a position.
+## The player's own places a crew can raid: the pirate lagoon on Skull Atoll once claimed (state["lagoon"] not
+## empty) and any base with a position.
 ## Each is {id, name, pos: Vector2}. Other systems own the data; this only reads it.
 static func holdings(state: Dictionary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var lag: Variant = state.get("lagoon", null)
-	if lag is Dictionary and (lag as Dictionary).has("pos"):
-		out.append({"id": "lagoon", "name": str(lag.get("name", "Lagoon")), "pos": _vec(lag["pos"])})
+	if lag is Dictionary and not (lag as Dictionary).is_empty():
+		var at: Vector2 = _vec(lag["pos"]) if (lag as Dictionary).has("pos") else _island_pos(LAGOON_ISLAND)
+		out.append({"id": "lagoon", "name": str(lag.get("name", LAGOON_ISLAND)), "pos": at})
 	for i in (state.get("bases", []) as Array).size():
 		var b: Variant = state["bases"][i]
 		if b is Dictionary and (b as Dictionary).has("pos"):
 			out.append({"id": "base_%d" % i, "name": str(b.get("name", "Base")), "pos": _vec(b["pos"])})
 	return out
+
+
+static func _island_pos(island: String) -> Vector2:
+	var idx: int = PortData.gen().index_of(island)
+	return PortData.gen().islands[idx]["pos"] if idx >= 0 else Vector2.ZERO
 
 
 static func _vec(v: Variant) -> Vector2:

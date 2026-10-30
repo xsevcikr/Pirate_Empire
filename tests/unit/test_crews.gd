@@ -169,6 +169,12 @@ func test_raiders_sail_for_the_players_lagoon_and_take_a_share() -> void:
 	var s: Dictionary = _state()
 	s["lagoon"] = {"name": "Skull Cove", "pos": [100.0, 200.0], "gold": 1000}
 	assert_eq(PirateCrews.holdings(s).size(), 1)
+	var plain: Dictionary = _state()
+	assert_true(PirateCrews.holdings(plain).is_empty(), "no lagoon, nothing to raid")
+	plain["lagoon"] = {"rank": 1}
+	var hs: Array[Dictionary] = PirateCrews.holdings(plain)
+	assert_eq(hs.size(), 1, "a claimed lagoon without a position is on Skull Atoll")
+	assert_true((hs[0]["pos"] as Vector2) != Vector2.ZERO, "Skull Atoll found")
 	PirateCrews.get_crew(s, "bone_tide")["grudge"] = 50.0
 	var n: Dictionary = PirateCrews.act(s, "bone_tide", "raid_port", _rng())
 	assert_eq(n["key"], "pcrew.news.threat", "a crew with a grudge goes for the lagoon")
