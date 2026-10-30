@@ -18,7 +18,7 @@ func _ready() -> void:
 	_label.add_theme_constant_override("outline_size", 6)
 	add_child(_label)
 	var help := Label.new()
-	help.text = "A/D steer   W/S sails   RMB drag look   Q/E fire port/starboard   R/F elevation   1-5 ammo   Tab crew focus   F1-F5 crew orders   F6/Z rum   Space dock   G hold to board   Esc pause"
+	help.text = "A/D steer   W/S sails   RMB drag look   Q/E fire port/starboard   R/F elevation   1-5 ammo   Tab crew focus   F1-F5 crew orders   F6 rum   Z damage control   Space dock   G hold to board   Esc pause"
 	help.anchor_top = 1.0
 	help.anchor_bottom = 1.0
 	help.position = Vector2(32, -48)

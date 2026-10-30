@@ -321,15 +321,15 @@ func test_repair_party_patches_our_hull() -> void:
 		assert_eq(f.job, DeckData.Job.NONE)
 
 
-func test_repair_hull_restores_sections_and_stops_leaks() -> void:
+func test_patch_hull_fills_the_weakest_sections_to_the_sea_cap() -> void:
 	var d := DamageModel.new(load("res://data/ships/sloop.tres"), 1)
 	d.section_hp[1] = d.section_max * 0.2
-	d.leak_rate[1] = 0.3
-	var got: float = d.repair_hull(d.section_max * 0.5)
-	assert_near(got, d.section_max * 0.5, 0.01)
-	assert_near(d.section_hp[1], d.section_max * 0.7, 0.01)
-	assert_eq(d.leak_rate[1], 0.0)
-	assert_near(d.repair_hull(1.0e6), d.section_max * 0.3, 0.01)  # only up to full
+	d.section_hp[2] = d.section_max * 0.3
+	var got: float = d.patch_hull(d.section_max * 0.3)
+	assert_near(got, d.section_max * 0.3, 0.01)
+	assert_near(d.section_hp[1], d.section_max * 0.5, 0.01)  # the weakest first
+	assert_near(d.section_hp[2], d.section_max * 0.3, 0.01)
+	assert_near(d.patch_hull(1.0e6), d.section_max * 0.4, 0.01)  # only up to the 60% sea cap
 
 
 # ---- what the player can see ------------------------------------------------------------------------

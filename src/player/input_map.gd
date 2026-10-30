@@ -29,6 +29,7 @@ const ACTIONS: Dictionary = {
 	"skills": [KEY_U],
 	"captain_log": [KEY_L],
 	"customize": [KEY_Y],
+	"damage_control": [KEY_Z],
 	"fish": [KEY_COMMA],
 	"ammo_1": [KEY_1],
 	"ammo_2": [KEY_2],

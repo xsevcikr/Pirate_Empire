@@ -33,6 +33,8 @@ const SFX: Dictionary = {
 	"ui_confirm": {"db": -6.0, "pitch": 0.0, "pos": false}, "level_up": {"db": -4.0, "pitch": 0.0, "pos": false},
 	"achievement": {"db": -4.0, "pitch": 0.0, "pos": false}, "dice_roll": {"db": -6.0, "pitch": 0.05, "pos": false},
 	"card": {"db": -8.0, "pitch": 0.08, "pos": false}, "gulls": {"db": -14.0, "pitch": 0.1, "pos": false, "cd": 6.0},
+	"hull_crash": {"db": 0.0, "pitch": 0.08, "pos": true, "cd": 0.3}, "hammer": {"db": -6.0, "pitch": 0.1, "pos": false, "cd": 1.0},
+	"pump": {"db": -12.0, "pitch": 0.08, "pos": false, "cd": 1.6},
 }
 
 ## Looped ambience: id -> {file, db}. The mixer sets each one's loudness from the situation.
@@ -74,6 +76,8 @@ const BARKS: Dictionary = {
 	"sail_ho": {"lines": ["bark.sail.0", "bark.sail.1"], "voice": "crew", "cd": 30.0},
 	"flooding": {"lines": ["bark.flood.0", "bark.flood.1"], "voice": "crew", "cd": 12.0},
 	"mast_down": {"lines": ["bark.mast.0", "bark.mast.1"], "voice": "crew", "cd": 6.0},
+	"breach": {"lines": ["bark.breach.0", "bark.breach.1", "bark.breach.2"], "voice": "crew", "cd": 6.0},
+	"patched": {"lines": ["bark.patched.0", "bark.patched.1"], "voice": "crew", "cd": 10.0},
 	"grumble": {"lines": ["bark.grumble.0", "bark.grumble.1", "bark.grumble.2"], "voice": "crew", "cd": 90.0},
 	"victory": {"lines": ["bark.victory.0", "bark.victory.1"], "voice": "captain", "cd": 5.0},
 	"level_up": {"lines": ["bark.level.0"], "voice": "captain", "cd": 5.0},
@@ -100,6 +104,7 @@ const ACTION_SFX: Dictionary = {
 	"leviathan_attack": "roar_leviathan", "ghost_admiral_attack": "roar_ghost", "menu_click": "ui_click", "menu_confirm": "ui_confirm",
 	"level_up": "level_up", "achievement": "achievement", "roll_dice": "dice_roll", "deal_card": "card", "gulls_near_land": "gulls",
 	"dock": "rope_creak", "prize_taken": "chest", "quest_done": "ui_confirm",
+	"ram_ship": "hull_crash", "patch_hole": "hammer", "work_pumps": "pump",
 }
 
 const CANNON_OF: Dictionary = {

@@ -13,6 +13,8 @@ var _yaw: float = 0.0
 var _orbit_yaw: float = 0.0
 var _orbit_pitch: float = 0.0
 var _dragging: bool = false
+var _shake: float = 0.0
+var _shake_t: float = 0.0
 
 
 func _ready() -> void:
@@ -52,5 +54,17 @@ func _process(delta: float) -> void:
 		scale = clampf((target as Ship).stats.length_m / 18.0, 0.7, 3.2)
 	var height: float = (HEIGHT + _orbit_pitch * 25.0) * scale
 	var pos: Vector3 = target.global_position + back * DISTANCE * scale + Vector3.UP * height
+	if _shake > 0.0:  # a crash rattles the view; it dies away in about a second
+		_shake_t += delta
+		_shake = maxf(_shake - delta * 1.2, 0.0)
+		pos += Vector3(sin(_shake_t * 61.0), sin(_shake_t * 47.0 + 1.3), cos(_shake_t * 53.0)) * _shake * 0.9 * scale
 	global_position = pos
 	camera.look_at(target.global_position + Vector3(0, 3.0, 0) + (-back) * 6.0, Vector3.UP)
+
+
+## Rattles the camera by `amount` (0..1) after a collision; a stronger shake replaces a weaker one.
+func shake(amount: float) -> void:
+	var settings: Node = Svc.node("Settings")
+	if settings != null and settings.get("accessibility") != null:
+		amount *= float(settings.accessibility.camera_shake)  # the accessibility slider
+	_shake = maxf(_shake, clampf(amount, 0.0, 1.0))

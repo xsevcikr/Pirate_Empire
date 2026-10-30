@@ -107,7 +107,7 @@ func _on_deck_finished(result: Dictionary) -> void:
 	attacker.crew.count = maxi(int(result["crew_left"]) + reserve, 1)  # the captain is not counted in the crew
 	if not game_state.is_empty():
 		CaptainHealth.after_fight(game_state, result)
-	attacker.damage.repair_hull(float(result.get("hull_repaired", 0.0)))
+	attacker.damage.patch_hull(float(result.get("hull_repaired", 0.0)))
 	if player_won:
 		target.crew.count = maxi(int(result["enemy_left"]), 0)
 		target.surrender()

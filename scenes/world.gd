@@ -19,6 +19,7 @@ var overlay: GameOverlay
 var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
+var damage_panel: DamagePanel
 var convoys: ConvoyManager
 var tours: TourDirector
 var rivals: RivalDirector
@@ -188,6 +189,9 @@ func _start_game_layer() -> void:
 	world_audio = WorldAudio.new()
 	world_audio.world = self
 	add_child(world_audio)
+	damage_panel = DamagePanel.new()
+	damage_panel.world = self
+	add_child(damage_panel)
 	apply_customization()
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
@@ -425,6 +429,8 @@ func _replace_player_ship() -> void:
 	fresh.faction = old.faction
 	add_child(fresh)
 	fresh.broadside.projectiles = projectiles
+	if fresh.stats.class_id == old.stats.class_id:  # an upgrade refits the same hull: its holes come along
+		fresh.damage.load_save(old.damage.to_save())
 	ship = fresh
 	ocean.follow = fresh
 	rig.target = fresh
@@ -572,10 +578,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			call(pair[1])
 			get_viewport().set_input_as_handled()
 			return
-	if Session.has_state() and event.is_action_pressed("drink_rum"):
-		drink_rum()
-		get_viewport().set_input_as_handled()
-		return
 	if Session.has_state() and event.is_action_pressed("rivals"):
 		open_rivals()
 		get_viewport().set_input_as_handled()
