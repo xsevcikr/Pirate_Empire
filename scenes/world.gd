@@ -298,6 +298,7 @@ func _game_tick() -> void:
 		Finance.accrue(Session.state, 1.0)
 		Blockade.heal_days(Session.state, 1.0)
 		_rebuild_tick()
+		_lagoon_day()
 
 
 ## Buildings destroyed three or more days ago are rebuilt.
@@ -467,6 +468,44 @@ func _docking_fee(port_id: String) -> int:
 	return mini(int(PortService.cargo_used(Session.state) * PortData.DOCK_FEE_PER_TONNE), int(Session.state["gold"]))
 
 
+## Off the piers of Skull Atoll and slow enough: Space goes ashore at the player's lagoon.
+func can_land_lagoon() -> bool:
+	return LagoonData.near_dock(Vector2(ship.global_position.x, ship.global_position.z)) and ship.speed_knots() <= PortData.DOCK_MAX_SPEED_KN
+
+
+func open_lagoon() -> void:
+	if get_node_or_null("PortLayer") != null:
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "PortLayer"
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	layer.layer = 50
+	add_child(layer)
+	var screen := LagoonScreen.new()
+	screen.world = self
+	layer.add_child(screen)
+	screen.closed.connect(func() -> void:
+		sync_player_ship()
+		if streamer.lagoon != null:
+			streamer.lagoon.sync()
+		Session.autosave(self)
+		layer.queue_free())
+
+
+## A day at the lagoon while the captain is away; raids are reported as they happen.
+func _lagoon_day() -> void:
+	if not Lagoon.claimed(Session.state):
+		return
+	var r: Dictionary = Lagoon.daily(Session.state, _trade_rng)
+	match str(r["raid"]):
+		"repelled":
+			EventBus.toast.emit(Loc.t("lagoon.raid_repelled"))
+		"lost":
+			EventBus.toast.emit(Loc.t("lagoon.raid_lost") % int(r["lost_gold"]))
+	if streamer.lagoon != null:
+		streamer.lagoon.sync()
+
+
 func open_port() -> void:
 	if get_node_or_null("PortLayer") != null:
 		return
@@ -505,6 +544,10 @@ func open_port() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if Session.has_state() and event.is_action_pressed("interact") and can_dock() and get_node_or_null("PauseMenu") == null:
 		open_port()
+		get_viewport().set_input_as_handled()
+		return
+	if Session.has_state() and event.is_action_pressed("interact") and can_land_lagoon() and get_node_or_null("PauseMenu") == null:
+		open_lagoon()
 		get_viewport().set_input_as_handled()
 		return
 	if Session.has_state() and event.is_action_pressed("interact") and can_land() and get_node_or_null("PauseMenu") == null:
@@ -773,7 +816,7 @@ func _physics_process(delta: float) -> void:
 	_navigate(delta)
 	_seamanship(delta)
 	if overlay != null:
-		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("hud.land_hint") if can_land() else ""))
+		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("lagoon.hint") if can_land_lagoon() else (Loc.t("hud.land_hint") if can_land() else "")))
 		var st: Dictionary = Session.state
 		overlay.set_info(Loc.t("hud.status") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water"), PortService.cargo_used(st), PortService.cargo_capacity(st), int(st["morale"]), Loc.t("morale." + Morale.band(float(st["morale"])))])
 	wind.update(delta)
