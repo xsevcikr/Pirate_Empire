@@ -2,12 +2,12 @@ class_name Island
 extends StaticBody3D
 ## A procedural island: noise heightmap with sand, grass and rock vertex colours, plus a solid core ships can ground on.
 
-const SAND := Color(0.80, 0.72, 0.52)
-const GRASS := Color(0.22, 0.42, 0.16)
-const FOREST := Color(0.12, 0.30, 0.12)
-const ROCK := Color(0.38, 0.35, 0.32)
-
 var radius_m: float = 200.0
+var biome: String = "tropical"
+var _look: Dictionary = {}
+## When set the streamer builds vegetation and shallows on later frames, so a loading island never costs a long frame.
+var staged: bool = false
+var _stage: int = 0
 var seed_value: int = 1
 var peak_m: float = 40.0
 var _noise: FastNoiseLite
@@ -15,15 +15,17 @@ const PALM_CAP: int = 260
 const SHORE_H: float = 0.35
 
 
-static func make(radius: float, seed_v: int) -> Island:
+static func make(radius: float, seed_v: int, biome_name: String = "tropical") -> Island:
 	var isl := Island.new()
 	isl.radius_m = radius
 	isl.seed_value = seed_v
+	isl.biome = biome_name
 	isl.peak_m = clampf(radius * 0.22, 18.0, 70.0)
 	return isl
 
 
 func _ready() -> void:
+	_look = IslandData.biome(biome)
 	collision_layer = 2
 	collision_mask = 0
 	set_meta("island", true)
@@ -34,8 +36,9 @@ func _ready() -> void:
 	mi.material_override = mat
 	add_child(mi)
 	_noise = _make_noise()
-	_grow_vegetation()
-	_build_shallows()
+	if not staged:
+		_grow_vegetation()
+		_build_shallows()
 	var cs := CollisionShape3D.new()
 	var cyl := CylinderShape3D.new()
 	cyl.radius = radius_m * 0.92
@@ -43,6 +46,17 @@ func _ready() -> void:
 	cs.shape = cyl
 	cs.position.y = -2.0
 	add_child(cs)
+
+
+## One more slice of a staged island's work; false once everything is built.
+func build_next_stage() -> bool:
+	match _stage:
+		0:
+			_grow_vegetation()
+		1:
+			_build_shallows()
+	_stage += 1
+	return _stage < 2
 
 
 func height_at(local: Vector2, noise: FastNoiseLite) -> float:
@@ -99,13 +113,14 @@ func _build_mesh() -> ArrayMesh:
 
 
 func _color_for(h: float, n: float) -> Color:
+	var sand: Color = _look["sand"]
 	if h < 0.8:
-		return SAND.darkened(0.25)
+		return sand.darkened(0.25)
 	if h < 3.0:
-		return SAND
+		return sand
 	if h < peak_m * 0.55:
-		return GRASS.lerp(FOREST, clampf(0.5 + n, 0.0, 1.0))
-	return ROCK.lerp(GRASS, clampf(0.3 - n, 0.0, 0.6))
+		return (_look["grass"] as Color).lerp(_look["forest"], clampf(0.5 + n, 0.0, 1.0))
+	return (_look["rock"] as Color).lerp(_look["grass"], clampf(0.3 - n, 0.0, 0.6))
 
 
 # ---- vegetation and shallows ---------------------------------------------------------------------
@@ -117,7 +132,7 @@ func _grow_vegetation() -> void:
 	var palms: Array[Transform3D] = []
 	var bushes: Array[Transform3D] = []
 	var rocks: Array[Transform3D] = []
-	var tries: int = int(clampf(radius_m * 5.0, 200.0, 1800.0))
+	var tries: int = int(clampf(radius_m * 5.0, 200.0, 1800.0) * float(_look["density"]))
 	for i in tries:
 		var ang: float = rng.randf() * TAU
 		var rad: float = radius_m * sqrt(rng.randf()) * 1.1
@@ -127,18 +142,18 @@ func _grow_vegetation() -> void:
 			continue
 		var slope: float = absf(ground_y(p + Vector2(1.5, 0)) - h) + absf(ground_y(p + Vector2(0, 1.5)) - h)
 		var basis := Basis(Vector3.UP, rng.randf() * TAU)
-		if h < peak_m * 0.5 and slope < 2.2 and palms.size() < PALM_CAP and rng.randf() < 0.55:
+		if bool(_look["palms"]) and h < peak_m * 0.5 and slope < 2.2 and palms.size() < PALM_CAP and rng.randf() < 0.55:
 			var sc: float = rng.randf_range(0.8, 1.45)
 			palms.append(Transform3D(basis.scaled(Vector3.ONE * sc), Vector3(p.x, h - 0.2, p.y)))
-		elif h < peak_m * 0.62 and slope < 3.0 and rng.randf() < 0.5:
+		elif bool(_look["bushes"]) and h < peak_m * 0.62 and slope < 3.0 and rng.randf() < 0.5:
 			var sb: float = rng.randf_range(0.9, 2.4)
 			bushes.append(Transform3D(basis.scaled(Vector3(sb, sb * 0.7, sb)), Vector3(p.x, h, p.y)))
-		elif slope > 1.2 or h > peak_m * 0.5:
+		elif (slope > 1.2 or h > peak_m * 0.5) and biome != "ice":
 			var sr: float = rng.randf_range(0.8, 3.2)
 			rocks.append(Transform3D(basis.scaled(Vector3(sr, sr * 0.75, sr)), Vector3(p.x, h - sr * 0.2, p.y)))
 	_scatter(_palm_mesh(), palms, true)
-	_scatter(_bush_mesh(), bushes, true)
-	_scatter(_rock_mesh(), rocks, true)
+	_scatter(_bush_mesh(_look["forest"]), bushes, true)
+	_scatter(_rock_mesh((_look["rock"] as Color).lightened(0.08)), rocks, true)
 
 
 func _scatter(mesh: Mesh, xf: Array[Transform3D], vertex_colors: bool) -> void:
@@ -200,22 +215,22 @@ static func _palm_mesh() -> ArrayMesh:
 	return st.commit()
 
 
-static func _bush_mesh() -> ArrayMesh:
+static func _bush_mesh(c: Color) -> ArrayMesh:
 	var sphere := SphereMesh.new()
 	sphere.radius = 1.0
 	sphere.height = 1.6
 	sphere.radial_segments = 8
 	sphere.rings = 4
-	return _tinted(sphere, Color(0.18, 0.36, 0.13))
+	return _tinted(sphere, c.lightened(0.1))
 
 
-static func _rock_mesh() -> ArrayMesh:
+static func _rock_mesh(c: Color) -> ArrayMesh:
 	var sphere := SphereMesh.new()
 	sphere.radius = 1.0
 	sphere.height = 1.7
 	sphere.radial_segments = 6
 	sphere.rings = 3
-	return _tinted(sphere, Color(0.4, 0.38, 0.35))
+	return _tinted(sphere, c)
 
 
 static func _tinted(src: Mesh, c: Color) -> ArrayMesh:

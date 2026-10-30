@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 6
+const VERSION: int = 7
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -16,7 +16,7 @@ static func new_state() -> Dictionary:
 		"tutorial": "leave_dock", "captain_cut": Morale.CUT_DEFAULT, "captain_level": 1, "rum_ration": true, "wounded": 0,
 		"starve_days": 0, "thirst_days": 0, "unpaid_days": 0, "death_accum": 0.0, "wound_accum": 0.0, "desert_accum": 0.0,
 		"mutiny_shield_day": -99, "last_tick_day": 1, "offers_window": -1, "offers_taken": [], "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
-		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "act": 0, "beat": 0,
+		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "streams_known": [], "course": [], "act": 0, "beat": 0,
 		"fleet": [], "bases": [], "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
 	}
@@ -69,6 +69,9 @@ static func migrate(d: Dictionary) -> Dictionary:
 	if v < 6:
 		# v6 adds the living economy: convoys, bank, insurance, blockade counters and harbour damage.
 		d["version"] = 6
+	if v < 7:
+		# v7 adds the named world: streams the player has sailed and the course set on the chart.
+		d["version"] = 7
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):
