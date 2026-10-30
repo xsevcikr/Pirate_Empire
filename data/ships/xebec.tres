@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ShipStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/ships/ship_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+class_id = "xebec"
+display_name = "Xebec"
+mass_kg = 210000.0
+length_m = 28.0
+beam_m = 6.4
+draft_m = 1.8
+freeboard_m = 2.3
+max_speed_kn = 16.5
+turn_rate_deg_s = 12.0
+square_rig = false
+accel_tau_s = 15.0
+mast_count = 3
+hull_hp = 2600.0
+sail_hp = 900.0
+rudder_hp = 600.0
+armor = 18.0
+guns_per_side = 8
+section_count = 8
+crew_min = 20
+crew_max = 80
+cargo_t = 90.0
+price = 16000
+upkeep_per_day = 70
+infamy_required = 600

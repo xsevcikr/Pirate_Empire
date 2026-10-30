@@ -2,9 +2,14 @@ class_name PortData
 extends RefCounted
 ## Port definitions, supplies and shipyard rules. Numbers come from the spec (sections 3, 4, 5, 7, 9).
 
-const CLASS_ORDER: PackedStringArray = ["cutter", "sloop", "schooner", "brigantine", "frigate", "galleon", "man_o_war"]
-## City tier -> highest class its shipyard sells.
-const TIER_MAX_CLASS: Dictionary = {"village": "sloop", "town": "brigantine", "city": "frigate", "capital": "man_o_war"}
+const CLASS_ORDER: PackedStringArray = [
+	"cutter", "sloop", "pinnace", "schooner", "xebec", "brigantine", "corvette", "frigate", "east_indiaman", "galleon", "man_o_war",
+	"treasure_galleon", "dreadnought", "leviathan",
+]
+## City tier -> highest class its shipyard sells. The giants after the Man-o-War are never sold by tier alone.
+const TIER_MAX_CLASS: Dictionary = {"village": "pinnace", "town": "brigantine", "city": "frigate", "capital": "man_o_war"}
+## Only a grand shipyard (level 3) can lay down a giant's keel.
+const GIANT_YARD_LEVEL: int = 3
 ## A Cutter handed in against a first Sloop is credited at full list price (the spec's 1,400 figure).
 const STARTER_EXCHANGE: Dictionary = {"from": "cutter", "to": "sloop", "credit": 600}
 const TRADE_IN_FRACTION: float = 0.5
@@ -123,5 +128,23 @@ static func build_market(port_id: String) -> Market:
 
 
 static func can_sell_class(port_id: String, class_id: String) -> bool:
-	var top: int = CLASS_ORDER.find(TIER_MAX_CLASS[PORTS[port_id]["tier"]])
-	return CLASS_ORDER.find(class_id) <= top
+	var i: int = CLASS_ORDER.find(class_id)
+	if i < 0:
+		return false
+	if is_giant(class_id):
+		return int(PORTS[port_id]["shipyard_level"]) >= GIANT_YARD_LEVEL
+	return i <= CLASS_ORDER.find(TIER_MAX_CLASS[PORTS[port_id]["tier"]])
+
+
+static func is_giant(class_id: String) -> bool:
+	return CLASS_ORDER.find(class_id) > CLASS_ORDER.find("man_o_war")
+
+
+## Ports whose yard builds the giants, for the shipyard hint and the chart.
+static func giant_yards() -> Array[String]:
+	var out: Array[String] = []
+	for id: String in PORTS:
+		if int(PORTS[id]["shipyard_level"]) >= GIANT_YARD_LEVEL:
+			out.append(id)
+	out.sort()
+	return out
