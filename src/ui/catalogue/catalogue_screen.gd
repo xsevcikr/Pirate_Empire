@@ -107,7 +107,13 @@ func _buy(it: CatalogueItem) -> bool:
 		_rebuild()
 		return false
 	emit_bus("trade_made", [str(it.data.get("trade", "catalogue")), it.id, 1.0, 0])
-	toast("cat.bought", [it.title])
+	var msg: String = source.bought_message(state(), it)
+	if msg != "":
+		var bus: Node = Svc.node("EventBus")
+		if bus != null:
+			bus.toast.emit(msg)
+	else:
+		toast("cat.bought", [it.title])
 	bought.emit(it)
 	_rebuild()
 	return true

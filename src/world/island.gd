@@ -13,6 +13,14 @@ var peak_m: float = 40.0
 var _noise: FastNoiseLite
 const PALM_CAP: int = 260
 const SHORE_H: float = 0.35
+## A levelled patch to build on (the player's lagoon): inside pad_radius the ground is pad_h, blending back to the
+## island's own shape over pad_blend. keep_clear(local) says where no trees, rocks or camp may stand.
+var pad_center: Vector2 = Vector2.ZERO
+var pad_radius: float = 0.0
+var pad_h: float = 4.0
+var pad_blend: float = 40.0
+var keep_clear: Callable
+var no_camp: bool = false
 
 
 static func make(radius: float, seed_v: int, biome_name: String = "tropical") -> Island:
@@ -38,7 +46,8 @@ func _ready() -> void:
 	_noise = _make_noise()
 	if not staged:
 		_grow_vegetation()
-		IslandCamp.build(self, _veg_rng)
+		if not no_camp:
+			IslandCamp.build(self, _veg_rng)
 		_build_shallows()
 	var cs := CollisionShape3D.new()
 	var cyl := CylinderShape3D.new()
@@ -68,7 +77,7 @@ func build_next_stage() -> bool:
 		2:
 			_scatter_vegetation()
 		3:
-			_camp_plan = IslandCamp.plan_camp(self, _veg_rng)
+			_camp_plan = {} if no_camp else IslandCamp.plan_camp(self, _veg_rng)
 		4, 5, 6:
 			if not _camp_plan.is_empty():
 				(_camp_plan["jobs"][_stage - 4] as Callable).call()
@@ -96,7 +105,13 @@ func _make_noise() -> FastNoiseLite:
 ## Terrain height at a point, including the coastline warp used by the mesh.
 func ground_y(p: Vector2) -> float:
 	var warp: float = 1.0 + 0.25 * _noise.get_noise_2d(p.x * 1.7 + 311.0, p.y * 1.7)
-	return height_at(p / warp, _noise)
+	return _pad(p, height_at(p / warp, _noise))
+
+
+func _pad(p: Vector2, h: float) -> float:
+	if pad_radius <= 0.0:
+		return h
+	return lerpf(pad_h, h, smoothstep(pad_radius, pad_radius + pad_blend, p.distance_to(pad_center)))
 
 
 func _build_mesh() -> ArrayMesh:
@@ -115,7 +130,7 @@ func _build_mesh() -> ArrayMesh:
 			var p := Vector2.from_angle(ang) * rad
 			# warp the coastline so it is not a circle
 			var warp: float = 1.0 + 0.25 * noise.get_noise_2d(p.x * 1.7 + 311.0, p.y * 1.7)
-			var h: float = height_at(p / warp, noise)
+			var h: float = _pad(p, height_at(p / warp, noise))
 			verts.append(Vector3(p.x, h, p.y))
 			cols.append(_color_for(h, noise.get_noise_2d(p.x * 3.0, p.y * 3.0)))
 	for r in rings:
@@ -167,7 +182,7 @@ func _sample_range(from: int, to: int) -> void:
 		var rad: float = radius_m * sqrt(rng.randf()) * 1.1
 		var p: Vector2 = Vector2.from_angle(ang) * rad
 		var h: float = ground_y(p)
-		if h < SHORE_H + 0.3:
+		if h < SHORE_H + 0.3 or (keep_clear.is_valid() and keep_clear.call(p)):
 			continue
 		var slope: float = absf(ground_y(p + Vector2(1.5, 0)) - h) + absf(ground_y(p + Vector2(0, 1.5)) - h)
 		var basis := Basis(Vector3.UP, rng.randf() * TAU)

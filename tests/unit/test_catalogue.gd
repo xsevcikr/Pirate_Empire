@@ -173,3 +173,55 @@ func test_screen_draws_any_source_and_buys_through_it() -> void:
 	assert_eq((grids[-1] as Node).get_child_count(), 1, "the ships tab has one card")  # old pages are only queued for deletion
 	screen.free()
 	Session.state = old
+
+
+func _lagoon_state() -> Dictionary:
+	var s: Dictionary = _state()
+	s["fame"] = 0
+	s["lagoon"] = Lagoon.new_lagoon()
+	Lagoon.place(s, "shipyard", Vector2i(1, 0))
+	return s
+
+
+func test_lagoon_unclaimed_locks_everything() -> void:
+	var s: Dictionary = _state()
+	var items: Array[CatalogueItem] = LagoonCatalogue.new().items(s)
+	for it in items:
+		assert_eq(it.status, CatalogueItem.Status.LOCKED, it.id)
+	assert_eq(_item(items, "pier:new").requirement, Loc.t("cat.lagoon_unclaimed"))
+
+
+func test_lagoon_piers_build_upgrade_and_max() -> void:
+	var s: Dictionary = _lagoon_state()
+	var src := LagoonCatalogue.new()
+	var fresh: CatalogueItem = _item(src.items(s), "pier:new")
+	assert_eq(fresh.status, CatalogueItem.Status.AVAILABLE)
+	assert_eq(fresh.price, LagoonData.pier_cost(1))
+	var gold: int = int(s["gold"])
+	assert_true(src.buy(s, fresh))
+	assert_eq(int(s["gold"]), gold - LagoonData.pier_cost(1))
+	var pier: CatalogueItem = _item(src.items(s), "pier:0")
+	assert_eq(pier.tier, 1)
+	assert_eq(pier.price, LagoonData.pier_cost(2))
+	for i in LagoonData.pier_levels() - 1:
+		assert_true(src.buy(s, _item(src.items(s), "pier:0")))
+	assert_eq(_item(src.items(s), "pier:0").status, CatalogueItem.Status.MAXED)
+	if Lagoon.pier_slots(s) == 1:
+		assert_eq(_item(src.items(s), "pier:new").status, CatalogueItem.Status.LOCKED)
+
+
+func test_lagoon_ships_need_yard_and_berth_then_launch() -> void:
+	var s: Dictionary = _lagoon_state()
+	var src := LagoonCatalogue.new()
+	var top: String = PortData.CLASS_ORDER[PortData.CLASS_ORDER.size() - 1]
+	assert_eq(_item(src.items(s), "lagoon_ship:" + top).requirement, Loc.t("cat.lagoon_need_yard"))
+	var sloop: CatalogueItem = _item(src.items(s), "lagoon_ship:sloop")
+	assert_eq(sloop.requirement, Loc.t("cat.lagoon_need_berth"), "no pier yet")
+	Lagoon.build_pier(s)
+	sloop = _item(src.items(s), "lagoon_ship:sloop")
+	assert_eq(sloop.status, CatalogueItem.Status.AVAILABLE)
+	assert_eq(sloop.price, PortService.ship_stats("sloop").price)
+	var fleet: int = (s["fleet"] as Array).size()
+	assert_true(src.buy(s, sloop))
+	assert_eq((s["fleet"] as Array).size(), fleet + 1)
+	assert_eq(src.bought_message(s, sloop), Loc.t("lagoon.launched") % LagoonCatalogue.SHIP_NAMES[fleet % LagoonCatalogue.SHIP_NAMES.size()])

@@ -1,6 +1,6 @@
 extends SceneTree
 ## xvfb-run godot --path . --rendering-method gl_compatibility -s res://tools/shot_catalogue.gd -- /tmp/cat
-## The shipyard catalogue on each tab, and the outfitter's weapons, in the harbour of the start port.
+## The shipyard and outfitter catalogues on each tab, then the lagoon catalogue's ships and piers.
 
 var _prefix: String = "user://cat"
 var _frames: int = 0
@@ -54,6 +54,20 @@ func _process(_d: float) -> bool:
 			_screen.select("cat.ammo")
 		170:
 			_shot("outfitter_ammo")
+			var st: Dictionary = Session.state
+			st["gold"] = 400000
+			st["lagoon"] = Lagoon.new_lagoon()
+			Lagoon.rank_up(st)
+			Lagoon.place(st, "shipyard", Vector2i(1, 0))
+			Lagoon.build_pier(st)
+			Lagoon.upgrade_pier(st, 0)
+			st["gold"] = 30000
+			_open(CatalogueScreen.with_source(LagoonCatalogue.new()))
+		200:
+			_shot("lagoon_ships")
+			_screen.select("cat.lagoon_piers")
+		230:
+			_shot("lagoon_piers")
 			quit(0)
 			return true
 	return false

@@ -24,7 +24,7 @@ static func texture(icon: String) -> Texture2D:
 ## Every icon any catalogue in the game can show. Add new sources here so the icon tool renders them.
 static func all() -> PackedStringArray:
 	var out: PackedStringArray = []
-	for src: CatalogueSource in [ShipyardCatalogue.new(), OutfitterCatalogue.new()]:
+	for src: CatalogueSource in [ShipyardCatalogue.new(), OutfitterCatalogue.new(), LagoonCatalogue.new()]:
 		for icon: String in src.icon_list():
 			if not out.has(icon):
 				out.append(icon)

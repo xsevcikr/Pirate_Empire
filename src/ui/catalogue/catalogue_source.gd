@@ -25,6 +25,11 @@ func buy(_state: Dictionary, _item: CatalogueItem) -> bool:
 	return false
 
 
+## A toast after a purchase, or "" for the usual "Bought: <title>".
+func bought_message(_state: Dictionary, _item: CatalogueItem) -> String:
+	return ""
+
+
 func gold(state: Dictionary) -> int:
 	return int(state.get("gold", 0))
 
