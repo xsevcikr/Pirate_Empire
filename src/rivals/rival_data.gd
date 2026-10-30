@@ -24,9 +24,9 @@ const BOUNTY_FOR_VALE: float = 40.0
 const RIVALS: Dictionary = {
 	"molly": {"name": "Mad Molly Thorne", "ship": "sloop", "ship_late": "brigantine", "style": "rammer", "home": ["haven_waters", "albion_shallows"], "gold": 1500,
 		"start": {"fragments": 1}, "reward": {"officer": "molly", "ship": "brigantine"}, "spare": true, "hp": 1.0, "guns": 1.0},
-	"isabeau": {"name": "Isabeau \"La Sirène\" Marchetti", "ship": "schooner", "style": "smuggler", "home": ["coral_isles", "merchants_reach"], "gold": 3000,
+	"isabeau": {"name": "Isabeau \"La Sirène\" Marchetti", "ship": "schooner", "ship_late": "xebec", "style": "smuggler", "home": ["coral_isles", "merchants_reach"], "gold": 3000,
 		"start": {"tours_done": 1}, "reward": {"hold": "smugglers_hold", "coves": true}, "spare": false, "hp": 0.9, "guns": 1.0, "night_ambush": true},
-	"saltjaw": {"name": "Saltjaw Briggs", "ship": "galleon", "style": "broadside", "home": ["merchants_reach", "iron_marches"], "gold": 25000,
+	"saltjaw": {"name": "Saltjaw Briggs", "ship": "galleon", "ship_late": "treasure_galleon", "style": "broadside", "home": ["merchants_reach", "iron_marches"], "gold": 25000,
 		"start": {"prizes": 4}, "reward": {"ship": "galleon"}, "spare": false, "hp": 1.6, "guns": 1.3},
 	"vale": {"name": "Commodore Edmund Vale", "ship": "frigate", "style": "line_ahead", "squadron": 3, "home": ["albion_shallows", "merchants_reach"], "gold": 4000,
 		"start": {"bounty": 40.0}, "reward": {"ship": "frigate", "officer": "navy_officer"}, "spare": true, "hp": 1.2, "guns": 1.1, "chain_shot": true},

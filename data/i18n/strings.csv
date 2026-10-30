@@ -1091,3 +1091,25 @@ orders.repair,Repair,Opravy
 orders.rum,Drink rum,Napít se rumu
 hud.captain_hp,Captain %d/%d health   rum for %d drinks,Kapitán %d/%d zdraví   rum na %d doušků
 hud.rum_drunk,A pull of rum: %d health,Doušek rumu: %d zdraví
+ship.pinnace,Pinnace,Pinasa
+ship.xebec,Xebec,Šebeka
+ship.corvette,Corvette,Korveta
+ship.east_indiaman,East Indiaman,Východoindická loď
+ship.treasure_galleon,Treasure Galleon,Pokladová galeona
+ship.dreadnought,Ship of the Line,Řadová loď
+ship.leviathan,Leviathan,Leviatan
+port.guns,guns,děla
+port.giant_ships,"Giant ships, built only at a grand shipyard:","Obří lodě, staví je jen velká loděnice:"
+port.giant_hint,"Giant ships are built only at the grand shipyards of %s.","Obří lodě staví jen velké loděnice v %s."
+hud.land_hint,Press Space to row ashore,Mezerníkem vyrazíš na břeh
+land.wait,"The beach of %s has been picked clean. Come back in %d days.","Pláž ostrova %s je vybraná. Vrať se za %d dní."
+land.healed,%d wounded rested,%d raněných si odpočinulo
+land.recruit,a castaway joins the crew,trosečník se přidal k posádce
+land.nothing,nothing worth carrying,"nic, co by stálo za odnesení"
+land.kind.prison,"The boat slips past the guards of %s and brings back:","Člun proklouzl kolem stráží na ostrově %s a přivezl:"
+land.kind.ruins,"The shore party searches the temple ruins of %s and finds:","Výsadek prohledal ruiny chrámu na ostrově %s a našel:"
+land.kind.volcano,"The crew bathe in the hot springs of %s and bring back:","Posádka se vykoupala v horkých pramenech na ostrově %s a přivezla:"
+land.kind.chapel,"The shore party searches the old chapel of %s and finds:","Výsadek prohledal starou kapli na ostrově %s a našel:"
+land.kind.wreck,"The crew salvage the wrecks on %s:","Posádka vyprostila z vraků na ostrově %s:"
+land.kind.ice,"The crew cut ice on %s and bring back:","Posádka nasekala led na ostrově %s a přivezla:"
+land.kind.atoll,"The shore party combs the beach of %s and finds:","Výsadek prošel pláž ostrova %s a našel:"

@@ -253,8 +253,8 @@ func test_a_fight_starts_with_the_captains_carried_health_and_rum() -> void:
 	assert_eq(c.player.rum_left, 1)
 
 
-func test_save_v12_migrates_to_200_health() -> void:
-	var s: Dictionary = SaveGame.from_json('{"version": 12, "gold": 50, "captain_hp": 100}')
+func test_save_v13_migrates_to_200_health() -> void:
+	var s: Dictionary = SaveGame.from_json('{"version": 13, "gold": 50, "captain_hp": 100}')
 	assert_eq(s["version"], SaveGame.VERSION)
 	assert_near(float(s["captain_hp"]), 200.0, 0.0001)
 

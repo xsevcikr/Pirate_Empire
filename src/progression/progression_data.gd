@@ -20,7 +20,8 @@ const TOUR_XP_DEFAULT: int = 500
 ## How big a ship is for XP purposes.
 const CLASS_TIER: Dictionary = {
 	"cutter": 1, "lugger": 1, "sloop": 2, "schooner": 2, "brigantine": 3, "frigate": 4, "galleon": 4,
-	"man_o_war": 5, "revenant": 5, "sovereign": 6,
+	"man_o_war": 5, "revenant": 5, "sovereign": 6, "pinnace": 2, "xebec": 3, "corvette": 3, "east_indiaman": 4,
+	"treasure_galleon": 6, "dreadnought": 6, "leviathan": 7,
 }
 
 const TREES: Array[String] = ["gunnery", "seamanship", "swordplay", "leadership", "trade"]
