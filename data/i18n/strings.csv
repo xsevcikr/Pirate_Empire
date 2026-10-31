@@ -5,7 +5,6 @@ ui.save,Save,Uložit
 ui.load,Load,Načíst
 hud.hull,Hull,Trup
 hud.crew,Crew,Posádka
-hud.wind,Wind,Vítr
 hud.grapple,Hold to grapple,Podrž pro přichycení
 boarding.victory,Victory! The ship is yours.,Vítězství! Loď je tvoje.
 mutiny.warning,The crew is close to mutiny.,Posádka se blíží vzpouře.
@@ -18,10 +17,10 @@ menu.start,Set sail,Vyplout
 menu.captain_name,Captain name,Jméno kapitána
 menu.default_captain,Captain,Kapitán
 menu.difficulty,Difficulty,Obtížnost
-menu.diff_0,Deckhand,Lodník
-menu.diff_1,Buccaneer,Bukanýr
-menu.diff_2,Corsair,Korzár
-menu.diff_3,Dread Pirate,Hrůzný pirát
+menu.diff_0,Easy (Deckhand): auto-aim and second chances,Lehká (Lodník): automatické míření a druhé šance
+menu.diff_1,Normal (Buccaneer),Normální (Bukanýr)
+menu.diff_2,Hard (Corsair),Těžká (Korzár)
+menu.diff_3,Legendary (Dread Pirate),Legendární (Hrůzný pirát)
 menu.seed,World seed,Seed světa
 menu.paused,Paused,Pozastaveno
 menu.resume,Resume,Pokračovat ve hře
@@ -31,7 +30,7 @@ menu.autosave,Autosave,Automatické uložení
 menu.empty_slot,Empty,Prázdný
 menu.slot_summary,"%s, day %d, %d gold, %d crew, saved %s","%s, den %d, %d zlaťáků, %d mužů, uloženo %s"
 menu.loading,Loading...,Načítání...
-menu.tip_0,Sail with the wind on your beam for top speed.,Pro nejvyšší rychlost plují s větrem z boku.
+menu.tip_0,"Press W to raise more sail and go faster, S to slow down.","Klávesou W přidáš plachty a zrychlíš, klávesou S zpomalíš."
 menu.tip_1,Shoot at the sails to catch a fleeing ship.,Střílej do plachet a dohoň prchající loď.
 menu.tip_2,Keep your crew fed and paid or they will mutiny.,Krm a plať posádku jinak se vzbouří.
 menu.page_general,General,Obecné
@@ -54,8 +53,8 @@ menu.colorblind,Colorblind markers,Značky pro barvoslepé
 menu.reset_keys,Reset keys to default,Obnovit výchozí klávesy
 menu.press_key,Press a key...,Stiskni klávesu...
 tut.leave_dock,Press W to raise the sail and sail out of the harbour.,Stiskni W pro vytažení plachet a vypluj z přístavu.
-tut.into_wind,Turn the bow into the wind (see the wind arrow). Watch your speed drop.,Natoč příď proti větru (viz šipka větru). Sleduj jak klesá rychlost.
-tut.compass,The compass shows your heading. Sail with the wind on your beam for top speed.,Kompas ukazuje tvůj kurz. S větrem z boku plují nejrychleji.
+tut.steer,Steer with A and D (or the arrow keys). Turn the ship around.,Zatáčej klávesami A a D (nebo šipkami). Otoč loď.
+tut.compass,The compass shows your heading. Press W for more sail and more speed.,Kompas ukazuje tvůj kurz. Klávesou W přidáš plachty a rychlost.
 tut.back_to_dock,Sail back to the dock and slow under 3 knots. Press Space to dock.,Vrať se k molu a zpomal pod 3 uzly. Mezerníkem zakotvíš.
 tut.find_finn,Visit the tavern and talk to Old Finn.,Navštiv hospodu a promluv si se starým Finnem.
 tut.hunt_lugger,Old Finn spotted a fishing lugger south-west. Fire the swivels (Q/E) then hold G alongside to board.,Starý Finn zahlédl rybářský lugr na jihozápadě. Střílej z otočných děl (Q/E) a u boku drž G pro nalodění.
@@ -659,8 +658,6 @@ event.plague_day,The sickness takes %d of the crew.,Nemoc si bere %d členů pos
 event.plague_cured,The surgeon's medicine stops the sickness.,Lékařův lék zastavil nemoc.
 event.stowaway_boy,A stowaway boy joins as cabin boy.,Černý pasažér chlapec se stává plavčíkem.
 event.stowaway_thief,A stowaway thief stole %d gold!,Černý pasažér zloděj ukradl %d zlata!
-event.becalmed,Becalmed for %d hours. The crew fish and play dice.,Bezvětří na %d hodin. Posádka rybaří a hraje v kostky.
-event.calm_ends,A breeze at last.,Konečně vánek.
 interior.title,Below decks,Pod palubou
 interior.gun_deck,Gun deck,Dělová paluba
 interior.hold,Hold,Nákladní prostor
@@ -1447,3 +1444,105 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+goal.first_sail,Sail 1 km,Uplouj 1 km
+goal.first_sail.hint,Press W to raise the sails and steer with A and D!,Zmáčkni W pro plachty a zatáčej klávesami A a D!
+goal.find_islands,Find 2 new islands,Najdi 2 nové ostrovy
+goal.find_islands.hint,Islands appear as you sail near them. Press M for the chart!,"Ostrovy se objeví, když k nim připluješ. Mapu otevřeš klávesou M!"
+goal.parrot_find,Let %s find a hidden treasure,Nech %s najít skrytý poklad
+goal.parrot_find.hint,Sail close to an island. I can spot treasure from far away!,Pluj blízko ostrova. Poklad zahlédnu zdaleka!
+goal.shells_3,Collect 3 seashells,Sesbírej 3 mušle
+goal.shells_3.hint,Hidden treasure near islands often has shells inside!,Ve skrytých pokladech u ostrovů bývají mušle!
+goal.trade_100,Earn 100 gold by selling cargo,Vydělej 100 zlaťáků prodejem nákladu
+goal.trade_100.hint,Buy goods cheap in one port and sell them in another!,Kup zboží levně v jednom přístavu a prodej ho v jiném!
+goal.visit_ports,Visit 3 different ports,Navštiv 3 různé přístavy
+goal.visit_ports.hint,Sail into a harbour and press Space to dock.,Vpluj do přístavu a zmáčkni mezerník pro přistání.
+goal.sink_ship,Sink an enemy ship,Potop nepřátelskou loď
+goal.sink_ship.hint,"Q fires the left cannons, E the right ones!","Q pálí z levých děl, E z pravých!"
+goal.treasure_maps,Find 3 treasure maps,Najdi 3 mapy pokladů
+goal.treasure_maps.hint,Map pieces hide on ships you capture. Board them with G!,"Kousky map jsou na lodích, které ukořistíš. Nalodíš se klávesou G!"
+goal.win_boarding,Win a boarding fight,Vyhraj boj při nalodění
+goal.win_boarding.hint,Get close to a ship and hold G to board her!,Připluj k lodi a podrž G pro nalodění!
+goal.flags_3,Collect 3 different flags,Sesbírej 3 různé vlajky
+goal.flags_3.hint,Every kind of ship you beat gives you its flag!,"Každý druh lodi, kterou porazíš, ti dá svou vlajku!"
+goal.ship_cards_3,Collect 3 ship cards,Sesbírej 3 kartičky lodí
+goal.ship_cards_3.hint,Sink or capture new kinds of ships to get their cards!,Potop nebo ukořisti nové druhy lodí a získáš jejich kartičky!
+goal.parrot_5,Let %s find 5 treasures,Nech %s najít 5 pokladů
+goal.parrot_5.hint,Sail around the islands. Treasure comes back every week!,Pluj kolem ostrovů. Poklady se vrací každý týden!
+goal.level_3,Reach captain level 3,Dosáhni 3. úrovně kapitána
+goal.level_3.hint,"Sailing, trading and battles all make you a better captain!","Plavba, obchod i bitvy z tebe dělají lepšího kapitána!"
+goal.take_prize,Capture a ship as your prize,Ukořisti loď
+goal.take_prize.hint,Beat a ship's crew in a boarding fight to keep her!,Poraz posádku lodi při nalodění a loď je tvoje!
+goal.islands_10,Find 10 islands,Najdi 10 ostrovů
+goal.islands_10.hint,Explore far and wide. The chart (M) shows what you have found.,"Prozkoumej široké moře. Mapa (M) ukazuje, co jsi našel."
+goal.every_shell,Find every kind of seashell,Najdi všechny druhy mušlí
+goal.every_shell.hint,The pearl oyster is very rare. Keep looking!,Perlorodka je velmi vzácná. Hledej dál!
+goal.rare_ship,Get a rare giant ship card,Získej vzácnou kartičku obří lodi
+goal.rare_ship.hint,"Giant ships are the biggest on the sea. Beat one, or buy one at a grand shipyard!","Obří lodě jsou největší na moři. Poraz jednu, nebo si ji kup ve velké loděnici!"
+goal.sail_50,Sail 50 km,Uplouj 50 km
+goal.sail_50.hint,"Keep sailing, captain! The sea is huge.","Pluj dál, kapitáne! Moře je obrovské."
+goal.sea_monster,Beat a sea monster,Poraz mořskou příšeru
+goal.sea_monster.hint,Follow a treasure tour from the journal (N) to find the monsters!,Sleduj výpravu za pokladem v deníku (N) a najdeš příšery!
+goal.all_flags,Collect all 8 flags,Sesbírej všech 8 vlajek
+goal.all_flags.hint,Some flags are only found in hidden treasure!,Některé vlajky najdeš jen ve skrytých pokladech!
+goal.done,"Goal done: %s! +%d stars, +%d gold","Cíl splněn: %s! +%d hvězd, +%d zlaťáků"
+goals.title,Goals,Cíle
+goals.card_title,Goals,Cíle
+goals.button,Goals,Cíle
+goals.stars,%d of %d stars,%d z %d hvězd
+goals.parrot_colour,%s has %s feathers.,%s má %s peří.
+goals.next_colour,%d stars: %s feathers!,%d hvězd: %s peří!
+goals.done_mark,done!,splněno!
+goals.all_done,Every goal done! You are a true pirate legend!,Všechny cíle splněny! Jsi opravdová pirátská legenda!
+coll.title,Collection Book,Sběratelská kniha
+coll.button,Book,Kniha
+coll.page_shells,Shells %d/%d,Mušle %d/%d
+coll.page_flags,Flags %d/%d,Vlajky %d/%d
+coll.page_ships,Ship cards %d/%d,Kartičky lodí %d/%d
+coll.how_shells,Seashells hide in the treasure your parrot spots near islands.,"Mušle se skrývají v pokladech, které papoušek zahlédne u ostrovů."
+coll.how_flags,Beat a ship to win her flag. Rare pirate flags hide in treasure.,Poraz loď a získáš její vlajku. Vzácné pirátské vlajky jsou v pokladech.
+coll.how_ships,"Sink, capture or buy a kind of ship to get its card. Giants are rare!","Potop, ukořisti nebo kup druh lodi a získáš jeho kartičku. Obři jsou vzácní!"
+coll.unknown,Not found yet,Ještě nenalezeno
+coll.rare,RARE,VZÁCNÉ
+coll.new_page,New in your book!,Nové ve tvé knize!
+coll.got_card,New ship card: %s!,Nová kartička lodi: %s!
+coll.got_flag,New flag for your book: %s!,Nová vlajka do knihy: %s!
+coll.shell_scallop,Scallop,Hřebenatka
+coll.shell_spiral,Spiral Shell,Točitá ulita
+coll.shell_conch,Pink Conch,Růžová lastura
+coll.shell_starfish,Starfish,Hvězdice
+coll.shell_sand_dollar,Sand Dollar,Písečný dolar
+coll.shell_pearl,Pearl Oyster,Perlorodka
+coll.flag_navy,Navy Ensign,Námořní vlajka
+coll.flag_merchant,Merchant Flag,Obchodní vlajka
+coll.flag_pirate,Jolly Roger,Jolly Roger
+coll.flag_reef_folk,Reef Folk Banner,Prapor lidu útesů
+coll.flag_iron_dominion,Iron Dominion Flag,Vlajka Železného panství
+coll.flag_red_jack,Red Jack,Rudý Jack
+coll.flag_golden_skull,Golden Skull,Zlatá lebka
+coll.flag_rainbow,Rainbow Flag,Duhová vlajka
+parrot.name,Polly,Polly
+parrot.says,%s: %s,%s: %s
+parrot.spotted,"%s squawks: Treasure! Over there, to the %s!","%s skřehotá: Poklad! Tamhle, na %s!"
+parrot.found_gold,Treasure! You found %d gold!,Poklad! Našel jsi %d zlaťáků!
+parrot.found_item,Treasure! %d gold and a %s!,Poklad! %d zlaťáků a %s!
+parrot.new_colour,%s has new %s feathers!,%s má nové %s peří!
+parrot.colour_green,green,zelené
+parrot.colour_blue,blue,modré
+parrot.colour_scarlet,scarlet,šarlatové
+parrot.colour_golden,golden,zlaté
+parrot.hint_repair,Squawk! The ship is badly hurt. Repair her at a shipyard!,Krá! Loď je těžce poškozená. Oprav ji v loděnici!
+parrot.hint_food,Squawk! We are nearly out of food. Buy some at a port!,Krá! Skoro nám došlo jídlo. Kup nějaké v přístavu!
+parrot.hint_crew,Squawk! No crew! Hire sailors at the tavern.,Krá! Žádná posádka! Najmi námořníky v krčmě.
+parrot.hint_loot,I smell treasure to the %s! Squawk!,Cítím poklad na %s! Krá!
+parrot.hint_idle,Squawk! What a lovely day for sailing!,Krá! Jaký krásný den na plavbu!
+compass.north,north,sever
+compass.north_east,north-east,severovýchod
+compass.east,east,východ
+compass.south_east,south-east,jihovýchod
+compass.south,south,jih
+compass.south_west,south-west,jihozápad
+compass.west,west,západ
+compass.north_west,north-west,severozápad
+defeat.title_second,Washed ashore!,Vyplaven na břeh!
+defeat.second_chance,Second chance! Your ship and crew made it to shore. The shipwrights patched her up.,Druhá šance! Loď i posádka doplavaly ke břehu. Tesaři ji zalátali.
+log.goal_done,Goal done: %s,Cíl splněn: %s

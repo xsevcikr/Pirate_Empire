@@ -34,6 +34,7 @@ static func begin_new(captain: String, difficulty: int, seed_value: int) -> void
 	state["captain"] = captain if captain.strip_edges() != "" else Loc.t("menu.default_captain")
 	state["difficulty"] = clampi(difficulty, 0, 3)
 	state["seed"] = seed_value
+	Difficulty.current = state["difficulty"] as Difficulty.Level
 	playtime_s = 0.0
 	_set_clock(int(state["day"]) + 1, state["hour"])
 
@@ -43,6 +44,7 @@ static func load_slot(slot: int) -> bool:
 	if d.is_empty():
 		return false
 	state = d
+	Difficulty.current = clampi(int(d.get("difficulty", 1)), 0, 3) as Difficulty.Level
 	playtime_s = float(d.get("playtime", 0.0))
 	_set_clock(int(d["day"]), float(d["hour"]))
 	return true
@@ -107,7 +109,7 @@ static func apply_to_ship(ship: Ship) -> void:
 	ship.crew.brief_morale = true
 	var fx: Dictionary = CrewEffects.compute(state["roster"])
 	ship.crew.quality = float(fx["quality"])
-	ship.broadside.spread_scale = float(fx["spread_mult"]) * Progression.stat(state, "spread_mult")
+	ship.broadside.spread_scale = float(fx["spread_mult"]) * Progression.stat(state, "spread_mult") * (AimAssist.SPREAD_MULT if AimAssist.enabled(state) else 1.0)
 	ship.broadside.reload_scale = float(fx["reload_mult"]) * Progression.stat(state, "reload_mult")
 	ship.broadside.double_shot_chance = Progression.stat(state, "double_shot_chance")
 	ship.broadside.mast_crit = Progression.stat(state, "mast_crit_chance")

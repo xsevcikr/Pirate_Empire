@@ -23,6 +23,11 @@ func _initialize() -> void:
 	for s in [0, 1, 2, 3]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SaveGame.SLOT_PATH % s))
 	Session.begin_new("Test", 1, 1)
+	# the kid-friendly goals and hidden treasure pay gold too: keep them out of this test's gold sums
+	for g in GoalData.LIST:
+		EasyPlay.store(Session.state)["done"][g["id"]] = 0
+	for sp in HiddenLoot.spots():
+		EasyPlay.store(Session.state)["loot"][sp["id"]] = 0
 	Session.enter_world(self)
 
 
@@ -97,8 +102,8 @@ func _process(_delta: float) -> bool:
 			_ship.sail_level = 1
 			_go(1, 10)
 		1:
-			_check(st["tutorial"] == "into_wind", "leaving the dock advances the tutorial, got %s" % st["tutorial"])
-			root.get_node("EventBus").tutorial_event.emit("faced_wind")
+			_check(st["tutorial"] == "steer", "leaving the dock advances the tutorial, got %s" % st["tutorial"])
+			root.get_node("EventBus").tutorial_event.emit("steered")
 			root.get_node("EventBus").tutorial_event.emit("timer")
 			_check(st["tutorial"] == "back_to_dock", "tutorial reaches back_to_dock, got %s" % st["tutorial"])
 			_teleport_to_dock()

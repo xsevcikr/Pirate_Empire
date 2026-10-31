@@ -7,7 +7,6 @@ extends Node
 
 const SPAWN_DIST_M: float = 900.0
 const LOSS_RADIUS_M: float = 2500.0
-const BECALMED_KN: float = 0.5
 const MAX_CATCH_UP_H: int = 3
 const CULL_DIST_M: float = 5000.0  ## event and rival ships this far behind are taken off the sea
 const KEEP_NEAR_M: float = 600.0
@@ -20,7 +19,6 @@ var rng := RandomNumberGenerator.new()
 var active: Dictionary = {}  ## rival id -> its ship
 var _hour_i: int = -1
 var _day_i: int = -1
-var _saved_wind: float = -1.0
 var _bus: Node
 var _ambient: Array = []  ## ships this director put on the sea, oldest first
 
@@ -66,7 +64,6 @@ func _physics_process(_delta: float) -> void:
 	if h / 24 > _day_i:
 		_day_i = h / 24
 		_day_tick()
-	_wind_tick()
 
 
 func _storm() -> bool:
@@ -80,8 +77,6 @@ func hour_tick(region: String, storm: bool, hour: float) -> Array[String]:
 	var fired: Array[String] = SeaEvents.roll(state, ctx, rng)
 	for id in fired:
 		_run_event(id, ctx)
-	if SeaEvents.becalmed_hour(state) and not SeaEvents.is_becalmed(state):
-		_toast("event.calm_ends", [])
 	for rid: String in RivalData.ORDER:
 		if active.has(rid) and is_instance_valid(active[rid]):
 			continue
@@ -129,19 +124,6 @@ func _day_tick() -> void:
 		_toast("event.plague_cured", [])
 	elif bool(out.get("active", false)):
 		_toast("event.plague_day", [int(out["lost"])])
-
-
-## The wind drops to a whisper while the ship is becalmed and returns after.
-func _wind_tick() -> void:
-	if world == null:
-		return
-	if SeaEvents.is_becalmed(state):
-		if _saved_wind < 0.0:
-			_saved_wind = world.wind.speed_kn
-		world.wind.speed_kn = BECALMED_KN
-	elif _saved_wind >= 0.0:
-		world.wind.speed_kn = _saved_wind
-		_saved_wind = -1.0
 
 
 func _run_event(id: String, ctx: Dictionary) -> void:

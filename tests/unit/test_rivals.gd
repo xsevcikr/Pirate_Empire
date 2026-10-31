@@ -51,7 +51,7 @@ func test_conditions_gate_events() -> void:
 	assert_eq(SeaEvents.chance("ghost_ship", base.merged({"region": "dead_reach", "night": false}, true)), 0.0)
 	assert_eq(SeaEvents.chance("ghost_ship", base.merged({"region": "haven_waters", "night": true}, true)), 0.0)
 	assert_true(SeaEvents.chance("ghost_ship", base.merged({"region": "dead_reach", "night": true}, true)) > 0.0)
-	assert_eq(SeaEvents.chance("becalmed", base), 0.0)
+	assert_true(not SeaEventData.EVENTS.has("becalmed"))  # no wind mechanics, so no becalmed spells
 
 
 func test_navy_patrol_runs_from_3_to_12_percent() -> void:
@@ -128,21 +128,6 @@ func test_plague_runs_out_by_itself() -> void:
 	for i in 5:
 		SeaEvents.plague_day(s)
 	assert_eq(SeaEvents.plague_day(s)["active"], false)
-
-
-func test_becalmed_lasts_two_to_six_hours_and_lifts_morale() -> void:
-	var s: Dictionary = _state()
-	s["morale"] = 50.0
-	var out: Dictionary = SeaEvents.apply("becalmed", s, _rng(), {})
-	var h: int = int(out["args"][0])
-	assert_true(h >= 2 and h <= 6)
-	assert_true(SeaEvents.is_becalmed(s))
-	var n: int = 0
-	while SeaEvents.becalmed_hour(s):
-		n += 1
-	assert_eq(n, h)
-	assert_near(float(s["morale"]), 50.0 + float(h), 0.001)
-	assert_true(not SeaEvents.is_becalmed(s))
 
 
 # ---- rivals ----------------------------------------------------------------------------------------

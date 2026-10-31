@@ -6,11 +6,12 @@ extends Node
 signal prompt_changed(text: String)
 
 const FAR_FROM_DOCK_M: float = 140.0
-const WIND_FACING_DEG: float = 40.0
+const TURN_DEG: float = 45.0  ## the steering step ends once the bow has swung this far
 
 var ship: Ship
 var _step_time: float = 0.0
 var _seen_under_way: bool = false
+var _start_heading: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -45,6 +46,7 @@ func feed(event_name: String) -> void:
 		return
 	Session.state["tutorial"] = after
 	_step_time = 0.0
+	_start_heading = Vector2.ZERO
 	Svc.node("EventBus").tutorial_step_changed.emit(after)
 	_announce()
 
@@ -63,11 +65,13 @@ func _physics_process(delta: float) -> void:
 			var dock := Vector3(PortData.PORTS[PortData.START_PORT]["dock"].x, 0.0, PortData.PORTS[PortData.START_PORT]["dock"].y)
 			if ship.sail_level >= 1 and ship.global_position.distance_to(dock) > FAR_FROM_DOCK_M:
 				feed("left_dock")
-		"into_wind":
-			if ship.sail_level >= 1 and ship.angle_off_wind < WIND_FACING_DEG and _step_time > 2.0:
-				feed("faced_wind")
+		"steer":
+			if _start_heading == Vector2.ZERO:
+				_start_heading = ship.heading()
+			if rad_to_deg(absf(_start_heading.angle_to(ship.heading()))) >= TURN_DEG and _step_time > 1.0:
+				feed("steered")
 			elif _step_time > 90.0:
-				feed("faced_wind")  # never block on this one
+				feed("steered")  # never block on this one
 		"compass":
 			if _step_time >= float(TutorialData.STEPS[TutorialData.index_of("compass")]["seconds"]):
 				feed("timer")

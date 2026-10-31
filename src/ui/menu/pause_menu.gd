@@ -20,6 +20,8 @@ func _ready() -> void:
 func build() -> void:
 	add_button("menu.resume", close)
 	add_button("crew.screen", func() -> void: open_child(CrewScreen.new()))
+	add_button("goals.title", func() -> void: open_child(GoalsScreen.new()))
+	add_button("coll.title", func() -> void: open_child(CollectionScreen.new()))
 	add_button("ui.save", func() -> void:
 		var s := SaveLoadScreen.new()
 		s.world = world

@@ -58,6 +58,7 @@ static func build(committed: int, quality: float, morale: float, enemy_faction: 
 	}
 	var c := DeckCombat.new()
 	c.setup(mine, theirs, seed_value)
+	c.aim_assist = AimAssist.enabled(state)
 	if theirs.has("crew"):
 		CrewDeck.toughen(c, str(theirs["crew"]))
 	return c
