@@ -119,7 +119,7 @@ func test_weather_steps_by_region_and_saves() -> void:
 	assert_true(WeatherRules.PROFILES.has(str(w["now"])))
 	ws.set_now("fog")
 	assert_eq(ws.now(), "fog")
-	assert_near(float(ws.current["fog"]), 9.0, 0.001)
+	assert_near(float(ws.current["fog"]), 35.0, 0.001)
 	ws.free()
 
 

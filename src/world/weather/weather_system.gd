@@ -96,6 +96,9 @@ func set_now(id: String) -> void:
 	w["now"] = id
 	w["blend"] = 1.0
 	current = WeatherRules.blend(id, id, 1.0)
+	var wind: WindModel = world.get("wind") if world != null else null
+	if wind != null:
+		wind.speed_kn = float(current["wind"])
 
 
 func _clock_hours() -> float:
@@ -233,12 +236,17 @@ func warn_lightning(target: Ship) -> void:
 		Sfx.bark("storm")
 
 
-## The world position of the top of mast `i`.
+## The world position of the top of mast `i`: the highest point of that mast's meshes.
 static func masthead(s: Ship, i: int) -> Vector3:
-	var top: float = clampf(s.stats.length_m * 0.8, 10.0, 34.0)
 	if s.visuals != null and i >= 0 and i < s.visuals.mast_groups.size():
-		return s.visuals.mast_groups[i].global_position + Vector3.UP * top
-	return s.global_position + Vector3.UP * top
+		var g: Node3D = s.visuals.mast_groups[i]
+		var top: Vector3 = g.global_position
+		for m in g.find_children("*", "MeshInstance3D", true, false):
+			var box: AABB = (m as MeshInstance3D).global_transform * (m as MeshInstance3D).get_aabb()
+			if box.end.y > top.y:
+				top = Vector3(box.get_center().x, box.end.y, box.get_center().z)  # the mast heels with the ship
+		return top
+	return s.global_position + Vector3.UP * clampf(s.stats.length_m * 0.6, 8.0, 26.0)
 
 
 ## The bolt lands: damage to the struck mast and its sail, a flash and thunder.

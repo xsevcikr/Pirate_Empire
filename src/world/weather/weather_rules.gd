@@ -11,9 +11,9 @@ extends RefCounted
 const PROFILES: Dictionary = {
 	"clear": {"wind": 14.0, "clouds": 0.5, "dim": 0.0, "fog": 1.0, "rain": 0.0, "storm": 0.0, "sight": 1.0},
 	"overcast": {"wind": 18.0, "clouds": 0.8, "dim": 0.25, "fog": 1.5, "rain": 0.0, "storm": 0.0, "sight": 0.9},
-	"rain": {"wind": 21.0, "clouds": 0.92, "dim": 0.4, "fog": 2.4, "rain": 0.6, "storm": 0.0, "sight": 0.7},
-	"storm": {"wind": 31.0, "clouds": 1.0, "dim": 0.65, "fog": 3.2, "rain": 1.0, "storm": 1.0, "sight": 0.55},
-	"fog": {"wind": 7.0, "clouds": 0.6, "dim": 0.3, "fog": 9.0, "rain": 0.0, "storm": 0.0, "sight": 0.4},
+	"rain": {"wind": 21.0, "clouds": 0.92, "dim": 0.4, "fog": 3.5, "rain": 0.6, "storm": 0.0, "sight": 0.7},
+	"storm": {"wind": 31.0, "clouds": 1.0, "dim": 0.65, "fog": 6.0, "rain": 1.0, "storm": 1.0, "sight": 0.55},
+	"fog": {"wind": 7.0, "clouds": 0.6, "dim": 0.3, "fog": 35.0, "rain": 0.0, "storm": 0.0, "sight": 0.4},
 }
 const BLEND_S: float = 40.0  ## real seconds for one weather to turn into the next
 const WIND_KN_PER_S: float = 0.6  ## how fast the wind speed follows the weather

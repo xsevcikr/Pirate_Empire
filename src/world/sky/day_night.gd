@@ -52,8 +52,8 @@ func apply_hour(hour: float) -> void:
 	var horizon: Color = horizon_night.lerp(horizon_day, day_amount).lerp(sunset, low * day_amount * 0.85)
 	top = top.lerp(Color(0.22, 0.26, 0.5), low * day_amount * 0.7)
 	var grey: Color = top_night.lerp(STORM_SKY, day_amount)
-	top = top.lerp(grey * 0.85, dim).lerp(Color(0.8, 0.85, 1.0), flash * 0.6)
-	horizon = horizon.lerp(grey, dim).lerp(Color(0.85, 0.9, 1.0), flash * 0.6)
+	top = top.lerp(grey * 0.85, dim).lerp(Color(0.8, 0.85, 1.0), flash * 0.2)
+	horizon = horizon.lerp(grey, dim).lerp(Color(0.85, 0.9, 1.0), flash * 0.2)
 	if sky_material:
 		sky_material.sky_top_color = top
 		sky_material.sky_horizon_color = horizon
@@ -70,6 +70,7 @@ func apply_hour(hour: float) -> void:
 		env.ambient_light_energy = lerpf(0.5, 0.78, day_amount) * (1.0 - dim * 0.35) + flash * 1.2
 	if ocean:
 		ocean.set_sky_color(horizon.lerp(top, 0.7))
+		ocean.set_murk(dim)
 	if clouds:
 		var lit: Color = Color(1.0, 1.0, 1.0).lerp(Color(1.0, 0.62, 0.4), low * day_amount).lerp(Color(0.08, 0.1, 0.18), 1.0 - day_amount)
 		var shade: Color = Color(0.58, 0.68, 0.82).lerp(Color(0.55, 0.38, 0.4), low * day_amount).lerp(Color(0.03, 0.04, 0.09), 1.0 - day_amount)
