@@ -126,7 +126,7 @@ func _hazard_tick(step: Dictionary, pos: Vector2, hour: float, delta: float) -> 
 
 func _hurt(dmg: float) -> void:
 	if ship != null and ship.damage != null and dmg > 0.0:
-		ship.damage.apply_impact(rng.randi_range(0, ship.damage.section_count - 1), dmg, 0.0, false)
+		ship.damage.apply_impact(rng.randi_range(0, ship.damage.section_count - 1), dmg, 0.0, false, dmg >= 10.0)
 
 
 func _done(id: String, step: Dictionary) -> void:

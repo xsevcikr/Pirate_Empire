@@ -19,6 +19,8 @@ var overlay: GameOverlay
 var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
+var minimap: Minimap
+var status_panel: StatusPanel
 var damage_panel: DamagePanel
 var convoys: ConvoyManager
 var tours: TourDirector
@@ -143,6 +145,15 @@ func _ready() -> void:
 	hud.target = target
 	hud.clock = get_node_or_null("/root/GameClock")
 	add_child(hud)
+	minimap = Minimap.new()
+	minimap.name = "Minimap"
+	minimap.ship = ship
+	minimap.world = self
+	add_child(minimap)
+	status_panel = StatusPanel.new()
+	status_panel.name = "StatusPanel"
+	status_panel.ship = ship
+	add_child(status_panel)
 
 	Session.apply(self)
 	Game.change_state(Game.State.PLAYING)
@@ -184,6 +195,7 @@ func _start_game_layer() -> void:
 	var orders := SeaOrderBar.new()
 	orders.name = "SeaOrderBar"
 	orders.controller = player_controller
+	orders.hud = hud
 	orders.drink_pressed.connect(drink_rum)
 	add_child(orders)
 	world_audio = WorldAudio.new()
@@ -436,6 +448,8 @@ func _replace_player_ship() -> void:
 	rig.target = fresh
 	player_controller.ship = fresh
 	hud.ship = fresh
+	minimap.ship = fresh
+	status_panel.ship = fresh
 	if prizes != null:
 		prizes.player = fresh
 	if tutorial != null:
@@ -628,7 +642,8 @@ func _navigate(delta: float) -> void:
 			EventBus.toast.emit(Loc.t("map.stream_learned"))
 	if overlay != null:
 		var v: Vector2 = OceanCurrent.velocity_at(at, hours)
-		overlay.set_nav(Loc.t("hud.nav") % [v.length() / OceanCurrent.KN_TO_MS, _compass(v), OceanCurrent.tide_m(hours), Loc.t("tide.rising" if OceanCurrent.tide_rising(hours) else "tide.falling")])
+		var strong: bool = v.length() / OceanCurrent.KN_TO_MS >= 1.0  # only a current worth steering for is shown
+		overlay.set_nav(Loc.t("hud.nav") % [v.length() / OceanCurrent.KN_TO_MS, _compass(v), OceanCurrent.tide_m(hours), Loc.t("tide.rising" if OceanCurrent.tide_rising(hours) else "tide.falling")] if strong else "")
 
 
 static func _compass(v: Vector2) -> String:
@@ -843,7 +858,7 @@ func _physics_process(delta: float) -> void:
 	if overlay != null:
 		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("lagoon.hint") if can_land_lagoon() else (Loc.t("hud.land_hint") if can_land() else "")))
 		var st: Dictionary = Session.state
-		overlay.set_info(Loc.t("hud.status") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water"), PortService.cargo_used(st), PortService.cargo_capacity(st), int(st["morale"]), Loc.t("morale." + Morale.band(float(st["morale"])))])
+		overlay.set_info(GameOverlay.status_text(st))
 	wind.update(delta)
 	var ss: float = snappedf(wind.sea_state(), 0.1)
 	if absf(ss - _last_sea_state) > 0.05:

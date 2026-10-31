@@ -7,7 +7,7 @@ extends Control
 signal closed
 
 const PARCHMENT := Color(0.86, 0.77, 0.58)
-const FOG := Color(0.46, 0.38, 0.26)
+const FOG := Color(0.66, 0.56, 0.4)
 const SEA_SEEN := Color(0.62, 0.74, 0.74)
 const INK := Color(0.25, 0.16, 0.08)
 const MARGIN_PX: float = 40.0
@@ -94,6 +94,12 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.1, 0.07, 0.04))
 	draw_rect(_rect.grow(10.0), PARCHMENT.darkened(0.25))
 	draw_rect(_rect, FOG)
+	var hatch: float = -_rect.size.y
+	while hatch < _rect.size.x:  # unexplored waters: hatched like an old chart
+		var a: Vector2 = _rect.position + Vector2(hatch, _rect.size.y)
+		var b: Vector2 = _rect.position + Vector2(hatch + _rect.size.y, 0.0)
+		draw_line(a, b, Color(INK, 0.1), 1.0)
+		hatch += 14.0
 	var cell: Vector2 = _rect.size / float(WorldMap.CHUNKS)
 	for cz in WorldMap.CHUNKS:
 		for cx in WorldMap.CHUNKS:
@@ -108,8 +114,9 @@ func _draw() -> void:
 			_label(Loc.t("region." + rid), (a + b) * 0.5 - Vector2(60, 0), 14, INK.lerp(PARCHMENT, 0.35))
 	_draw_currents()
 	_draw_lanes()
-	for isl in chart.gen.islands:
-		_draw_island(isl)
+	for i in chart.gen.islands.size():
+		_draw_island(i, chart.gen.islands[i])
+	_draw_home()
 	_draw_crews()
 	_draw_route()
 	_draw_player()
@@ -122,25 +129,36 @@ func _draw() -> void:
 		_label(txt, Vector2(_rect.end.x - 360.0, _rect.position.y - 14.0), 18, PARCHMENT)
 
 
-func _draw_island(isl: Dictionary) -> void:
-	if not island_known(isl):
+## An island with its real coastline (IslandShape), drawn a little larger than life so it reads on the big
+## chart, its name, and a little house in the flag's colour at its harbour.
+func _draw_island(index: int, isl: Dictionary) -> void:
+	if not island_known(isl) and str(isl["name"]) != LagoonData.ISLAND:
 		return
 	var c: Vector2 = Chart.to_screen(isl["pos"], _rect)
 	var look: Dictionary = IslandData.biome(isl["biome"])
-	var r: float = maxf(float(isl["radius"]) / WorldMap.SIZE_M * _rect.size.x * 1.2, 5.0)
-	draw_circle(c, r + 2.0, INK.lerp(PARCHMENT, 0.4))
-	draw_circle(c, r, (look["grass"] as Color).lerp(look["sand"], 0.4))
-	_label(isl["name"], c + Vector2(r + 5.0, -2.0), 14, INK)
+	var px_per_m: float = _rect.size.x / WorldMap.SIZE_M
+	var grow: float = maxf(1.4, 7.0 / maxf(float(isl["radius"]) * px_per_m, 0.001))  # never smaller than a 7 px island
+	var to_screen: Callable = func(p: Vector2) -> Vector2: return c + (Chart.to_screen(p, _rect) - c) * grow
+	IslandShape.draw(self, IslandShape.of(index, isl), look, to_screen, INK, px_per_m * grow)
+	var r: float = float(isl["radius"]) * px_per_m * grow
+	_label(isl["name"], c + Vector2(-_font.get_string_size(isl["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x * 0.5, -r * 1.25 - 4.0), 14, INK)
 	if isl["city"] != "":
 		var faction: String = str(WorldMap.REGIONS[isl["region"]]["faction"])
 		var col: Color = IslandData.style(faction)["flag"]
-		var port: Vector2 = Chart.to_screen(PortData.PORTS[IslandData.port_id_of(isl["city"])]["dock"], _rect)
-		draw_rect(Rect2(port - Vector2(4, 4), Vector2(8, 8)), col)
-		draw_rect(Rect2(port - Vector2(4, 4), Vector2(8, 8)), INK, false, 1.5)
+		var port: Vector2 = to_screen.call(PortData.PORTS[IslandData.port_id_of(isl["city"])]["dock"])
+		IslandShape.draw_harbour(self, port, col, INK, 6.0)
+		_label(isl["city"], port + Vector2(9, 5), 13, Color(0.5, 0.1, 0.05))
 	elif Landings.has_landing(isl):  # a beach landing, no harbour: a hollow ring
 		var g: WorldGen = PortData.gen()
-		var at: Vector2 = Chart.to_screen(Landings.anchorage(g, g.index_of(isl["name"])), _rect)
+		var at: Vector2 = to_screen.call(Landings.anchorage(g, g.index_of(isl["name"])))
 		draw_arc(at, 4.5, 0.0, TAU, 12, INK, 2.0)
+
+
+## Home, the lagoon on Skull Atoll: a gold star.
+func _draw_home() -> void:
+	var at: Vector2 = Chart.to_screen(MinimapMath.home_pos(), _rect)
+	IslandShape.draw_star(self, at, 11.0, Color(1.0, 0.8, 0.2), INK)
+	_label(Loc.t("minimap.home"), at + Vector2(13, -6), 15, Color(0.55, 0.35, 0.0))
 
 
 func _draw_lanes() -> void:
@@ -215,7 +233,7 @@ func _draw_crews() -> void:
 func _draw_player() -> void:
 	var p: Vector2 = Chart.to_screen(player_pos, _rect)
 	var d: Vector2 = player_heading.normalized()
-	draw_colored_polygon(PackedVector2Array([p + d * 11.0, p - d * 7.0 + d.orthogonal() * 6.0, p - d * 7.0 - d.orthogonal() * 6.0]), Color(0.75, 0.1, 0.1))
+	IslandShape.draw_arrow(self, p, d, 10.0, Color.WHITE, Color(0.75, 0.1, 0.08))
 	_label(Loc.t("map.you"), p + Vector2(10, 14), 13, Color(0.6, 0.05, 0.05))
 
 
@@ -229,4 +247,6 @@ func _dashed(a: Vector2, b: Vector2, col: Color, width: float) -> void:
 
 
 func _label(text: String, at: Vector2, font_size: int, col: Color) -> void:
+	if col.get_luminance() < 0.5:  # dark ink gets a pale paper halo so it reads over land and sea
+		draw_string_outline(_font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, 4, Color(PARCHMENT, 0.85))
 	draw_string(_font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, col)

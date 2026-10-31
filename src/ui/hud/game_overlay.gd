@@ -19,8 +19,8 @@ func _ready() -> void:
 	_info.anchor_top = 1.0
 	_info.anchor_bottom = 1.0
 	_info.offset_left = 32.0
-	_info.offset_top = -130.0
-	_info.offset_bottom = -100.0
+	_info.offset_top = -76.0
+	_info.offset_bottom = -46.0
 	_nav = _make_label(Vector2.ZERO, 18)
 	_nav.anchor_left = 1.0
 	_nav.anchor_right = 1.0
@@ -80,6 +80,20 @@ func set_dock_hint(text: String) -> void:
 
 func set_info(text: String) -> void:
 	_info.text = text
+
+
+## The one-line note at the bottom left, empty while all is well: the hold only when it is nearly full and morale
+## only when the men are unhappy. Gold, food and water live on the status panel (StatusPanel) beside the chart.
+static func status_text(st: Dictionary) -> String:
+	var parts: Array[String] = []
+	var cap: float = PortService.cargo_capacity(st)
+	var full: float = PortService.cargo_used(st) / cap if cap > 0.0 else 0.0
+	if full >= 0.8:
+		parts.append(Loc.t("hud.status_cargo") % (full * 100.0))
+	var morale: float = float(st["morale"])
+	if morale < Morale.BANDS["content"]["min"]:
+		parts.append(Loc.t("hud.status_morale") % Loc.t("morale." + Morale.band(morale)))
+	return "   ".join(parts)
 
 
 func add_toast(text: String) -> void:
