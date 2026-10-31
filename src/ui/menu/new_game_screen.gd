@@ -23,7 +23,7 @@ func build() -> void:
 	difficulty = OptionButton.new()
 	for k in DIFFICULTIES:
 		difficulty.add_item(Loc.t(k))
-	difficulty.select(1)
+	difficulty.select(0)  # Easy first: the game is meant to be friendly for young captains
 	add_row("menu.difficulty", difficulty)
 	seed_edit = SpinBox.new()
 	seed_edit.min_value = 1

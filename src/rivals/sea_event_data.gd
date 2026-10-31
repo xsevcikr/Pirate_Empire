@@ -23,7 +23,6 @@ const EVENTS: Dictionary = {
 	"monster": {"chance": 0.01, "region": {"dead_reach": 2.0, "coral_isles": 1.3, "merchants_reach": 0.5}, "kinds": ["serpent", "shark", "siren"]},
 	"plague": {"weekly": 0.01, "season": {"summer": 1.4, "winter": 0.6}, "days": 5, "crew_loss": 0.05, "morale": -3.0},
 	"stowaway": {"chance": 0.01, "region": {"merchants_reach": 1.5, "albion_shallows": 1.3}, "thief_share": 0.4, "steal": 0.1},
-	"becalmed": {"chance": 0.05, "only_region": "coral_isles", "season": {"summer": 1.5, "winter": 0.5}, "hours": [2, 6], "morale_per_hour": 1.0},
 }
 
 ## The bottle's contents, by weight.

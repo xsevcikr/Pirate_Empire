@@ -25,6 +25,8 @@ var tours: TourDirector
 var rivals: RivalDirector
 var crews: CrewDirector
 var progress: ProgressDirector
+var easy_play: EasyPlayDirector
+var goals_card: GoalsCard
 var world_audio: WorldAudio
 var streamer: WorldStreamer
 var debris: DebrisManager
@@ -121,7 +123,6 @@ func _ready() -> void:
 	var pc := PlayerController.new()
 	player_controller = pc
 	pc.ship = ship
-	pc.wind = wind
 	add_child(pc)
 
 	rig = CameraRig.new()
@@ -181,6 +182,18 @@ func _start_game_layer() -> void:
 	add_child(progress)
 	tours.step_completed.connect(progress.on_tour_step)
 	tours.tour_completed.connect(progress.on_tour_done)
+	easy_play = EasyPlayDirector.new()
+	easy_play.name = "EasyPlay"
+	easy_play.ship = ship
+	easy_play.ocean = ocean.model
+	easy_play.state = Session.state
+	add_child(easy_play)
+	goals_card = GoalsCard.new()
+	goals_card.name = "GoalsCard"
+	goals_card.open_goals.connect(open_goals)
+	goals_card.open_book.connect(open_collection)
+	goals_card.ask_parrot.connect(func() -> void: easy_play.hint())
+	add_child(goals_card)
 	var orders := SeaOrderBar.new()
 	orders.name = "SeaOrderBar"
 	orders.controller = player_controller
@@ -355,6 +368,14 @@ func _on_player_sunk() -> void:
 		get_tree().paused = false
 		var dock: Vector2 = PortData.PORTS[result["port"]]["dock"]
 		sync_player_ship()
+		if bool(result.get("ship_kept", false)):  # the same hull floats again: pump her out and patch her up
+			ship.damage.reset_all()
+			ship.damage.sunk = false
+			Session.apply_hull(ship)
+			ship.refresh_damage()
+			ship.linear_velocity = Vector3.ZERO
+			ship.angular_velocity = Vector3.ZERO
+			ship.rotation = Vector3(0.0, ship.rotation.y, 0.0)
 		ship.global_position = Vector3(dock.x, 0.5, dock.y)
 		ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 		Session.autosave(self))
@@ -770,6 +791,14 @@ func open_skills() -> void:
 
 func open_log() -> void:
 	_open_screen(JournalScreen.new())
+
+
+func open_goals() -> void:
+	_open_screen(GoalsScreen.new())
+
+
+func open_collection() -> void:
+	_open_screen(CollectionScreen.new())
 
 
 func open_customize() -> void:

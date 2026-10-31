@@ -337,7 +337,7 @@ func update(delta: float) -> void:
 	w_local.y = 0.0
 	var fwd := Vector3(0, 0, -1)
 	var level: float = SailModel.LEVELS[clampi(ship.sail_level, 0, 3)]
-	var factor: float = SailModel.speed_factor(ship.angle_off_wind, stats.square_rig)
+	var factor: float = 1.0  # no wind mechanics: the sails always draw
 	var wind_ratio: float = clampf(wind.speed_ms() / 10.29, 0.15, 1.4)
 	var billow: float = clampf(factor * 1.1, 0.0, 1.0) * clampf(wind_ratio, 0.3, 1.0) * clampf(level * 1.4, 0.0, 1.0)
 	var luff: float = 1.0 - clampf(factor * 3.0, 0.0, 1.0)

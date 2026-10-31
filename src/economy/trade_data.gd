@@ -47,6 +47,10 @@ const DEFEAT_GOLD_LOSS: float = 0.5
 const DEFEAT_CREW_LOSS: float = 0.3
 const DEFEAT_START_CLASS: String = "cutter"
 const INSURED_HULL: float = 0.3
+## Second chance (Easy and Normal): a sinking ship washes ashore with her crew; only a little of the gold carried is
+## lost, keyed by difficulty. Harder difficulties keep the full defeat rules above.
+const SECOND_CHANCE_GOLD_LOSS: Dictionary = {0: 0.1, 1: 0.2}
+const SECOND_CHANCE_HULL: float = 0.5
 
 # ---- standing shown on screen (price effect on the player) ----
 const REP_MOD: Dictionary = {"hated": -0.15, "hostile": -0.08, "neutral": 0.0, "friendly": 0.05, "allied": 0.10}

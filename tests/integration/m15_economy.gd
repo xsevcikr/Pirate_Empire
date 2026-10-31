@@ -78,6 +78,7 @@ func _process(_delta: float) -> bool:
 			var price: float = PortService.market_of(st, "blackwater").mid_price("sugar")
 			_check(price >= _price_before * 0.99, "price does not fall without the delivery (%f vs %f)" % [price, _price_before])
 			st["gold"] = 400
+			st["difficulty"] = 2  # Hard: the full defeat rules (Easy and Normal get a second chance, see m25)
 			_ship.damage.sunk = true
 			_ship.damage.sank.emit()
 			_go(3, 5)
