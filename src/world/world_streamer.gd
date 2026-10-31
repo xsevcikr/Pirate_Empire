@@ -13,7 +13,7 @@ var world: Node
 signal building_destroyed(building: DestructibleBuilding, by_player: bool)
 var loaded: Dictionary = {}  ## island index -> Island
 var _unload_due: Array[int] = []
-var _forts_due: Array[PortScene] = []
+var _forts_due: Array[PortScene] = []  ## harbours still going up, a slice a frame
 var _ports_due: Array[String] = []
 var _landings_due: Array[int] = []
 var _landing_jobs: Array[Callable] = []  ## one slice of a landing's props per pump
@@ -60,9 +60,9 @@ func refresh(at: Vector2) -> void:
 ## One slice of work: finish the island being built or start the nearest queued one.
 func pump() -> void:
 	if not _forts_due.is_empty():
-		var f: PortScene = _forts_due.pop_front()
-		if is_instance_valid(f):
-			f.build_fort()
+		var f: PortScene = _forts_due.front()
+		if not is_instance_valid(f) or not f.build_next():
+			_forts_due.pop_front()
 		return
 	if not _unload_due.is_empty():
 		var u: int = _unload_due.pop_front()
@@ -99,6 +99,8 @@ func pump() -> void:
 	var is_lagoon: bool = isl["name"] == LagoonData.ISLAND
 	if is_lagoon:
 		_shape_lagoon(node)
+	elif isl["city"] != "":
+		PortScene.shape_island(node, IslandData.port_id_of(isl["city"]))
 	add_child(node)
 	if is_lagoon:
 		lagoon = LagoonScene.new()

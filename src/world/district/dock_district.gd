@@ -13,6 +13,14 @@ const STREET_LENGTH_M: float = 70.0
 const DOOR_REACH_M: float = 4.2
 const CAM_BACK_M: float = 9.0
 const CAM_UP_M: float = 5.5
+const FRONT_X_M: float = 15.0  ## centre line of the house fronts on each side of the street
+const FRONT_SLOTS: Array[float] = [-29.0, -15.0, -1.0, 13.0, 27.0]  ## 12 m fronts with 2 m alleys between
+const BACK_X_M: float = 29.0
+const BACK_SLOTS: Array[float] = [-28.0, -14.0, 0.0, 14.0, 28.0]
+const TOWN_WALL_X_M: float = 38.0
+const FAR_Z_M: float = -49.0  ## the town wall across the far end of the street
+const TALK_REACH_M: float = 2.4
+const NPC_LINES: int = 10
 
 var port_id: String = PortData.START_PORT
 var active: bool = true
@@ -34,13 +42,20 @@ func _ready() -> void:
 	var port: Dictionary = PortData.PORTS[port_id]
 	var style: Dictionary = IslandData.style(port["faction"])
 	_build_ground(style)
-	var kinds: Array[String] = ["market", "shipyard", "tavern", "outfitter", "quests"]
+	var kinds: Array[String] = ["market", "shipyard", "tavern", "outfitter", "quests", "supplies"]
 	if Finance.has_bank(port_id):
 		kinds.append("bank")
-	for i in kinds.size():
+	# both sides of the street are one unbroken row of house fronts with narrow alleys; the shops take the first
+	# slots and ordinary houses fill the rest
+	for i in FRONT_SLOTS.size() * 2:
 		var side: float = -1.0 if i % 2 == 0 else 1.0
-		var z: float = -STREET_LENGTH_M * 0.5 + 8.0 + float(i / 2) * 20.0
-		_building(kinds[i], Vector3(side * (STREET_HALF_WIDTH_M + 6.0), 0.0, z), side, style)
+		var at := Vector3(side * FRONT_X_M, 0.0, FRONT_SLOTS[i / 2])
+		if i < kinds.size():
+			_building(kinds[i], at, side, style)
+		else:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = port_id.hash() + i * 977
+			TownBuilder.house(self, at, (-90.0 if side > 0.0 else 90.0), 12.0, 9.0, rng.randi_range(2, 3), style["roof"], rng)
 	_build_pier(style)
 	_build_town(style)
 	_build_sky_and_sea()
@@ -99,9 +114,22 @@ func _box(size: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
 	return mi
 
 
+## Solid land under the whole walled town and the castle, ending in a stone quay at the pier, so no house, church or
+## tower stands out over the sea.
 func _build_ground(style: Dictionary) -> void:
-	_box(Vector3(STREET_HALF_WIDTH_M * 2.0 + 36.0, 1.0, STREET_LENGTH_M + 24.0), Vector3(0, -0.5, 0), Color(0.38, 0.8, 0.55))
-	_box(Vector3(STREET_HALF_WIDTH_M * 2.0, 0.1, STREET_LENGTH_M + 24.0), Vector3(0, 0.02, 0), Color(0.95, 0.75, 0.6))
+	var quay_z: float = STREET_LENGTH_M * 0.5 + 2.0
+	var back_z: float = FAR_Z_M - 40.0
+	var half_x: float = TOWN_WALL_X_M + 8.0
+	var depth: float = quay_z - back_z
+	_box(Vector3(half_x * 2.0, 4.0, depth), Vector3(0, -2.0, (quay_z + back_z) * 0.5), Color(0.38, 0.8, 0.55))
+	_box(Vector3(STREET_HALF_WIDTH_M * 2.0, 0.1, STREET_LENGTH_M + 4.0), Vector3(0, 0.02, 0), Color(0.95, 0.75, 0.6))
+	# quay wall along the water and a strip of paving behind it
+	_box(Vector3(half_x * 2.0 + 0.4, 4.4, 1.2), Vector3(0, -2.0, quay_z - 0.4), TownBuilder.STONE)
+	_box(Vector3(half_x * 2.0, 0.12, 3.0), Vector3(0, 0.03, quay_z - 2.0), TownBuilder.STONE.lightened(0.1))
+	for k in 8:  # bollards
+		var bx: float = -half_x + 4.0 + k * (half_x * 2.0 - 8.0) / 7.0
+		if absf(bx) > 4.0:
+			_box(Vector3(0.5, 0.7, 0.5), Vector3(bx, 0.35, quay_z - 0.9), Color(0.31, 0.32, 0.38))
 
 
 func _building(kind: String, at: Vector3, side: float, style: Dictionary) -> void:
@@ -127,6 +155,23 @@ func _building(kind: String, at: Vector3, side: float, style: Dictionary) -> voi
 	lamp.light_color = Color(1.0, 0.78, 0.45)
 	add_child(lamp)
 	_lantern_post(stand + Vector3(0, 0, 1.6))
+	if kind == "supplies":
+		_supply_front(at + Vector3(-side * (size.x * 0.5 + 0.9), 0, 0), side)
+
+
+## Sacks, barrels of water and rum, crates of biscuit and hams on a rail outside the chandler's door.
+func _supply_front(at: Vector3, side: float) -> void:
+	for k in 3:
+		Kenney.place(self, "pirate", "barrel", at + Vector3(0, 0, -3.2 - k * 0.9), k * 40.0, 0.6)
+	for k in 2:
+		Kenney.place(self, "pirate", "crate", at + Vector3(0, 0, 3.0 + k * 1.1), k * 25.0, 0.7)
+	Kenney.place(self, "pirate", "crate", at + Vector3(0, 0.75, 3.5), 10.0, 0.6)
+	for k in 3:  # flour sacks
+		var sack := _box(Vector3(0.6, 0.5, 0.45), at + Vector3(-side * 0.2, 0.25, -1.4 - k * 0.55), Color(0.93, 0.86, 0.7))
+		sack.rotation_degrees.y = k * 17.0
+	_box(Vector3(0.1, 0.1, 2.4), at + Vector3(0, 2.2, 2.4), TownBuilder.TIMBER)
+	for k in 3:  # hams on the rail
+		_box(Vector3(0.25, 0.45, 0.25), at + Vector3(0, 1.85, 1.6 + k * 0.6), Color(0.69, 0.38, 0.25))
 
 
 func _lantern_post(at: Vector3) -> void:
@@ -140,30 +185,33 @@ func _lantern_post(at: Vector3) -> void:
 	add_child(mi)
 
 
-## The town around the street: a cobbled floor, a square with a well and stalls, a church, rows of houses behind the
-## shop fronts, walls and a castle at the far end, and townsfolk who walk about.
+## The town around the street: a cobbled floor, a square with a well and stalls, a church and a back row of houses
+## behind each side, walls all round and a castle at the far end, and townsfolk who walk about.
 func _build_town(style: Dictionary) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = port_id.hash() * 7 + 3
-	TownBuilder.cobbles(self, STREET_HALF_WIDTH_M, STREET_LENGTH_M * 0.5 + 12.0, rng)
+	TownBuilder.cobbles(self, STREET_HALF_WIDTH_M, STREET_LENGTH_M * 0.5, rng)
 	TownBuilder.street_clutter(self, STREET_HALF_WIDTH_M, STREET_LENGTH_M * 0.5, rng)
 	TownBuilder.well(self, Vector3(0.0, 0.0, 2.0))
 	for i in 4:
 		var side: float = -1.0 if i % 2 == 0 else 1.0
 		TownBuilder.stall(self, Vector3(side * 5.4, 0.0, -2.0 + 6.0 * float(i / 2) - (6.0 if i < 2 else 0.0)), -90.0 * side, rng)
-	TownBuilder.church(self, Vector3(-30.0, 0.0, -12.0), 90.0)
-	for k in 10:  # rows of houses behind the shop fronts
-		var sd: float = -1.0 if k % 2 == 0 else 1.0
-		var z: float = -STREET_LENGTH_M * 0.5 + 6.0 + float(k / 2) * 14.0
-		TownBuilder.house(self, Vector3(sd * (STREET_HALF_WIDTH_M + 24.0), 0.0, z), -90.0 * sd, 11.0, rng.randf_range(8.0, 11.0), rng.randi_range(2, 3), style["roof"], rng)
-	var far_z: float = -STREET_LENGTH_M * 0.5 - 14.0
-	TownBuilder.castle(self, Vector3(0.0, 0.0, far_z - 18.0), style["flag"])
-	TownBuilder.wall_run(self, Vector3(-30.0, 0.0, far_z + 4.0), Vector3(-14.0, 0.0, far_z - 8.0))
-	TownBuilder.wall_run(self, Vector3(30.0, 0.0, far_z + 4.0), Vector3(14.0, 0.0, far_z - 8.0))
-	TownBuilder.round_tower(self, Vector3(-30.0, 0.0, far_z + 4.0), 3.2, 12.0, style["flag"])
-	TownBuilder.round_tower(self, Vector3(30.0, 0.0, far_z + 4.0), 3.2, 12.0, style["flag"])
+	# the church stands in the left back row, its tower towards the castle
+	TownBuilder.church(self, Vector3(-BACK_X_M, 0.0, -10.0), 180.0)
 	for sd in [-1.0, 1.0]:
-		TownBuilder.wall_run(self, Vector3(sd * 38.0, 0.0, far_z + 4.0), Vector3(sd * 38.0, 0.0, STREET_LENGTH_M * 0.5))
+		for z in BACK_SLOTS:
+			if sd < 0.0 and z < 5.0:
+				continue  # the church's ground
+			TownBuilder.house(self, Vector3(sd * BACK_X_M, 0.0, z), -90.0 * sd, 11.0, 9.0, rng.randi_range(2, 3), style["roof"], rng)
+	TownBuilder.castle(self, Vector3(0.0, 0.0, FAR_Z_M - 18.0), style["flag"])
+	TownBuilder.wall_run(self, Vector3(-30.0, 0.0, FAR_Z_M + 4.0), Vector3(-14.0, 0.0, FAR_Z_M - 8.0))
+	TownBuilder.wall_run(self, Vector3(30.0, 0.0, FAR_Z_M + 4.0), Vector3(14.0, 0.0, FAR_Z_M - 8.0))
+	TownBuilder.round_tower(self, Vector3(-30.0, 0.0, FAR_Z_M + 4.0), 3.2, 12.0, style["flag"])
+	TownBuilder.round_tower(self, Vector3(30.0, 0.0, FAR_Z_M + 4.0), 3.2, 12.0, style["flag"])
+	for sd in [-1.0, 1.0]:
+		TownBuilder.wall_run(self, Vector3(sd * TOWN_WALL_X_M, 0.0, FAR_Z_M + 4.0), Vector3(sd * 30.0, 0.0, FAR_Z_M + 4.0))
+		TownBuilder.wall_run(self, Vector3(sd * TOWN_WALL_X_M, 0.0, FAR_Z_M + 4.0), Vector3(sd * TOWN_WALL_X_M, 0.0, STREET_LENGTH_M * 0.5 - 2.0))
+		TownBuilder.round_tower(self, Vector3(sd * TOWN_WALL_X_M, 0.0, STREET_LENGTH_M * 0.5 - 2.0), 2.6, 10.0, style["flag"])
 	_spawn_people(rng, style)
 
 
@@ -171,9 +219,17 @@ var walkers: Array[TownWalker] = []
 var _pair_t: float = 0.0
 
 
+const PEOPLE: Array[String] = ["peasant", "peasant", "merchant", "townswoman", "townswoman", "peasant", "merchant", "townswoman", "guard", "guard", "peasant", "townswoman",
+	"merchant", "peasant", "townswoman", "peasant", "merchant", "townswoman", "peasant", "guard"]
+
+
+## Townsfolk up and down the street: at the shop doors, the stalls, the well and the quay.
 func _spawn_people(rng: RandomNumberGenerator, style: Dictionary) -> void:
-	var spots: Array[Vector3] = [Vector3(0, 0, 2), Vector3(-5, 0, -4), Vector3(5, 0, -4), Vector3(-6, 0, 12), Vector3(6, 0, 12), Vector3(0, 0, -18), Vector3(-7, 0, -22), Vector3(7, 0, -26), Vector3(0, 0, 22)]
-	var kinds: Array[String] = ["peasant", "peasant", "merchant", "townswoman", "townswoman", "peasant", "merchant", "townswoman", "guard", "guard", "peasant", "townswoman"]
+	var spots: Array[Vector3] = [Vector3(0, 0, 2), Vector3(-5, 0, -4), Vector3(5, 0, -4), Vector3(-6, 0, 12), Vector3(6, 0, 12), Vector3(0, 0, -18), Vector3(-7, 0, -22), Vector3(7, 0, -26), Vector3(0, 0, 22),
+		Vector3(0, 0, -32), Vector3(-6, 0, 30), Vector3(6, 0, 32), Vector3(3, 0, 26)]
+	for d in doors:
+		spots.append(d["pos"] as Vector3)
+	var kinds: Array[String] = PEOPLE
 	for i in kinds.size():
 		var w := TownWalker.new()
 		w.setup(kinds[i], 11 + i * 17, spots, port_id.hash() + i * 31)
@@ -250,7 +306,7 @@ func _physics_process(delta: float) -> void:
 		Sfx.play("step_wood")
 	_place_camera(delta)
 	_update_prompt()
-	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("deck_use"):
+	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("deck_use") or Input.is_action_just_pressed("deck_fire"):
 		use_nearest()
 	elif Input.is_action_just_pressed("pause"):
 		leave()
@@ -291,8 +347,33 @@ func nearest_door() -> String:
 	return best
 
 
+## The townsperson within talking reach of the captain, or null.
+func nearest_walker() -> TownWalker:
+	var best: TownWalker = null
+	var best_d: float = TALK_REACH_M
+	var at := Vector2(captain.position.x, captain.position.z)
+	for w in walkers:
+		var d: float = at.distance_to(w.fighter.pos)
+		if d < best_d:
+			best_d = d
+			best = w
+	return best
+
+
+## Says something to the nearest townsperson; true when someone was there to hear it.
+func talk_nearest() -> bool:
+	var w: TownWalker = nearest_walker()
+	if w == null:
+		return false
+	var key: String = "npc.guard_%d" % (1 + w.rng.randi_range(0, 2)) if w.fighter.kind == "guard" else "npc.line_%d" % (1 + w.rng.randi_range(0, NPC_LINES - 1))
+	w.greet(Vector2(captain.position.x, captain.position.z), Loc.t(key))
+	return true
+
+
 func use_nearest() -> void:
 	var kind: String = nearest_door()
+	if kind == "" and talk_nearest():
+		return
 	if kind == "pier":
 		leave()
 	elif kind != "":
@@ -307,9 +388,11 @@ func leave() -> void:
 
 func _update_prompt() -> void:
 	var kind: String = nearest_door()
+	if kind == "" and nearest_walker() != null:
+		kind = "talk"
 	if kind != _prompt_kind:
 		_prompt_kind = kind
-		prompt.text = "" if kind == "" else Loc.t("dock.use") % Loc.t("dock.sign_" + kind)
+		prompt.text = "" if kind == "" else Loc.t("dock.use") % Loc.t("dock.talk" if kind == "talk" else "dock.sign_" + kind)
 
 
 func _place_camera(delta: float) -> void:
