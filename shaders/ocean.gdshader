@@ -11,6 +11,7 @@ uniform float ocean_time = 0.0;
 uniform vec3 shallow_color : source_color = vec3(0.08, 0.78, 0.74);
 uniform vec3 deep_color : source_color = vec3(0.01, 0.16, 0.30);
 uniform vec3 sky_color : source_color = vec3(0.55, 0.7, 0.9);
+uniform float murk : hint_range(0.0, 1.0) = 0.0;  // bad weather: the bright blues go slate grey-green
 uniform vec3 foam_color : source_color = vec3(0.95, 0.97, 1.0);
 uniform float fade_start = 900.0;
 uniform float fade_end = 3000.0;
@@ -95,6 +96,8 @@ void fragment() {
 	vec3 light_c = vec3(0.22, 0.7, 0.9);
 	vec3 col = mix(deep, mid, step(0.5, level));
 	col = mix(col, light_c, step(0.8, level));
+	float grey = dot(col, vec3(0.3, 0.5, 0.2));
+	col = mix(col, vec3(grey) * vec3(0.78, 0.95, 0.98), murk * 0.85) * (1.0 - murk * 0.4);
 	float breakup = fbm(p * 0.7 + vec2(t * 0.15, 0.0));
 	float foam = step(0.55, v_foam * (0.4 + 1.2 * breakup)) + step(0.9, h1) * step(0.55, crest) * near;
 	col = mix(col, foam_color, clamp(foam, 0.0, 1.0));

@@ -26,6 +26,7 @@ var rivals: RivalDirector
 var crews: CrewDirector
 var progress: ProgressDirector
 var world_audio: WorldAudio
+var weather: WeatherSystem
 var streamer: WorldStreamer
 var debris: DebrisManager
 var _dock_hit_cool: float = 0.0
@@ -135,6 +136,12 @@ func _ready() -> void:
 	var clouds := CloudLayer.new()
 	add_child(clouds)
 	day_night.clouds = clouds
+	var stars := StarDome.new()
+	add_child(stars)
+	day_night.stars = stars
+	var lanterns := NightLights.new()
+	add_child(lanterns)
+	day_night.lights = lanterns
 	add_child(day_night)
 
 	hud = SailingHud.new()
@@ -145,6 +152,13 @@ func _ready() -> void:
 	add_child(hud)
 
 	Session.apply(self)
+	weather = WeatherSystem.new()
+	weather.world = self
+	weather.state = Session.state if Session.has_state() else {}
+	add_child(weather)
+	var badge := WeatherBadge.new()
+	badge.weather = weather
+	add_child(badge)
 	Game.change_state(Game.State.PLAYING)
 	if Session.has_state():
 		_start_game_layer()
@@ -373,7 +387,8 @@ func _daily_crew_tick() -> void:
 	var here: String = dock_port()
 	var near_port: bool = here != ""
 	var faction: String = PortData.PORTS[here if near_port else PortData.START_PORT]["faction"]
-	var ctx: Dictionary = {"in_port": near_port, "shore_leave": near_port and float(Session.state["rep"][faction]) >= 20.0, "day": GameClock.day}
+	var ctx: Dictionary = {"in_port": near_port, "shore_leave": near_port and float(Session.state["rep"][faction]) >= 20.0, "day": GameClock.day,
+		"storm_day": WeatherSystem.take_storm_day(Session.state)}
 	var report: Dictionary = CrewLife.daily_tick(Session.state, ctx)
 	Session.apply_to_ship(ship)
 	if report["no_food"]:

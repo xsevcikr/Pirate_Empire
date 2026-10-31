@@ -33,6 +33,12 @@ func set_sea_state(state: float, wave_dir: Vector2) -> void:
 		_push_params()
 
 
+## Bad weather turns the sea from bright blue to slate grey-green. `amount` 0..1.
+func set_murk(amount: float) -> void:
+	if _material:
+		_material.set_shader_parameter("murk", amount)
+
+
 func set_sky_color(c: Color) -> void:
 	if _material:
 		_material.set_shader_parameter("sky_color", Vector3(c.r, c.g, c.b))
