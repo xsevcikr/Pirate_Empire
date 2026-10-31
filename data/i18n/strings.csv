@@ -1465,3 +1465,6 @@ hud.card_captain,Captain %d/%d health,Kapitán %d/%d zdraví
 hud.status_short,Gold %d   Food %.0f d   Water %.0f d,Zlato %d   Jídlo %.0f d   Voda %.0f d
 hud.status_cargo,Hold %.0f%% full,Náklad %.0f %%
 hud.status_morale,Morale: %s,Morálka: %s
+minimap.home,Home,Domov
+minimap.home_far,Home %s,Domov %s
+minimap.zoom_tip,Click to zoom the map in or out,Kliknutím přiblížíš nebo oddálíš mapu
