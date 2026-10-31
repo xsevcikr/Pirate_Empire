@@ -30,6 +30,7 @@ func build() -> void:
 	add_button("port.shipyard", func() -> void: _open(ShipyardScreen.new()))
 	add_button("port.tavern", func() -> void: _open(TavernScreen.new()))
 	add_button("port.outfitter", func() -> void: _open(OutfitterScreen.new()))
+	add_button("supply_shop.title", func() -> void: _open(SupplyScreen.new()))
 	add_button("port.quests", func() -> void: _open(QuestBoardScreen.new()))
 	if Finance.has_bank(port_id):
 		add_button("port.bank", func() -> void: _open(BankScreen.new()))
@@ -60,6 +61,8 @@ func _on_door(kind: String) -> void:
 			_open(OutfitterScreen.new())
 		"quests":
 			_open(QuestBoardScreen.new())
+		"supplies":
+			_open(SupplyScreen.new())
 		"bank":
 			_open(BankScreen.new())
 
