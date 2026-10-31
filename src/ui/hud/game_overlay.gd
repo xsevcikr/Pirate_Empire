@@ -30,6 +30,9 @@ func _ready() -> void:
 	_nav.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_prompt = _bottom_centre(26, -230.0)
 	_hint = _bottom_centre(24, -180.0)
+	var badge := WantedBadge.new()
+	badge.name = "WantedBadge"
+	add_child(badge)
 	_toasts = VBoxContainer.new()
 	_toasts.anchor_left = 1.0
 	_toasts.anchor_right = 1.0

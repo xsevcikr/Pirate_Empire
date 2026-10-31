@@ -61,7 +61,8 @@ const BOSS_THEMES: Array[String] = [
 	"molly", "isabeau", "saltjaw", "vale",
 ]
 const TAVERN_TRACK: String = "tavern_band"
-const SHANTIES: Array[String] = ["drunken_sailor", "leave_her_johnny", "wellerman"]
+const MENU_TRACK: String = "menu_theme"  ## the title screen
+const SHANTIES: Array[String] = ["drunken_sailor", "haul_the_anchor", "black_gale", "pieces_of_eight", "rum_and_rope"]
 const SHANTY_MIN_MORALE: float = 80.0  ## sung at Loyal morale
 
 ## Voices: file groups.

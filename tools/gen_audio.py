@@ -2,7 +2,7 @@
 """Self-made audio for Pirate Empire: every sound and loop is synthesised here from noise, sines and simple
 filters (no samples from anywhere), then encoded to Ogg Vorbis with ffmpeg. The output is released under CC0.
 
-    python3 tools/gen_audio.py            # writes audio/{sfx,music,voice,ambience}/*.ogg
+    python3 tools/gen_audio.py            # writes audio/{sfx,voice,ambience}/*.ogg (music: tools/gen_music.py)
     python3 tools/gen_audio.py sfx        # only one group
 """
 import math, os, random, struct, subprocess, sys, tempfile
@@ -220,140 +220,6 @@ def ambience_all():
     return out
 
 
-# ---- music -------------------------------------------------------------------------------------------------
-
-NOTE = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
-
-
-def hz(semi_from_a4):
-    return 440.0 * 2 ** (semi_from_a4 / 12.0)
-
-
-MINOR = [0, 2, 3, 5, 7, 8, 10]
-MAJOR = [0, 2, 4, 5, 7, 9, 11]
-DORIAN = [0, 2, 3, 5, 7, 9, 10]
-PHRYGIAN = [0, 1, 3, 5, 7, 8, 10]
-WHOLE = [0, 2, 4, 6, 8, 10, 12]
-
-
-def pluck(f, sec, vol, bright=0.5):
-    n = int(sec * SR)
-    out = []
-    for i in range(n):
-        t = i / SR
-        v = math.sin(2 * math.pi * f * t) + bright * 0.5 * math.sin(4 * math.pi * f * t) + bright * 0.25 * math.sin(6 * math.pi * f * t)
-        out.append(vol * v * math.exp(-t * 4.0))
-    return out
-
-
-def pad(f, sec, vol):
-    n = int(sec * SR)
-    a = int(0.3 * SR)
-    out = []
-    for i in range(n):
-        e = min(1.0, i / a) * min(1.0, (n - i) / a)
-        out.append(vol * e * (math.sin(2 * math.pi * f * i / SR) + 0.5 * math.sin(2 * math.pi * f * 1.005 * i / SR)))
-    return out
-
-
-def drum(kind, rng):
-    if kind == "kick":
-        n = int(0.25 * SR)
-        return mul(sweep(110, 40, 0.25), env_ad(n, 0.002, 3))
-    if kind == "snare":
-        n = int(0.18 * SR)
-        return scale(mul(highpass(noise(0.18, rng), 1200), env_ad(n, 0.001, 5)), 0.5)
-    n = int(0.05 * SR)
-    return scale(mul(highpass(noise(0.05, rng), 4000), env_ad(n, 0.0005, 6)), 0.25)
-
-
-def place(track, clip, at_sec):
-    at = int(at_sec * SR)
-    for i, v in enumerate(clip):
-        if at + i < len(track):
-            track[at + i] += v
-
-
-def make_track(seed, root_semi, scale_, bpm, bars, prog, melody_density, drums, pad_vol, bass_vol, bright=0.5):
-    """A loop of `bars` 4/4 bars: pad chords, a walking bass, a plucked melody and optional drums."""
-    rng = random.Random(seed)
-    beat = 60.0 / bpm
-    total = bars * 4 * beat
-    out = silence(total)
-    for b in range(bars):
-        deg = prog[b % len(prog)]
-        root = root_semi + scale_[deg % 7]
-        third = root_semi + scale_[(deg + 2) % 7] + (12 if (deg + 2) >= 7 else 0)
-        fifth = root_semi + scale_[(deg + 4) % 7] + (12 if (deg + 4) >= 7 else 0)
-        t0 = b * 4 * beat
-        if pad_vol > 0:
-            for s in (root, third, fifth):
-                place(out, pad(hz(s - 12), 4 * beat, pad_vol * 0.3), t0)
-        if bass_vol > 0:
-            for k in range(4):
-                s = root - 24 + (7 if k == 2 else 0)
-                place(out, pluck(hz(s), beat * 0.9, bass_vol, 0.2), t0 + k * beat)
-        for k in range(8):
-            if rng.random() < melody_density:
-                s = root_semi + scale_[rng.choice([deg, deg + 2, deg + 4, deg + 1]) % 7] + 12 * rng.choice([0, 0, 1])
-                place(out, pluck(hz(s), beat * 1.4, 0.32, bright), t0 + k * beat * 0.5)
-        if drums:
-            for k in range(4):
-                place(out, drum("kick", rng), t0 + k * beat) if k % 2 == 0 or drums > 1 else None
-                if k % 2 == 1:
-                    place(out, drum("snare", rng), t0 + k * beat)
-            if drums > 1:
-                for k in range(8):
-                    place(out, drum("hat", rng), t0 + k * beat * 0.5)
-    return fade_edges(normalise(out, 0.8), 30)
-
-
-def music_all():
-    out = {}
-    layers = {  # name: (seed, root, scale, bpm, bars, prog, melody, drums, pad, bass)
-        "explore": (1, -3, MAJOR, 84, 8, [0, 4, 5, 3], 0.35, 0, 0.8, 0.5),
-        "tension": (2, -5, DORIAN, 96, 8, [0, 0, 5, 4], 0.25, 0, 1.0, 0.7),
-        "combat": (3, -4, MINOR, 140, 8, [0, 5, 3, 4], 0.6, 2, 0.6, 0.8),
-        "boarding": (4, -5, PHRYGIAN, 156, 8, [0, 1, 0, 4], 0.7, 2, 0.5, 0.9),
-        "boss": (5, -7, PHRYGIAN, 120, 8, [0, 1, 5, 4], 0.5, 2, 1.0, 1.0),
-        "port": (6, -1, MAJOR, 100, 8, [0, 3, 4, 0], 0.45, 1, 0.6, 0.5),
-        "storm": (7, -8, MINOR, 72, 8, [0, 5, 6, 4], 0.15, 0, 1.0, 0.9),
-    }
-    for k, a in layers.items():
-        out["layer_" + k] = make_track(*a)
-    regions = {  # region theme: a variation of explore in a mode that suits it
-        "albion_shallows": (21, -2, MAJOR, 88, 8, [0, 3, 4, 3], 0.4, 1, 0.7, 0.5, 0.4),
-        "merchants_reach": (22, 0, MAJOR, 104, 8, [0, 4, 3, 4], 0.5, 1, 0.5, 0.6, 0.7),
-        "haven_waters": (23, -3, DORIAN, 92, 8, [0, 3, 0, 4], 0.4, 1, 0.8, 0.6, 0.5),
-        "coral_isles": (24, 2, MAJOR, 76, 8, [0, 5, 3, 4], 0.45, 0, 0.9, 0.3, 0.9),
-        "iron_marches": (25, -6, MINOR, 80, 8, [0, 6, 5, 6], 0.25, 1, 1.0, 0.8, 0.3),
-        "dead_reach": (26, -8, PHRYGIAN, 64, 8, [0, 1, 0, 6], 0.2, 0, 1.0, 0.7, 0.3),
-    }
-    for k, a in regions.items():
-        out["region_" + k] = make_track(*a)
-    bosses = {
-        "kraken": (31, -10, PHRYGIAN, 110, 8, [0, 1, 0, 6], 0.4, 2, 1.0, 1.0),
-        "sea_serpent": (32, -6, MINOR, 124, 8, [0, 3, 1, 4], 0.55, 2, 0.8, 0.9),
-        "shell_king": (33, -2, DORIAN, 132, 8, [0, 3, 4, 0], 0.6, 2, 0.5, 1.0),
-        "ghost_admiral": (34, -4, WHOLE, 90, 8, [0, 2, 4, 1], 0.35, 1, 1.0, 0.6),
-        "brass_colossus": (35, -9, MINOR, 116, 8, [0, 0, 3, 4], 0.45, 2, 0.7, 1.0),
-        "ice_leviathan": (36, -7, PHRYGIAN, 100, 8, [0, 6, 5, 4], 0.3, 2, 1.0, 0.9),
-        "valcourt": (37, -5, MINOR, 128, 8, [0, 5, 6, 4], 0.55, 2, 0.8, 0.9),
-        "black_ibrahim": (38, -6, PHRYGIAN, 136, 8, [0, 1, 4, 1], 0.6, 2, 1.0, 1.0),
-        "molly": (41, -1, DORIAN, 150, 8, [0, 3, 4, 0], 0.7, 2, 0.4, 0.8),
-        "isabeau": (42, 1, MAJOR, 112, 8, [0, 5, 3, 4], 0.6, 1, 0.6, 0.6),
-        "saltjaw": (43, -8, MINOR, 108, 8, [0, 0, 5, 4], 0.4, 2, 0.8, 1.0),
-        "vale": (44, -3, MINOR, 122, 8, [0, 4, 5, 3], 0.5, 2, 0.7, 0.8),
-    }
-    for k, a in bosses.items():
-        out["boss_" + k] = make_track(*a)
-    out["tavern_band"] = make_track(51, -2, MAJOR, 118, 8, [0, 3, 0, 4], 0.7, 1, 0.3, 0.9, 0.8)
-    shanties = {"drunken_sailor": (61, -2, DORIAN, 108, 8, [0, 0, 6, 0]), "leave_her_johnny": (62, 0, MINOR, 78, 8, [0, 5, 3, 4]), "wellerman": (63, -5, MINOR, 96, 8, [0, 3, 4, 0])}
-    for k, (s, rt, sc, bpm, bars, prog) in shanties.items():
-        out["shanty_" + k] = make_track(s, rt, sc, bpm, bars, prog, 0.75, 1, 0.3, 0.6, 0.9)
-    return out
-
-
 # ---- voices (barks are formant babble: they carry tone and timing, the words are subtitles) ---------------------
 
 def vowel(f0, formants, sec):
@@ -383,12 +249,12 @@ def voice_all():
 
 
 def main():
-    groups = {"sfx": ("sfx", sfx_all), "music": ("music", music_all), "voice": ("voice", voice_all), "ambience": ("ambience", ambience_all)}
+    groups = {"sfx": ("sfx", sfx_all), "voice": ("voice", voice_all), "ambience": ("ambience", ambience_all)}
     want = sys.argv[1:] or list(groups.keys())
     for g in want:
         folder, fn = groups[g]
         for name, samples in fn().items():
-            write_ogg(fade_edges(list(samples)), os.path.join(ROOT, folder, name + ".ogg"), quality=2 if g == "music" else 3)
+            write_ogg(fade_edges(list(samples)), os.path.join(ROOT, folder, name + ".ogg"), quality=3)
             print(g, name, len(samples) / SR)
 
 

@@ -27,7 +27,7 @@ static func next_state(current: State, ctx: Dictionary) -> State:
 	var p: Dictionary = PERSONALITIES[ctx.get("personality", "disciplined")]
 	if current == State.SURRENDER:
 		return State.SURRENDER
-	if hull < p["surrender_hull"] and crew < 0.4:
+	if hull < float(p["surrender_hull"]) + float(ctx.get("fear", 0.0)) and crew < 0.4:
 		return State.SURRENDER
 	var seen: bool = ctx["hostile_seen"]
 	var dist: float = ctx["hostile_dist"]

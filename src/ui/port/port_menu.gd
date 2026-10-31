@@ -31,6 +31,7 @@ func build() -> void:
 	add_button("port.tavern", func() -> void: _open(TavernScreen.new()))
 	add_button("port.outfitter", func() -> void: _open(OutfitterScreen.new()))
 	add_button("port.quests", func() -> void: _open(QuestBoardScreen.new()))
+	add_button("port.wanted_board", func() -> void: _open(WantedBoardScreen.new()))
 	if Finance.has_bank(port_id):
 		add_button("port.bank", func() -> void: _open(BankScreen.new()))
 	add_button("port.set_sail", close)

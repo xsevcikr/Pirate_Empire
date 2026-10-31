@@ -294,6 +294,9 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 		info.damage *= float(Difficulty.value("damage_taken"))
 	if source != null and source != self:
 		last_attacker = source
+		if _is_player_ship(source) and not has_meta("player_struck"):
+			set_meta("player_struck", true)
+			_player_crime("attack")
 	info.source = source
 	var water_y: float = ocean.height_at(world_pos.x, world_pos.z) if ocean else 0.0
 	info.below_waterline = world_pos.y < water_y
@@ -515,12 +518,41 @@ func _on_sank() -> void:
 	var bus: Node = Svc.node("EventBus")
 	if bus != null:
 		bus.ship_sunk.emit(Vector2(global_position.x, global_position.z), stats.class_id)
+	if is_instance_valid(last_attacker) and _is_player_ship(last_attacker):
+		_player_crime("sink")
 	sink_started = true
 	sank_signal.emit()
 	get_tree().create_timer(45.0).timeout.connect(queue_free)
 
 
 var sink_started: bool = false
+
+
+## The flag whose standing and bounty a fight with this ship touches.
+func law_faction() -> String:
+	if has_meta("rep_faction"):
+		return str(get_meta("rep_faction"))
+	return str({"iron": "iron_dominion"}.get(faction, faction))
+
+
+## Whether `n` is the ship the player sails (the world scene's `ship`).
+func _is_player_ship(n: Variant) -> bool:
+	if not (n is Ship) or not is_inside_tree():
+		return false
+	var scene: Node = get_tree().current_scene
+	return scene != null and scene.get("ship") == n
+
+
+## The player struck or sank this ship: a lawful flag puts a price on the player's head, a pirate earns a reward.
+func _player_crime(kind: String) -> void:
+	if not Session.has_state() or _is_player_ship(self):
+		return
+	var f: String = law_faction()
+	if f == "pirate":
+		if kind == "sink":
+			EventBus_toast("bounty.reward_owed", Bounty.pirate_taken(Session.state, stats.price, str(get_meta("crew", ""))))
+		return
+	Bounty.announce(Bounty.crime(Session.state, f, kind), f)
 var visuals: ShipVisuals
 var breach_visuals: BreachVisuals
 var _hull_material: ShaderMaterial
