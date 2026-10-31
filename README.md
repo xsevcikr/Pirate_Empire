@@ -36,7 +36,7 @@ takes timber and canvas. Press Z for the damage control panel to set the orders 
 `tools/gen_music.py` holds every tune as notes and chords, arranges it for a pirate band (accordion, fiddle, tin
 whistle, crew choir, tuba, bodhran) or an orchestra, and renders it with FluidSynth and the MIT-licensed FluidR3
 soundfont to `audio/music/`. "Drunken Sailor" is traditional (public domain); every other tune was written for the
-game (CC0). Licences are listed in `audio/LICENSES.md`. The title screen plays the Pirate Empire theme, each sea
+game (CC0). Licences are listed in `audio/LICENSES.md`. `menu_theme` is the Pirate Empire theme for the title screen; each sea
 has its own tune, fights get "Broadside", bosses a variation in their own colours. At sea, press H and the crew
 sings one of five shanties (the day's first song lifts morale by 4); the tavern has them too.
 
@@ -51,5 +51,3 @@ point. The navy pays a reward for every pirate ship taken or sunk, plus the want
 any lawful port's wanted board. Infamy (fame) climbs through six ranks from Nobody to Pirate Lord; each rank makes
 merchants strike their colours sooner and haven taverns hire cheaper.
 
-The title picture is rendered by `tools/shot_title.gd` from `src/ui/menu/title_diorama.gd`; the logo uses Luckiest
-Guy by Astigmatic (Apache 2.0, `assets/fonts/`).
