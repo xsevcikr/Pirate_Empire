@@ -125,6 +125,20 @@ static func cannon_sfx(gun_id: String) -> String:
 	return str(CANNON_OF.get(gun_id, "cannon_6pdr"))
 
 
+## Every music track the game can ask for.
+static func all_music() -> Array[String]:
+	var out: Array[String] = [TAVERN_TRACK, MENU_TRACK]
+	for layer: String in LAYERS:
+		out.append(str(LAYERS[layer]))
+	for r in REGION_THEMES:
+		out.append("region_" + r)
+	for b in BOSS_THEMES:
+		out.append("boss_" + b)
+	for s in SHANTIES:
+		out.append("shanty_" + s)
+	return out
+
+
 static func sfx_path(id: String) -> String:
 	return ROOT + "sfx/%s.ogg" % id
 

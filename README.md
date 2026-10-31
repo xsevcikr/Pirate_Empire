@@ -30,3 +30,26 @@ contact point, which floods that section until it is fixed. `src/ships/damage_co
 hands (Tab to Repair focus for more) to the pumps, the holes, fires, rigging and the hull: holes are planked
 with timber, fothered with canvas or stuffed with oakum; tools and carpenters speed the work, and a jury mast
 takes timber and canvas. Press Z for the damage control panel to set the orders yourself.
+
+## Music and sea shanties (M24)
+
+`tools/gen_music.py` holds every tune as notes and chords, arranges it for a pirate band (accordion, fiddle, tin
+whistle, crew choir, tuba, bodhran) or an orchestra, and renders it with FluidSynth and the MIT-licensed FluidR3
+soundfont to `audio/music/`. "Drunken Sailor" is traditional (public domain); every other tune was written for the
+game (CC0). Licences are listed in `audio/LICENSES.md`. The title screen plays the Pirate Empire theme, each sea
+has its own tune, fights get "Broadside", bosses a variation in their own colours. At sea, press H and the crew
+sings one of five shanties (the day's first song lifts morale by 4); the tavern has them too.
+
+## Bounties and infamy (M24)
+
+`src/factions/bounty.gd`: attacking, sinking, taking or razing a lawful flag's ships and buildings puts gold on the
+captain's head with that faction (0..500). The biggest bounty gives one to five wanted stars on the HUD. Stars
+send waves of bounty hunters astern (`src/factions/bounty_director.gd`), raise harbour inspections, and four stars
+shut that flag's lawful ports. Bounties fade after a quiet day; the governor of a lawful port of the same flag
+pardons for 40 gold a point (not when he is hostile), and a pirate haven's clerk halves any bounty for 70 gold a
+point. The navy pays a reward for every pirate ship taken or sunk, plus the wanted posters of the rival crews, at
+any lawful port's wanted board. Infamy (fame) climbs through six ranks from Nobody to Pirate Lord; each rank makes
+merchants strike their colours sooner and haven taverns hire cheaper.
+
+The title picture is rendered by `tools/shot_title.gd` from `src/ui/menu/title_diorama.gd`; the logo uses Luckiest
+Guy by Astigmatic (Apache 2.0, `assets/fonts/`).

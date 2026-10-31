@@ -156,6 +156,8 @@ func test_sea_shanty() -> void:
 	for sh: String in AudioData.SHANTIES:
 		assert_true(Loc.t("tavern.sung_" + sh) != "tavern.sung_" + sh, "string for " + sh)
 	assert_true(FileAccess.file_exists(AudioData.music_path(AudioData.MENU_TRACK)), "title music")
+	for t: String in AudioData.all_music():
+		assert_true(FileAccess.file_exists(AudioData.music_path(t)), "music " + t)
 
 
 func test_save_v18_round_trip() -> void:
