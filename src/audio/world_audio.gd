@@ -13,6 +13,8 @@ var _hour_seen: int = -1
 var _near_land_prev: bool = false
 var _sail_seen: Dictionary = {}
 var ctx: Dictionary = {}
+var singing: String = ""  ## the shanty the crew is singing at sea, or ""
+var _sing_left: float = 0.0
 
 
 func _ready() -> void:
@@ -72,6 +74,7 @@ func read_context() -> Dictionary:
 
 func _process(delta: float) -> void:
 	_t += delta
+	_sing_left -= delta
 	var audio: Node = Svc.node("Audio")
 	if audio == null or world == null or world.ship == null:
 		return
@@ -80,10 +83,55 @@ func _process(delta: float) -> void:
 		return
 	_t = 0.0
 	ctx = read_context()
+	if singing != "" and (_sing_left <= 0.0 or _fighting(ctx) or bool(ctx.get("in_port", false))):
+		stop_singing()
 	audio.set_music(AudioData.track_for(ctx))
 	_near_land_prev = world.streamer != null and _land_close()
 	_hour_bell()
 	_barks(ctx)
+
+
+func _fighting(c: Dictionary) -> bool:
+	return bool(c.get("enemy_in_combat", false)) or bool(c.get("boarding", false)) or bool(c.get("boss", false))
+
+
+## H at sea: the crew strikes up a shanty (or says why it will not). Returns the shanty sung, or "".
+func sing() -> String:
+	if not Session.has_state() or bool(ctx.get("in_port", false)):
+		return ""
+	var why: String = SeaShanty.refusal(Session.state, _fighting(ctx))
+	if why != "":
+		_toast(Loc.t("shanty.refuse_" + why))
+		if why == "morale":
+			Sfx.bark("grumble")
+		return ""
+	var r: Dictionary = SeaShanty.sing(Session.state, int(Session.state["day"]))
+	singing = r["track"]
+	_sing_left = SeaShanty.SING_S
+	Sfx.music(singing)
+	_toast(Loc.t("tavern.sung_" + str(r["shanty"])) + ("  " + Loc.t("shanty.morale") % int(r["morale"]) if float(r["morale"]) > 0.0 else ""))
+	return str(r["shanty"])
+
+
+func stop_singing() -> void:
+	if singing == "":
+		return
+	singing = ""
+	Sfx.music("")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("shanty") and not event.is_echo() and not get_tree().paused:
+		if singing != "":
+			stop_singing()
+		else:
+			sing()
+
+
+func _toast(text: String) -> void:
+	var bus: Node = Svc.node("EventBus")
+	if bus != null:
+		bus.toast.emit(text)
 
 
 func _land_close() -> bool:

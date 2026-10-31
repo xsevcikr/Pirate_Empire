@@ -24,6 +24,7 @@ var convoys: ConvoyManager
 var tours: TourDirector
 var rivals: RivalDirector
 var crews: CrewDirector
+var bounties: BountyDirector
 var progress: ProgressDirector
 var world_audio: WorldAudio
 var streamer: WorldStreamer
@@ -175,6 +176,11 @@ func _start_game_layer() -> void:
 	crews.world = self
 	crews.state = Session.state
 	add_child(crews)
+	bounties = BountyDirector.new()
+	bounties.ship = ship
+	bounties.world = self
+	bounties.state = Session.state
+	add_child(bounties)
 	progress = ProgressDirector.new()
 	progress.ship = ship
 	progress.state = Session.state
@@ -440,6 +446,8 @@ func _replace_player_ship() -> void:
 		prizes.player = fresh
 	if tutorial != null:
 		tutorial.ship = fresh
+	if bounties != null:
+		bounties.ship = fresh
 	old.queue_free()
 
 
@@ -522,6 +530,10 @@ func open_port() -> void:
 		return
 	var menu := PortMenu.new()
 	menu.port_id = dock_port() if dock_port() != "" else PortData.START_PORT
+	if not Bounty.port_open(Session.state, menu.port_id):
+		EventBus.toast.emit(Loc.t("bounty.port_shut") % PortData.PORTS[menu.port_id]["name"])
+		menu.free()
+		return
 	var inspect: bool = Smuggling.rolled(Session.state, menu.port_id, _trade_rng)
 	var fee: int = _docking_fee(menu.port_id)
 	if fee > 0:
@@ -645,6 +657,7 @@ func _on_building_destroyed(b: DestructibleBuilding, by_player: bool) -> void:
 		return
 	var faction: String = PortData.PORTS[b.port_id]["faction"]
 	Session.state["rep"][faction] = clampf(float(Session.state["rep"][faction]) + DestructionData.rep_cost(b.kind), -100.0, 100.0)
+	Bounty.announce(Bounty.crime(Session.state, faction, "raze"), faction)
 	if not DestructionData.is_fort_part(b.kind):
 		Blockade.building_destroyed(Session.state, b.port_id)
 	EventBus.toast.emit(Loc.t("destroy.fell") % [Loc.t("building." + b.kind), PortData.PORTS[b.port_id]["name"]])

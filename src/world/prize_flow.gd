@@ -109,6 +109,7 @@ func _on_fate(fate: int, ship: Ship, loot: Dictionary, layer: CanvasLayer) -> vo
 	var info: Dictionary = FateEffects.fate_info(Session.state, ship.stats.price, ship.crew.count, faction == "merchant")
 	var effects: Dictionary = CaptureFate.resolve(fate as CaptureFate.Fate, info, rng)
 	Session.state["rep"][faction] = clampf(float(Session.state["rep"][faction]) + float(effects["reputation"]), -100.0, 100.0)
+	_bounty_for_prize(ship, faction, fate)
 	var applied: Dictionary = FateEffects.apply(Session.state, effects, ship.stats.class_id, str(ship.display_label))
 	var bus: Node = Svc.node("EventBus")
 	if applied["gold"] > 0:
@@ -123,6 +124,17 @@ func _on_fate(fate: int, ship: Ship, loot: Dictionary, layer: CanvasLayer) -> vo
 	if fate != CaptureFate.Fate.RELEASE and fate != CaptureFate.Fate.RANSOM:
 		ship.queue_free()
 	_busy = false
+
+
+## Taking a lawful ship puts a price on the captain's head; taking a pirate earns the navy's reward.
+func _bounty_for_prize(ship: Ship, faction: String, fate: int) -> void:
+	if fate == CaptureFate.Fate.RELEASE:
+		return
+	if faction == "pirate":
+		var owed: int = Bounty.pirate_taken(Session.state, ship.stats.price, str(ship.get_meta("crew", "")))
+		Svc.node("EventBus").toast.emit(Loc.t("bounty.reward_owed") % owed)
+	else:
+		Bounty.announce(Bounty.crime(Session.state, faction, "capture"), faction)
 
 
 ## Quest, log and tutorial bookkeeping after a ship was looted. Also used by the scripted test.

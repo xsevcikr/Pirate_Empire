@@ -61,7 +61,8 @@ const BOSS_THEMES: Array[String] = [
 	"molly", "isabeau", "saltjaw", "vale",
 ]
 const TAVERN_TRACK: String = "tavern_band"
-const SHANTIES: Array[String] = ["drunken_sailor", "leave_her_johnny", "wellerman"]
+const MENU_TRACK: String = "menu_theme"  ## the title screen
+const SHANTIES: Array[String] = ["drunken_sailor", "haul_the_anchor", "black_gale", "pieces_of_eight", "rum_and_rope"]
 const SHANTY_MIN_MORALE: float = 80.0  ## sung at Loyal morale
 
 ## Voices: file groups.
@@ -122,6 +123,20 @@ const ROAR_OF: Dictionary = {
 ## The effect for a gun: the nearest calibre we have a recording of.
 static func cannon_sfx(gun_id: String) -> String:
 	return str(CANNON_OF.get(gun_id, "cannon_6pdr"))
+
+
+## Every music track the game can ask for.
+static func all_music() -> Array[String]:
+	var out: Array[String] = [TAVERN_TRACK, MENU_TRACK]
+	for layer: String in LAYERS:
+		out.append(str(LAYERS[layer]))
+	for r in REGION_THEMES:
+		out.append("region_" + r)
+	for b in BOSS_THEMES:
+		out.append("boss_" + b)
+	for s in SHANTIES:
+		out.append("shanty_" + s)
+	return out
 
 
 static func sfx_path(id: String) -> String:

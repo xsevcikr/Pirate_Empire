@@ -102,6 +102,7 @@ func _think() -> void:
 		"hull_frac": ship.damage.hull_fraction(), "crew_frac": float(ship.crew.count) / float(ship.stats.crew_max),
 		"hostile_seen": seen, "hostile_dist": _threat_dist, "ratio": ratio, "is_merchant": ship.faction == "merchant",
 		"personality": personality, "lost_s": _lost_s,
+		"fear": Bounty.fear(Session.state) if ship.faction == "merchant" and target != null and target.faction == "player" and Session.has_state() else 0.0,
 	}
 	var next: AiLogic.State = AiLogic.next_state(state, ctx)
 	if next != state:
