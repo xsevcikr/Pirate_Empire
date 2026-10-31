@@ -50,13 +50,15 @@ func _process(_d2: float) -> bool:
 		return false
 	if _i < _ports.size():
 		var id: String = _ports[_i]
-		var f: int = _frames - _t0
-		if f == 1 or _t0 == 0:
+		if _t0 == 0:
 			_t0 = _frames
 			var dock: Vector2 = PortData.PORTS[id]["dock"]
-			_w.ship.global_position = Vector3(dock.x, 0.5, dock.y)
+			var out: Vector2 = (dock - (PortData.gen().islands[PortData.PORTS[id]["island"]]["pos"] as Vector2)).normalized()
+			if is_instance_valid(_w.ship):
+				_w.ship.global_position = Vector3(dock.x + out.x * 120.0, 0.5, dock.y + out.y * 120.0)
 			_w.streamer.load_all_near(dock)
 			return false
+		var f: int = _frames - _t0
 		if f == 200:
 			var ps: PortScene = _w.streamer.ports[id]
 			if _cam == null:
