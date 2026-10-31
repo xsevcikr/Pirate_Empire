@@ -1,7 +1,7 @@
 extends SceneTree
 ## xvfb-run godot --path . --rendering-method gl_compatibility -s res://tools/shot_minimap.gd -- /tmp/minimap
-## The top-left minimap: by Haven Rock with ships of several flags around and a course set, then zoomed out far
-## from home so the home star sits on the rim with its distance.
+## The top-left sea chart and status panel: by Haven Rock with ships of several flags around and a course set;
+## then far from home, zoomed out, with low supplies (yellow and red bars); then the big chart.
 
 var _prefix: String = "user://minimap"
 var _frames: int = 0
@@ -37,8 +37,19 @@ func _process(_d: float) -> bool:
 	if _frames == 95:
 		_w.ship.global_position = Vector3(5200.0, 0.5, 5200.0)
 		_w.minimap.range_index = MinimapMath.RANGES_M.size() - 1
+		Session.state["captain_hp"] = 60.0
+		Session.state["supplies"]["food"] = 0.6
+		Session.state["supplies"]["water"] = 2.0
+		Session.state["supplies"]["rum"] = 0.04
+		for k in _w.ship.damage.section_hp.size():
+			_w.ship.damage.section_hp[k] *= 0.4
 	if _frames == 180:
 		root.get_texture().get_image().save_png(_prefix + "_far.png")
 		print("home at ", MinimapMath.home_pos())
+		_w.ship.global_position = Vector3(-200.0, 0.5, 900.0)
+		_w.minimap.range_index = 1
+		_w.open_map()
+	if _frames == 260:
+		root.get_texture().get_image().save_png(_prefix + "_chart.png")
 		return true
 	return false

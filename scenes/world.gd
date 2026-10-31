@@ -20,6 +20,7 @@ var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
 var minimap: Minimap
+var status_panel: StatusPanel
 var damage_panel: DamagePanel
 var convoys: ConvoyManager
 var tours: TourDirector
@@ -149,6 +150,10 @@ func _ready() -> void:
 	minimap.ship = ship
 	minimap.world = self
 	add_child(minimap)
+	status_panel = StatusPanel.new()
+	status_panel.name = "StatusPanel"
+	status_panel.ship = ship
+	add_child(status_panel)
 
 	Session.apply(self)
 	Game.change_state(Game.State.PLAYING)
@@ -444,6 +449,7 @@ func _replace_player_ship() -> void:
 	player_controller.ship = fresh
 	hud.ship = fresh
 	minimap.ship = fresh
+	status_panel.ship = fresh
 	if prizes != null:
 		prizes.player = fresh
 	if tutorial != null:

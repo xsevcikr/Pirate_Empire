@@ -82,18 +82,18 @@ func set_info(text: String) -> void:
 	_info.text = text
 
 
-## The one-line status at the bottom left: gold, food and water always; the hold only when it is nearly full and
-## morale only when the men are unhappy.
+## The one-line note at the bottom left, empty while all is well: the hold only when it is nearly full and morale
+## only when the men are unhappy. Gold, food and water live on the status panel (StatusPanel) beside the chart.
 static func status_text(st: Dictionary) -> String:
-	var out: String = Loc.t("hud.status_short") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water")]
+	var parts: Array[String] = []
 	var cap: float = PortService.cargo_capacity(st)
 	var full: float = PortService.cargo_used(st) / cap if cap > 0.0 else 0.0
 	if full >= 0.8:
-		out += "   " + Loc.t("hud.status_cargo") % (full * 100.0)
+		parts.append(Loc.t("hud.status_cargo") % (full * 100.0))
 	var morale: float = float(st["morale"])
 	if morale < Morale.BANDS["content"]["min"]:
-		out += "   " + Loc.t("hud.status_morale") % Loc.t("morale." + Morale.band(morale))
-	return out
+		parts.append(Loc.t("hud.status_morale") % Loc.t("morale." + Morale.band(morale)))
+	return "   ".join(parts)
 
 
 func add_toast(text: String) -> void:
