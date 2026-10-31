@@ -16,6 +16,7 @@ const ACTIONS: Dictionary = {
 	"elev_up": [KEY_R],
 	"elev_down": [KEY_F],
 	"crew_focus": [KEY_TAB],
+	"controls_help": [KEY_SLASH],
 	"grapple": [KEY_G],
 	"photo_mode": [KEY_P],
 	"interact": [KEY_SPACE],

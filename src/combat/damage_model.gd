@@ -13,7 +13,14 @@ signal breach_changed(index: int)
 const LEAK_BASE_T_PER_S: float = 0.04  # for a 40-damage hit below the waterline
 const BAIL_T_PER_S_PER_4_CREW: float = 0.05
 const BREACH_MIN_LEAK_T_PER_S: float = 0.12
-const FLOOD_CAPACITY_SHARE: float = 0.5  # sinks when water reaches 50% of displacement
+const FLOOD_CAPACITY_SHARE: float = 0.5  # full of water at 50% of displacement
+## Ships only go down to a real hit (cannonball, ram, boss). Leaks fill her no further than this; she wallows,
+## slow and low in the water, until the next real hit sends her under.
+const WATERLOGGED: float = 0.9
+## Fire chars a section down to this share of its HP and no further: it takes a hit to finish her.
+const FIRE_FLOOR_SHARE: float = 0.1
+## A collision that takes less than this share of the hull is a bump: it can hurt her but never sinks her.
+const REAL_IMPACT_SHARE: float = 0.05
 const FIRE_HULL_DPS: float = 8.0
 const FIRE_SAIL_DPS: float = 4.0
 const RICOCHET_ANGLE_DEG: float = 25.0
@@ -222,14 +229,19 @@ func apply_hit(hit: HitInfo) -> Dictionary:
 			for i in section_count:
 				section_hp[i] = maxf(section_hp[i] - burst, 0.0)
 			magazine_exploded.emit()
-	_check_sunk()
+	_check_sunk(not result["ricochet"])
 	return result
 
 
 ## Applies a collision of `dmg` hull damage to the section that touched, spilling into neighbours like a cannonball.
 ## `leak_t_per_s` is added to that section when the hit was big enough to open one. Returns what happened.
-func apply_impact(section: int, dmg: float, leak_t_per_s: float, breaks_mast: bool) -> Dictionary:
+## A blow smaller than REAL_IMPACT_SHARE of the hull (unless `real`, as for a ram or a monster) never sinks her.
+func apply_impact(section: int, dmg: float, leak_t_per_s: float, breaks_mast: bool, real: bool = false) -> Dictionary:
 	var result: Dictionary = {"hull": dmg, "breached": false, "mast_fell": -1}
+	real = real or dmg >= stats.hull_hp * REAL_IMPACT_SHARE
+	if not real:
+		dmg = minf(dmg, maxf(hull_hp_total() - 1.0, 0.0))
+		result["hull"] = dmg
 	var remaining: float = dmg
 	var target: int = clampi(section, 0, section_count - 1)
 	for _hop in section_count:
@@ -254,7 +266,7 @@ func apply_impact(section: int, dmg: float, leak_t_per_s: float, breaks_mast: bo
 				result["mast_fell"] = i
 				mast_fell.emit(i)
 				break
-	_check_sunk()
+	_check_sunk(real)
 	return result
 
 
@@ -271,10 +283,12 @@ func _all_masts_down() -> bool:
 	return true
 
 
-func _check_sunk() -> void:
+## Sinks her when the hull is gone, or when `by_hit` (a real hit just landed) and she is already waterlogged.
+## Leaks and fire on their own never do: see WATERLOGGED and FIRE_FLOOR_SHARE.
+func _check_sunk(by_hit: bool = false) -> void:
 	if sunk:
 		return
-	if hull_hp_total() <= 0.0 or flood_fraction() >= 1.0:
+	if hull_hp_total() <= 0.0 or (by_hit and flood_fraction() >= WATERLOGGED - 0.001):
 		sunk = true
 		sank.emit()
 
@@ -286,6 +300,7 @@ func tick(dt: float, repair_crew: float) -> void:
 	# Flooding
 	for i in section_count:
 		water_t[i] += leak_rate[i] * dt
+	_cap_flooding()
 	if control == null:
 		bail(repair_crew / 4.0 * BAIL_T_PER_S_PER_4_CREW * dt)
 		# Patch the biggest leak every 12 s while crew are repairing
@@ -306,7 +321,8 @@ func tick(dt: float, repair_crew: float) -> void:
 	for i in section_count:
 		if fire_level[i] > 0:
 			any_fire = true
-			section_hp[i] = maxf(section_hp[i] - FIRE_HULL_DPS * fire_level[i] * dt, 0.0)
+			var floor_hp: float = minf(section_hp[i], section_max * FIRE_FLOOR_SHARE)
+			section_hp[i] = maxf(section_hp[i] - FIRE_HULL_DPS * fire_level[i] * dt, floor_hp)
 			if fire_level[i] >= 3 and stats.mast_count > 0:
 				var m: int = i % stats.mast_count
 				sail_hp[m] = maxf(sail_hp[m] - FIRE_SAIL_DPS * dt, 0.0)
@@ -325,6 +341,17 @@ func tick(dt: float, repair_crew: float) -> void:
 			_repair_accum -= amount
 			repair_hull(amount)
 	_check_sunk()
+
+
+## Leaks never fill her past WATERLOGGED: the extra water is shed evenly from every compartment.
+func _cap_flooding() -> void:
+	var cap_t: float = displacement_t() * FLOOD_CAPACITY_SHARE * WATERLOGGED
+	var total: float = water_total()
+	if total <= cap_t or total <= 0.0:
+		return
+	var k: float = cap_t / total
+	for i in section_count:
+		water_t[i] *= k
 
 
 ## Pumps `tonnes` out of the wettest compartments first. Returns what was actually pumped.

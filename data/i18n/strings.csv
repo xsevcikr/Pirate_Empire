@@ -1447,3 +1447,21 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+hud.help_hint,Press / for all controls,Stiskni / pro všechny klávesy
+hud.help_keys,"A/D steer   W/S sails   RMB drag look   Q/E fire port/starboard   R/F elevation   1-5 ammo   Tab crew focus
+F1-F5 crew orders   F6 rum   Z damage control   Space dock   G hold to board   M map   Esc pause   / hide","A/D kormidlo   W/S plachty   PTM rozhlížení   Q/E pal levobok/pravobok   R/F náměr   1-5 střelivo   Tab zaměření posádky
+F1-F5 rozkazy   F6 rum   Z oprava škod   Mezerník kotvení   G drž pro abordáž   M mapa   Esc pauza   / skrýt"
+hud.card_sail,%.1f kn   %s   Wind %.0f kn,%.1f kn   %s   Vítr %.0f kn
+hud.sails_0,Sails furled,Plachty svinuté
+hud.sails_1,Battle sails,Bojové plachty
+hud.sails_2,Half sail,Poloviční plachty
+hud.sails_3,Full sail,Plné plachty
+hud.card_ship,Hull %d%%   Crew %d,Trup %d%%   Posádka %d
+hud.card_flood,Flooding %d%%,Zatéká %d%%
+hud.card_fire,Fire aboard!,Na palubě hoří!
+hud.card_guns,Guns %d/%d | %d/%d   %s x%d,Děla %d/%d | %d/%d   %s x%d
+hud.card_target,Target %s: masts %d/%d,Cíl %s: stěžně %d/%d
+hud.card_captain,Captain %d/%d health,Kapitán %d/%d zdraví
+hud.status_short,Gold %d   Food %.0f d   Water %.0f d,Zlato %d   Jídlo %.0f d   Voda %.0f d
+hud.status_cargo,Hold %.0f%% full,Náklad %.0f %%
+hud.status_morale,Morale: %s,Morálka: %s
