@@ -182,7 +182,7 @@ func _apply_steering() -> void:
 		threats.append({"rel": rel, "dist": rel.length()})
 	var no_go: float = (38.0 if ship.stats.square_rig else 28.0) + 6.0
 	var wind_from: Vector2 = ship.wind.wind_from()
-	_chosen_dir = AiLogic.steer_direction(_desired_dir, wind_from, no_go, threats, ship.damage.sunk)
+	_chosen_dir = AiLogic.steer_direction(_desired_dir, wind_from, no_go, threats, true)  # sailing ignores the wind
 	ship.rudder_input = AiLogic.rudder_for(ship.heading(), _chosen_dir)
 
 

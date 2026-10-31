@@ -40,12 +40,3 @@ func _physics_process(delta: float) -> void:
 		ship.broadside.fire(Broadside.Side.STARBOARD)
 	if order == CrewOrders.Order.ATTACK and is_inside_tree():
 		CrewOrders.fight_at_will(ship, get_tree().get_nodes_in_group("ships"))
-	if wind:
-		if Input.is_action_pressed("wind_cw"):
-			wind.direction = wind.direction.rotated(deg_to_rad(20.0) * delta)
-		if Input.is_action_pressed("wind_ccw"):
-			wind.direction = wind.direction.rotated(deg_to_rad(-20.0) * delta)
-		if Input.is_action_pressed("wind_stronger"):
-			wind.speed_kn = minf(wind.speed_kn + 8.0 * delta, 50.0)
-		if Input.is_action_pressed("wind_weaker"):
-			wind.speed_kn = maxf(wind.speed_kn - 8.0 * delta, 0.0)

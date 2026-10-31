@@ -36,7 +36,7 @@ func _start_scenario(n: int) -> void:
 		0:  # beam reach on flat sea: wind from port, heading -Z
 			_ocean = WaveModel.new(0.0)
 			_wind.direction = Vector2(1, 0)
-		1:  # in irons: wind from dead ahead
+		1:  # wind from dead ahead: sailing ignores the wind, so she is as fast as on a beam reach
 			_ocean = WaveModel.new(0.0)
 			_wind.direction = Vector2(0, 1)
 		2:  # stability in sea state 6, beam wind
@@ -72,8 +72,8 @@ func _physics_process(delta: float) -> bool:
 		1:
 			if _t >= 40.0:
 				var kn: float = absf(_ship.speed_forward_ms) / 0.514
-				_check(kn < 1.0, "in irons speed %.2f kn < 1" % kn)
-				print("M1 in irons: %.2f kn" % kn)
+				_check(kn >= 14.0 * 0.95, "no wind penalty: head-to-wind speed %.2f kn >= 95%% of 14" % kn)
+				print("M1 head to wind: %.2f kn" % kn)
 				_start_scenario(2)
 		2:
 			if _t >= 120.0:

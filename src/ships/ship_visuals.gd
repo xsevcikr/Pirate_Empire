@@ -18,8 +18,7 @@ var _spray_l: CPUParticles3D
 var _spray_r: CPUParticles3D
 var _time: float = 0.0
 var _rig_yaw: PackedFloat32Array = PackedFloat32Array()
-var _hands: Array[DeckFighterView] = []
-var _hands_root: Node3D
+var deck_crew: DeckCrew
 var _model: Node3D
 var _model_name: String = ""
 var _parts: Dictionary = {}
@@ -27,7 +26,6 @@ var _sx: float = 1.0  ## model-to-ship scale across the beam
 var _sy: float = 1.0  ## ... in height
 var _sz: float = 1.0  ## ... along the length
 var _sw: float = 1.0  ## ... for sails and masts, which keep their own proportions
-const MAX_VISIBLE_HANDS: int = 9
 
 
 func build(owner_ship: Ship) -> void:
@@ -41,6 +39,7 @@ func build(owner_ship: Ship) -> void:
 	_build_rig()
 	_build_guns()
 	_build_wake()
+	_build_crew()
 	ShipLivery.apply(self)
 
 
@@ -245,14 +244,17 @@ func _foam_particles(amount: int, life: float, size: float, speed: float) -> CPU
 	p.gravity = Vector3(0, -2.0, 0)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(size, size)
-	var grad := Gradient.new()
-	grad.set_color(0, Color(1, 1, 1, 0.85))
-	grad.set_color(1, Color(1, 1, 1, 0.0))
-	var tex := GradientTexture2D.new()
-	tex.gradient = grad
-	tex.fill = GradientTexture2D.FILL_RADIAL
-	tex.fill_from = Vector2(0.5, 0.5)
-	tex.fill_to = Vector2(1.0, 0.5)
+	var tex: Texture2D = load("res://assets/ui/fx_foam.png") if ResourceLoader.exists("res://assets/ui/fx_foam.png") else null
+	if tex == null:  # no skin drawn yet: a soft round blob
+		var grad := Gradient.new()
+		grad.set_color(0, Color(1, 1, 1, 0.85))
+		grad.set_color(1, Color(1, 1, 1, 0.0))
+		var g := GradientTexture2D.new()
+		g.gradient = grad
+		g.fill = GradientTexture2D.FILL_RADIAL
+		g.fill_from = Vector2(0.5, 0.5)
+		g.fill_to = Vector2(1.0, 0.5)
+		tex = g
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -288,60 +290,26 @@ func set_mast_visible(index: int, vis: bool) -> void:
 		mast_groups[index].visible = vis
 
 
-## Sailors on deck: figures stand at fixed stations along the deck, one per two hands up to a cap. Only the
-## player's ship carries them, to keep eight-ship battles inside the frame budget.
-func _sync_hands() -> void:
-	if ship.ai != null or ship.crew == null:
-		return
-	var want: int = mini(ceili(float(ship.crew.count) / 2.0), MAX_VISIBLE_HANDS)
-	if want == _hands.size():
-		return
-	if _hands_root == null:
-		_hands_root = Node3D.new()
-		_hands_root.name = "Hands"
-		ship.add_child(_hands_root)
-	while _hands.size() > want:
-		var gone: DeckFighterView = _hands.pop_back()
-		gone.queue_free()
-	var types: Array[String] = ["seasoned", "green", "swordsman", "gunner", "green", "seasoned", "bosun", "green", "musketeer"]
-	while _hands.size() < want:
-		var i: int = _hands.size()
-		var f: FighterState = FighterState.make_crew(types[i % types.size()])
-		f.id = 100 + i * 3
-		f.melee = "cutlass"
-		var side: float = 1.0 if i % 2 == 0 else -1.0
-		var z: float = lerpf(-0.25, 0.12, float(i) / float(maxi(MAX_VISIBLE_HANDS - 1, 1))) * stats.length_m
-		f.pos = Vector2(side * (hull_half_width() * 0.5 + 0.1 * float(i % 3)), z)
-		f.dir = Vector2(side * 0.3, -1.0 if i % 3 == 0 else 0.4).normalized()
-		var v := DeckFighterView.new()
-		v.fighter = f
-		v.show_label = false
-		v.pose_idle_only = true
-		v.scale = Vector3.ONE * clampf(stats.beam_m / 7.0, 0.8, 1.0)
-		var holder := Node3D.new()
-		holder.position = Vector3(0, deck_y(), 0)
-		holder.add_child(v)
-		_hands_root.add_child(holder)
-		_hands.append(v)
+## The captain and crew on deck (DeckCrew): every ship carries them; other ships only near the camera.
+func _build_crew() -> void:
+	deck_crew = DeckCrew.new()
+	deck_crew.setup(ship, deck_y(), hull_half_width())
+	ship.add_child(deck_crew)
 
 
 ## Per-frame: sail trim, billow, tears, wake strength.
 func update(delta: float) -> void:
 	_time += delta
-	_sync_hands()
 	var wind: WindModel = ship.wind
 	if wind == null or ship.damage == null:
 		return
-	var inv: Basis = ship.global_transform.basis.inverse()
-	var w_local: Vector3 = inv * Vector3(wind.direction.x, 0.0, wind.direction.y)
-	w_local.y = 0.0
 	var fwd := Vector3(0, 0, -1)
+	var w_local: Vector3 = fwd  # sailing ignores the wind: the sails always fill from astern
 	var level: float = SailModel.LEVELS[clampi(ship.sail_level, 0, 3)]
-	var factor: float = SailModel.speed_factor(ship.angle_off_wind, stats.square_rig)
-	var wind_ratio: float = clampf(wind.speed_ms() / 10.29, 0.15, 1.4)
+	var factor: float = 1.0
+	var wind_ratio: float = 1.0
 	var billow: float = clampf(factor * 1.1, 0.0, 1.0) * clampf(wind_ratio, 0.3, 1.0) * clampf(level * 1.4, 0.0, 1.0)
 	var luff: float = 1.0 - clampf(factor * 3.0, 0.0, 1.0)
-	var side_sign: float = signf(-w_local.x) if absf(w_local.x) > 0.01 else 1.0  # +1: wind from starboard
 	for t: Dictionary in _tiers:
 		var mast: int = t["mast"]
 		var node: MeshInstance3D = t["node"]
@@ -363,7 +331,7 @@ func update(delta: float) -> void:
 				n = n.normalized()
 				target = clampf(atan2(-n.x, -n.z), deg_to_rad(-55.0), deg_to_rad(55.0))
 		else:
-			target = -side_sign * deg_to_rad(clampf(ship.angle_off_wind * 0.45 - 8.0, 0.0, 70.0))
+			target = 0.0
 		_rig_yaw[m] = lerp_angle(_rig_yaw[m], target, 1.0 - exp(-1.2 * delta))
 		rig.rotation.y = _rig_yaw[m]
 	# Wake

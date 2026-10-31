@@ -98,6 +98,14 @@ void fragment() {
 	float breakup = fbm(p * 0.7 + vec2(t * 0.15, 0.0));
 	float foam = step(0.55, v_foam * (0.4 + 1.2 * breakup)) + step(0.9, h1) * step(0.55, crest) * near;
 	col = mix(col, foam_color, clamp(foam, 0.0, 1.0));
+	// cartoon wave lines: short white squiggles drifting on the swell near the camera, like a Kenney sea tile
+	vec2 q = p * vec2(0.06, 0.16) + vec2(t * 0.04, t * 0.015);
+	float wiggle = sin(q.x * 6.2831 + sin(q.y * 3.0 + t * 0.6) * 1.6);
+	float lane = fract(q.y + 0.15 * sin(q.x * 1.7));
+	float squiggle = step(0.93, wiggle) * step(0.44, lane) * step(lane, 0.47);
+	float patchy = step(0.72, noise(p * 0.03 + vec2(-t * 0.02, t * 0.03)));
+	float close_by = 1.0 - smoothstep(30.0, 260.0, dist);
+	col = mix(col, foam_color, squiggle * patchy * close_by * 0.7 * (1.0 - clamp(foam, 0.0, 1.0)));
 	ALBEDO = col;
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;
