@@ -111,6 +111,8 @@ func _draw() -> void:
 	for isl in chart.gen.islands:
 		_draw_island(isl)
 	_draw_crews()
+	_draw_trade_routes()
+	_draw_treasure()
 	_draw_route()
 	_draw_player()
 	_label(Loc.t("map.title"), Vector2(_rect.position.x, _rect.position.y - 14.0), 22, PARCHMENT)
@@ -178,6 +180,33 @@ func _draw_route() -> void:
 	var g: Vector2 = Chart.to_screen(goal, _rect)
 	draw_line(g - Vector2(7, 7), g + Vector2(7, 7), Color(0.7, 0.1, 0.1), 3.0)
 	draw_line(g - Vector2(7, -7), g + Vector2(7, -7), Color(0.7, 0.1, 0.1), 3.0)
+
+
+## Fleet ships on trade routes: a solid gold line between the two ports with the good's name halfway.
+func _draw_trade_routes() -> void:
+	if not Session.has_state():
+		return
+	var col := Color(0.72, 0.52, 0.08)
+	for e: Dictionary in TradeRoutes.fleet(Session.state):
+		if not TradeRoutes.on_route(e):
+			continue
+		var r: Dictionary = e["route"]
+		var a: Vector2 = Chart.to_screen(PortData.PORTS[r["from"]]["dock"], _rect)
+		var b: Vector2 = Chart.to_screen(PortData.PORTS[r["to"]]["dock"], _rect)
+		draw_line(a, b, col, 2.5)
+		_label(Loc.t("good." + str(r["good"])), (a + b) * 0.5 + Vector2(6, -6), 12, col.darkened(0.3))
+
+
+## Every treasure map held marks its X, known island or not: that is what the map is for.
+func _draw_treasure() -> void:
+	if not Session.has_state():
+		return
+	for m: Dictionary in BuriedTreasure.maps(Session.state):
+		var c: Vector2 = Chart.to_screen(BuriedTreasure.spot(m), _rect)
+		var col := Color(0.75, 0.08, 0.05) if str(m["tier"]) != "legendary" else Color(0.55, 0.1, 0.6)
+		draw_line(c - Vector2(6, 6), c + Vector2(6, 6), col, 3.0)
+		draw_line(c - Vector2(6, -6), c + Vector2(6, -6), col, 3.0)
+		_label(str(m["island"]), c + Vector2(8, 14), 12, col)
 
 
 ## The rival crews on the chart: each region framed in the colours of the crew that holds it, a pennant on every
