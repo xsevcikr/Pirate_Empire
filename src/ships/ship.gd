@@ -135,7 +135,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var wet: int = 0
 	var max_depth: float = stats.draft_m * 2.0
 	var flood: float = damage.flood_fraction()
-	var buoyancy_scale: float = 0.04 if damage.sunk else 1.0 - 0.95 * flood
+	var buoyancy_scale: float = 0.04 if damage.sunk else 1.0 - 0.45 * flood  # waterlogged she rides low but floats
 	for p in _points:
 		var offset: Vector3 = xf.basis * p
 		var world: Vector3 = xf.origin + offset
@@ -359,8 +359,9 @@ func _on_contact(body: Node) -> void:
 	var dmg: float = CollisionModel.hull_damage(e, material, false, rams)
 	var scrape: float = 0.0
 	var other: Ship = body as Ship
+	var their_ram: bool = false
 	if other != null:
-		var their_ram: bool = other._has_ram() and (-other.global_transform.basis.z).dot(-n) > 0.8
+		their_ram = other._has_ram() and (-other.global_transform.basis.z).dot(-n) > 0.8
 		dmg = CollisionModel.hull_damage(e, material, their_ram, rams) * CollisionModel.angle_factor(toward_hit)
 		scrape = CollisionModel.scrape_damage(mass, other_mass, parts["slide"])
 	var verdict: String = "bump"
@@ -372,7 +373,7 @@ func _on_contact(body: Node) -> void:
 	var local_contact: Vector3 = hull_point(toward_hit)
 	var section: int = damage.section_for(local_contact)
 	var cons: Dictionary = CollisionModel.consequences(dmg, stats.hull_hp, crew.count, stats.cargo_t if player else 0.0, damage.rng)
-	var res: Dictionary = damage.apply_impact(section, dmg + scrape, 0.0, cons["mast_breaks"])
+	var res: Dictionary = damage.apply_impact(section, dmg + scrape, 0.0, cons["mast_breaks"], their_ram)
 	var size: int = CollisionModel.breach_size(dmg, stats.hull_hp)
 	if size == 0 and cons["leak"]:
 		size = 1
@@ -433,7 +434,7 @@ func _take_blow(energy: float, scrape: float, n: Vector3, they_ram: bool) -> voi
 	var dmg: float = CollisionModel.hull_damage(energy, "ship", they_ram, mine) * CollisionModel.angle_factor(toward_hit)
 	var local_contact: Vector3 = hull_point(toward_hit)
 	var section: int = damage.section_for(local_contact)
-	damage.apply_impact(section, dmg + scrape, 0.0, false)
+	damage.apply_impact(section, dmg + scrape, 0.0, false, they_ram)
 	var size: int = CollisionModel.breach_size(dmg, stats.hull_hp)
 	if size == 0 and CollisionModel.breach_size(scrape * 2.0, stats.hull_hp) > 0:
 		size = 1
