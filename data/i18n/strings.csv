@@ -1447,3 +1447,48 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+buried.clue,%s: X on the %s shore of %s,%s: X na %s pobřeží ostrova %s
+buried.tier.common,Treasure map,Mapa pokladu
+buried.tier.rich,Rich treasure map,Mapa bohatého pokladu
+buried.tier.legendary,Legendary hoard map,Mapa legendárního pokladu
+buried.shore.n,north,severním
+buried.shore.ne,north-east,severovýchodním
+buried.shore.e,east,východním
+buried.shore.se,south-east,jihovýchodním
+buried.shore.s,south,jižním
+buried.shore.sw,south-west,jihozápadním
+buried.shore.w,west,západním
+buried.shore.nw,north-west,severozápadním
+buried.nothing,There is nothing buried here.,Nic tu není zakopáno.
+buried.dug,The crew digs up a chest on %s: %s.,Posádka vykopala truhlu na ostrově %s: %s.
+buried.left,%d units left on the beach for want of room in the hold.,"%d jednotek zůstalo na pláži, v podpalubí není místo."
+buried.hint,Press Space to row ashore and dig at the X,Mezerníkem vyrazíš na břeh kopat u X
+buried.seller,A one-eyed sailor sells treasure maps:,Jednooký námořník prodává mapy pokladů:
+buried.sold_out,No map today. Come back in a few days.,Dnes žádná mapa. Přijď za pár dní.
+buried.offer.common,A treasure map,Mapa pokladu
+buried.offer.rich,A map to a rich treasure,Mapa k bohatému pokladu
+buried.buy,Buy,Koupit
+buried.held,Treasure maps held: %d / %d,Mapy pokladů: %d / %d
+buried.bought,The X is on %s. It is marked on your chart.,X je na ostrově %s. Je zakreslen v mapě.
+buried.found_in_cabin,A treasure map in the captain's cabin: X on %s,Mapa pokladu v kapitánově kajutě: X na ostrově %s
+buried.journal,"Treasure maps (%d / %d), the X is marked on the chart:","Mapy pokladů (%d / %d), X je zakreslen v mapě:"
+troute.title,Trade routes,Obchodní trasy
+troute.book,Your price book has prices from %d ports. Dock at a port to note its prices.,Tvoje kniha cen má ceny z %d přístavů. Zakotvi v přístavu a zapíšeš si jeho ceny.
+troute.from_here,Best routes from here:,Nejlepší trasy odsud:
+troute.anywhere,Best known routes anywhere:,Nejlepší známé trasy kdekoli:
+troute.none,No route worth sailing yet. Visit more ports.,Zatím žádná výhodná trasa. Navštiv víc přístavů.
+troute.row,"%s: %s %.0f g > %s %.0f g (+%.0f a unit, ~%d g a hold, %s)","%s: %s %.0f g > %s %.0f g (+%.0f za kus, ~%d g za náklad, %s)"
+troute.age,prices %d days old,ceny staré %d dní
+troute.course,Set course,Nastavit kurz
+troute.assign,Send a fleet ship,Poslat loď flotily
+troute.course_set,Course set for %s.,Kurz nastaven na %s.
+troute.assigned,%s sails the route and pays you after every round trip.,%s pluje po trase a po každé cestě tam a zpět ti zaplatí.
+troute.fleet,Your fleet on trade routes:,Tvoje flotila na obchodních trasách:
+troute.no_fleet,No fleet ships yet. Capture a prize or buy a ship at your lagoon.,Zatím žádné lodě flotily. Zajmi kořist nebo kup loď ve své laguně.
+troute.idle,%s: idle,%s: nečinná
+troute.running,"%s: %s from %s to %s, %d trips, %d g earned, next trip about %d g","%s: %s z %s do %s, %d cest, vydělala %d g, příští cesta asi %d g"
+troute.recall,Recall,Odvolat
+troute.recalled,The ship leaves its route.,Loď opouští trasu.
+troute.trip_profit,%s sold %s from %s at %s: +%d g,%s prodala %s z %s v %s: +%d g
+troute.trip_lost,%s lost her cargo to pirates between %s and %s.,%s přišla o náklad kvůli pirátům mezi %s a %s.
+troute.trip_empty,%s came back empty: no profit left between %s and %s.,%s se vrátila prázdná: mezi %s a %s už není zisk.

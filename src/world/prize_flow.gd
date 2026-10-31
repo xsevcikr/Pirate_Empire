@@ -90,6 +90,11 @@ func _on_boarding_finished(won: bool, ship: Ship) -> void:
 		lines.append("%d × %s" % [int(loot["supplies"][s]), Loc.t("supply." + s)])
 	if loot["map_fragment"] != "":
 		lines.append(Loc.t("prize.map_fragment"))
+	var drop_rng := RandomNumberGenerator.new()
+	drop_rng.seed = int(Session.state["seed"]) * 4721 + int(ship.get_meta("loot_seed", 7)) + int(Session.state["day"])
+	var buried: Dictionary = BuriedTreasure.roll_drop(Session.state, str(ship.get_meta("loot_source", ship.get_meta("rep_faction", "merchant"))), drop_rng)
+	if not buried.is_empty():
+		lines.append(Loc.t("buried.found_in_cabin") % str(buried["island"]))
 	var screen := PrizeScreen.new()
 	screen.summary_lines = lines
 	screen.can_capture = FateEffects.prize_crew_available(Session.state) > 0

@@ -298,6 +298,8 @@ func _game_tick() -> void:
 		TradeNetwork.spawn_due(Session.state, now_h, _trade_rng)
 		TradeNetwork.advance(Session.state, now_h)
 		PortService.advance_markets(Session.state, hours)
+		for rep: Dictionary in TradeRoutes.advance(Session.state, now_h, _trade_rng):
+			EventBus.toast.emit(TradeRoutes.report_text(rep))
 		_blockade_tick(hours)
 		_last_market_h = now_h
 	if (now_h - _last_repair_h) * 60.0 >= 1.0:
@@ -472,6 +474,27 @@ func go_ashore() -> Dictionary:
 	return r
 
 
+## Over the X of a treasure map and slow: Space sends the boat ashore to dig.
+func treasure_index() -> int:
+	return BuriedTreasure.near(Session.state, Vector2(ship.global_position.x, ship.global_position.z))
+
+
+func can_dig() -> bool:
+	return Session.has_state() and treasure_index() >= 0 and ship.speed_knots() <= BuriedTreasure.DIG_MAX_SPEED_KN
+
+
+func dig_treasure() -> Dictionary:
+	var i: int = treasure_index()
+	if i < 0:
+		return {}
+	var r: Dictionary = BuriedTreasure.dig(Session.state, i, _trade_rng)
+	if bool(r.get("ok", false)):
+		Sfx.play("chest")
+		EventBus.toast.emit(BuriedTreasure.summary(r))
+		Session.autosave(self)
+	return r
+
+
 ## Tonnage in the hold times the fee, at lawful ports only.
 func _docking_fee(port_id: String) -> int:
 	if not bool(PortData.PORTS[port_id]["lawful"]):
@@ -559,6 +582,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if Session.has_state() and event.is_action_pressed("interact") and can_land_lagoon() and get_node_or_null("PauseMenu") == null:
 		open_lagoon()
+		get_viewport().set_input_as_handled()
+		return
+	if Session.has_state() and event.is_action_pressed("interact") and can_dig() and get_node_or_null("PauseMenu") == null:
+		dig_treasure()
 		get_viewport().set_input_as_handled()
 		return
 	if Session.has_state() and event.is_action_pressed("interact") and can_land() and get_node_or_null("PauseMenu") == null:
@@ -841,7 +868,7 @@ func _physics_process(delta: float) -> void:
 	_navigate(delta)
 	_seamanship(delta)
 	if overlay != null:
-		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("lagoon.hint") if can_land_lagoon() else (Loc.t("hud.land_hint") if can_land() else "")))
+		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("lagoon.hint") if can_land_lagoon() else (Loc.t("buried.hint") if can_dig() else (Loc.t("hud.land_hint") if can_land() else ""))))
 		var st: Dictionary = Session.state
 		overlay.set_info(Loc.t("hud.status") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water"), PortService.cargo_used(st), PortService.cargo_capacity(st), int(st["morale"]), Loc.t("morale." + Morale.band(float(st["morale"])))])
 	wind.update(delta)

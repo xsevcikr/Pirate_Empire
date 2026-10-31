@@ -41,6 +41,7 @@ func build() -> void:
 	add_text(Loc.t("port.roster"))
 	for m: Dictionary in s["roster"]:
 		add_text("  %s  (%s, %s %d, %d XP)" % [m["name"], Loc.t("crew." + m["type"]), Loc.t("crew.level"), int(m["level"]), int(m["xp"])])
+	_map_seller(s)
 	add_text(Loc.t("port.rumours"))
 	add_text("  " + Loc.t("rumour.%d" % (int(s["day"]) % 3)))
 	if TutorialData.index_of(s["tutorial"]) <= TutorialData.index_of("hunt_lugger"):
@@ -52,6 +53,29 @@ func build() -> void:
 		menu.port_id = port_id
 		open_child(menu))
 	add_button("menu.back", close)
+
+
+## A sailor in the corner sells one treasure map every few days; the maps already held are listed under it.
+func _map_seller(s: Dictionary) -> void:
+	add_text(Loc.t("buried.seller"))
+	var tier: String = BuriedTreasure.offer_tier(s, port_id)
+	if tier == "":
+		add_text("  " + Loc.t("buried.sold_out"))
+	else:
+		var price: int = BuriedTreasure.offer_price(s, port_id)
+		var ok: bool = BuriedTreasure.can_hold_more(s) and int(s["gold"]) >= price
+		add_item_row("  %s  %d g" % [Loc.t("buried.offer." + tier), price], [[Loc.t("buried.buy"), _buy_map if ok else Callable()]])
+	add_text("  " + Loc.t("buried.held") % [BuriedTreasure.maps(s).size(), BuriedTreasure.MAX_HELD])
+	for m: Dictionary in BuriedTreasure.maps(s):
+		add_text("    " + BuriedTreasure.clue(m))
+
+
+func _buy_map() -> void:
+	var m: Dictionary = BuriedTreasure.buy_offer(state(), port_id)
+	if not m.is_empty():
+		Sfx.play("coin")
+		toast("buried.bought", [str(m["island"])])
+	_rebuild()
 
 
 ## The crew sings, and the player picks the shanty: each press moves on to the next one.

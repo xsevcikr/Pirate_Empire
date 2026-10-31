@@ -15,6 +15,8 @@ func _init() -> void:
 func _ready() -> void:
 	_title_key = ""
 	get_tree().paused = true
+	if Session.has_state():
+		TradeRoutes.record(Session.state, port_id)  # the price book remembers what this port charged today
 	super()
 
 
@@ -27,6 +29,7 @@ func build() -> void:
 	_box.move_child(title, 0)
 	add_button("port.walk", _walk_the_docks)
 	add_button("port.market", func() -> void: _open(MarketScreen.new()))
+	add_button("troute.title", func() -> void: _open(TradeRoutesScreen.new()))
 	add_button("port.shipyard", func() -> void: _open(ShipyardScreen.new()))
 	add_button("port.tavern", func() -> void: _open(TavernScreen.new()))
 	add_button("port.outfitter", func() -> void: _open(OutfitterScreen.new()))
