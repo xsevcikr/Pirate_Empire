@@ -6,7 +6,6 @@ extends Node
 signal prompt_changed(text: String)
 
 const FAR_FROM_DOCK_M: float = 140.0
-const WIND_FACING_DEG: float = 40.0
 
 var ship: Ship
 var _step_time: float = 0.0
@@ -64,7 +63,7 @@ func _physics_process(delta: float) -> void:
 			if ship.sail_level >= 1 and ship.global_position.distance_to(dock) > FAR_FROM_DOCK_M:
 				feed("left_dock")
 		"into_wind":
-			if ship.sail_level >= 1 and ship.angle_off_wind < WIND_FACING_DEG and _step_time > 2.0:
+			if ship.sail_level >= 1 and absf(ship.rudder_input) > 0.5 and _step_time > 2.0:  # steered: no wind to face any more
 				feed("faced_wind")
 			elif _step_time > 90.0:
 				feed("faced_wind")  # never block on this one

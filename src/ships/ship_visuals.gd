@@ -332,16 +332,13 @@ func update(delta: float) -> void:
 	var wind: WindModel = ship.wind
 	if wind == null or ship.damage == null:
 		return
-	var inv: Basis = ship.global_transform.basis.inverse()
-	var w_local: Vector3 = inv * Vector3(wind.direction.x, 0.0, wind.direction.y)
-	w_local.y = 0.0
 	var fwd := Vector3(0, 0, -1)
+	var w_local: Vector3 = fwd  # sailing ignores the wind: the sails always fill from astern
 	var level: float = SailModel.LEVELS[clampi(ship.sail_level, 0, 3)]
-	var factor: float = SailModel.speed_factor(ship.angle_off_wind, stats.square_rig)
-	var wind_ratio: float = clampf(wind.speed_ms() / 10.29, 0.15, 1.4)
+	var factor: float = 1.0
+	var wind_ratio: float = 1.0
 	var billow: float = clampf(factor * 1.1, 0.0, 1.0) * clampf(wind_ratio, 0.3, 1.0) * clampf(level * 1.4, 0.0, 1.0)
 	var luff: float = 1.0 - clampf(factor * 3.0, 0.0, 1.0)
-	var side_sign: float = signf(-w_local.x) if absf(w_local.x) > 0.01 else 1.0  # +1: wind from starboard
 	for t: Dictionary in _tiers:
 		var mast: int = t["mast"]
 		var node: MeshInstance3D = t["node"]
@@ -363,7 +360,7 @@ func update(delta: float) -> void:
 				n = n.normalized()
 				target = clampf(atan2(-n.x, -n.z), deg_to_rad(-55.0), deg_to_rad(55.0))
 		else:
-			target = -side_sign * deg_to_rad(clampf(ship.angle_off_wind * 0.45 - 8.0, 0.0, 70.0))
+			target = 0.0
 		_rig_yaw[m] = lerp_angle(_rig_yaw[m], target, 1.0 - exp(-1.2 * delta))
 		rig.rotation.y = _rig_yaw[m]
 	# Wake

@@ -31,7 +31,7 @@ menu.autosave,Autosave,Automatické uložení
 menu.empty_slot,Empty,Prázdný
 menu.slot_summary,"%s, day %d, %d gold, %d crew, saved %s","%s, den %d, %d zlaťáků, %d mužů, uloženo %s"
 menu.loading,Loading...,Načítání...
-menu.tip_0,Sail with the wind on your beam for top speed.,Pro nejvyšší rychlost plují s větrem z boku.
+menu.tip_0,Raise full sails (W) for top speed. Your ship goes just as fast in every direction.,Vytáhni všechny plachty (W) pro nejvyšší rychlost. Loď pluje stejně rychle všemi směry.
 menu.tip_1,Shoot at the sails to catch a fleeing ship.,Střílej do plachet a dohoň prchající loď.
 menu.tip_2,Keep your crew fed and paid or they will mutiny.,Krm a plať posádku jinak se vzbouří.
 menu.page_general,General,Obecné
@@ -54,8 +54,8 @@ menu.colorblind,Colorblind markers,Značky pro barvoslepé
 menu.reset_keys,Reset keys to default,Obnovit výchozí klávesy
 menu.press_key,Press a key...,Stiskni klávesu...
 tut.leave_dock,Press W to raise the sail and sail out of the harbour.,Stiskni W pro vytažení plachet a vypluj z přístavu.
-tut.into_wind,Turn the bow into the wind (see the wind arrow). Watch your speed drop.,Natoč příď proti větru (viz šipka větru). Sleduj jak klesá rychlost.
-tut.compass,The compass shows your heading. Sail with the wind on your beam for top speed.,Kompas ukazuje tvůj kurz. S větrem z boku plují nejrychleji.
+tut.into_wind,Steer with A and D. Turn your ship to look around!,Kormidluj klávesami A a D. Otoč loď a rozhlédni se!
+tut.compass,The compass shows your heading. W raises sails for more speed and S lowers them.,Kompas ukazuje tvůj kurz. W přidá plachty pro vyšší rychlost a S je stáhne.
 tut.back_to_dock,Sail back to the dock and slow under 3 knots. Press Space to dock.,Vrať se k molu a zpomal pod 3 uzly. Mezerníkem zakotvíš.
 tut.find_finn,Visit the tavern and talk to Old Finn.,Navštiv hospodu a promluv si se starým Finnem.
 tut.hunt_lugger,Old Finn spotted a fishing lugger south-west. Fire the swivels (Q/E) then hold G alongside to board.,Starý Finn zahlédl rybářský lugr na jihozápadě. Střílej z otočných děl (Q/E) a u boku drž G pro nalodění.
