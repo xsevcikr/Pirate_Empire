@@ -64,7 +64,7 @@ tut.sell_fish,Open the market and sell the fish.,Otevři trh a prodej ryby.
 tut.hire_crew,Hire four deckhands at the tavern. Crew eat every day.,Najmi v hospodě čtyři lodníky. Posádka jí každý den.
 tut.buy_food,Buy food at the market. One unit feeds four crew for a day.,Kup na trhu jídlo. Jedna jednotka nasytí čtyři muže na den.
 tut.quest_board,Take a job from the quest board.,Vezmi si zakázku z nástěnky.
-hud.dock_hint,Press Space to dock,Mezerníkem zakotvíš
+hud.dock_hint,Space: Dock,Mezerník: Zakotvit
 hud.status,Gold %d   Food %.1f d   Water %.1f d   Cargo %.2f / %.1f t   Morale %d (%s),Zlato %d   Jídlo %.1f d   Voda %.1f d   Náklad %.2f / %.1f t   Morálka %d (%s)
 port.header,Gold %d   Cargo %.2f / %.1f t   Food %.1f days,Zlato %d   Náklad %.2f / %.1f t   Jídlo %.1f dne
 port.market,Market,Trh
@@ -1189,7 +1189,7 @@ cat.stat_vs_crew,vs crew,na posádku
 cat.stat_units,Crates,Bedny
 cat.small_arms_desc,Each crate of small-arms shot loads %d pistol shots.,Každá bedna střeliva nabije %d pistolových ran.
 cat.no_small_arms,Buy small-arms shot at the market first,Nejdřív kup střelivo na trhu
-lagoon.hint,Press Space to go ashore at your lagoon,Mezerníkem vystoupíš ve své laguně
+lagoon.hint,Space: Go ashore at your lagoon,Mezerník: Vystoupit ve své laguně
 lagoon.unclaimed,"No one lives on Skull Atoll. Claim it and build a pirate lagoon where you and your crew live, with houses, a tavern, a harbour for your fleet and defences against the navy.","Na Lebkovém atolu nikdo nežije. Zaber ho a postav si pirátskou lagunu, kde budeš žít se svou posádkou: domy, krčma, přístav pro tvou flotilu a obrana proti námořnictvu."
 lagoon.claim,Claim Skull Atoll (%d gold),Zabrat Lebkový atol (%d zlaťáků)
 lagoon.claimed,Skull Atoll is yours! Build your pirate lagoon.,Lebkový atol je tvůj! Postav si pirátskou lagunu.
@@ -1390,7 +1390,7 @@ ship.leviathan,Leviathan,Leviatan
 port.guns,guns,děla
 port.giant_ships,"Giant ships, built only at a grand shipyard:","Obří lodě, staví je jen velká loděnice:"
 port.giant_hint,"Giant ships are built only at the grand shipyards of %s.","Obří lodě staví jen velké loděnice v %s."
-hud.land_hint,Press Space to row ashore,Mezerníkem vyrazíš na břeh
+hud.land_hint,Space: Row ashore,Mezerník: Vyrazit na břeh
 land.wait,"The beach of %s has been picked clean. Come back in %d days.","Pláž ostrova %s je vybraná. Vrať se za %d dní."
 land.healed,%d wounded rested,%d raněných si odpočinulo
 land.recruit,a castaway joins the crew,trosečník se přidal k posádce
@@ -1451,7 +1451,7 @@ hud.help_hint,Press / for all controls,Stiskni / pro všechny klávesy
 hud.help_keys,"A/D steer   W/S sails   RMB drag look   Q/E fire port/starboard   R/F elevation   1-5 ammo   Tab crew focus
 F1-F5 crew orders   F6 rum   Z damage control   Space dock   G hold to board   M map   Esc pause   / hide","A/D kormidlo   W/S plachty   PTM rozhlížení   Q/E pal levobok/pravobok   R/F náměr   1-5 střelivo   Tab zaměření posádky
 F1-F5 rozkazy   F6 rum   Z oprava škod   Mezerník kotvení   G drž pro abordáž   M mapa   Esc pauza   / skrýt"
-hud.card_sail,%.1f kn   %s   Wind %.0f kn,%.1f kn   %s   Vítr %.0f kn
+hud.card_sail,%.1f kn   %s,%.1f kn   %s
 hud.sails_0,Sails furled,Plachty svinuté
 hud.sails_1,Battle sails,Bojové plachty
 hud.sails_2,Half sail,Poloviční plachty
@@ -1465,3 +1465,24 @@ hud.card_captain,Captain %d/%d health,Kapitán %d/%d zdraví
 hud.status_short,Gold %d   Food %.0f d   Water %.0f d,Zlato %d   Jídlo %.0f d   Voda %.0f d
 hud.status_cargo,Hold %.0f%% full,Náklad %.0f %%
 hud.status_morale,Morale: %s,Morálka: %s
+hud.card_crew,%d crew,%d námořníků
+hud.card_guns_short,Left %d/%d   Right %d/%d,Levobok %d/%d   Pravobok %d/%d
+tip.title,Tip,Rada
+tip.switch_off,Tips can be switched off in Settings > Accessibility.,Rady vypneš v Nastavení > Přístupnost.
+tip.sail,Press %s to raise the sails and %s to lower them. Steer with %s and %s. Your ship goes just as fast in every direction!,Klávesou %s vytáhneš plachty a %s je stáhneš. Kormidluješ %s a %s. Loď pluje stejně rychle všemi směry!
+tip.enemy,"An enemy ship! Turn your side towards her, then fire the left guns with %s and the right guns with %s.",Nepřátelská loď! Natoč se k ní bokem a pal z levých děl %s a z pravých %s.
+tip.harbour,"A harbour! Press %s to dock, sell loot, repair the ship and hire crew.","Přístav! Stiskni %s, zakotvi, prodej kořist, oprav loď a najmi posádku."
+tip.hurt,"Your ship is hurt! Press %s for damage control, or sail to a harbour to repair.","Loď je poškozená! Stiskni %s pro opravy, nebo pluj do přístavu."
+tip.gold,"Gold! Spend it in harbours on a bigger ship, cannons and crew.","Zlato! Utrať ho v přístavu za větší loď, děla a posádku."
+tip.map,"Press %s to open the map and find islands, harbours and treasure.","Stiskni %s a otevři mapu s ostrovy, přístavy a poklady."
+menu.tips,Show tips,Zobrazovat rady
+menu.tips_reset,Show tips again,Zobrazit rady znovu
+hud.plate_masts,Masts %d/%d,Stěžně %d/%d
+hud.plate_fire,Fire!,Hoří!
+hud.float_crew,-%d crew,-%d námořníků
+hud.float_gold,+%d gold,+%d zlata
+crew.days,%.0f days,%.0f dní
+crew.wage_chip,%d gold a day,%d zlata denně
+crew.count_chip,"%d crew, %d wounded","%d námořníků, %d raněných"
+crew.hold,Hold: %.0f of %.0f t,Náklad: %.0f z %.0f t
+crew.morale_chip,Morale %d (%s),Morálka %d (%s)

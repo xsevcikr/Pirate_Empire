@@ -244,14 +244,17 @@ func _foam_particles(amount: int, life: float, size: float, speed: float) -> CPU
 	p.gravity = Vector3(0, -2.0, 0)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(size, size)
-	var grad := Gradient.new()
-	grad.set_color(0, Color(1, 1, 1, 0.85))
-	grad.set_color(1, Color(1, 1, 1, 0.0))
-	var tex := GradientTexture2D.new()
-	tex.gradient = grad
-	tex.fill = GradientTexture2D.FILL_RADIAL
-	tex.fill_from = Vector2(0.5, 0.5)
-	tex.fill_to = Vector2(1.0, 0.5)
+	var tex: Texture2D = load("res://assets/ui/fx_foam.png") if ResourceLoader.exists("res://assets/ui/fx_foam.png") else null
+	if tex == null:  # no skin drawn yet: a soft round blob
+		var grad := Gradient.new()
+		grad.set_color(0, Color(1, 1, 1, 0.85))
+		grad.set_color(1, Color(1, 1, 1, 0.0))
+		var g := GradientTexture2D.new()
+		g.gradient = grad
+		g.fill = GradientTexture2D.FILL_RADIAL
+		g.fill_from = Vector2(0.5, 0.5)
+		g.fill_to = Vector2(1.0, 0.5)
+		tex = g
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA

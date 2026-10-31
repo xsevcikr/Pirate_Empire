@@ -55,6 +55,9 @@ static func box(name: String, margin: int = 0, content: int = -1) -> StyleBox:
 		return f
 	var b := StyleBoxTexture.new()
 	b.texture = t
+	if name == "panel_wood":  # planks repeat instead of smearing when the panel is big
+		b.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+		b.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	var m: int = margin if margin > 0 else int(Look.SKIN_MARGIN.get(name, 16))
 	b.texture_margin_left = m
 	b.texture_margin_right = m
@@ -88,6 +91,8 @@ static func label(text: String = "", size: int = SIZE_BODY, color: Color = Color
 	if outline:
 		l.add_theme_color_override("font_outline_color", Color(INK, 0.95))
 		l.add_theme_constant_override("outline_size", maxi(4, size / 4))
+	else:
+		l.add_theme_constant_override("outline_size", 0)  # dark text on parchment: no theme outline
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
@@ -149,8 +154,15 @@ static func action_key(action: String) -> String:
 		var k := e as InputEventKey
 		if k != null:
 			var code: Key = k.physical_keycode if k.physical_keycode != KEY_NONE else k.keycode
-			return OS.get_keycode_string(code)
+			return key_label(OS.get_keycode_string(code))
 	return ""
+
+
+## Short labels for key caps: "Slash" -> "/", "BracketLeft" -> "[".
+static func key_label(name: String) -> String:
+	const SHORT: Dictionary = {"Slash": "/", "BackSlash": "\\", "Comma": ",", "Period": ".", "Semicolon": ";", "Apostrophe": "'",
+		"BracketLeft": "[", "BracketRight": "]", "Minus": "-", "Equal": "=", "QuoteLeft": "`", "Escape": "Esc"}
+	return SHORT.get(name, name)
 
 
 ## A chunky rounded bar in the skin, tinted with one of the colours above.

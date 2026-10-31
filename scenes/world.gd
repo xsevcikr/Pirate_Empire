@@ -193,6 +193,13 @@ func _start_game_layer() -> void:
 	damage_panel = DamagePanel.new()
 	damage_panel.world = self
 	add_child(damage_panel)
+	var markers := WorldMarkers.new()  # nameplates over close ships, floating damage and gold numbers
+	markers.world = self
+	add_child(markers)
+	var tips := FirstTips.new()  # first-time tips; Settings > Accessibility switches them off
+	tips.name = "FirstTips"
+	tips.world = self
+	add_child(tips)
 	apply_customization()
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
