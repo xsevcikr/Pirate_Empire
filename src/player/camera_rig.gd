@@ -9,6 +9,13 @@ const FOV_DEG: float = 65.0
 
 var target: Node3D
 var camera: Camera3D
+## Deck walking (auto drive): the camera follows this anchor on the captain instead of the ship, close behind and above,
+## and turns with the ship; a right-drag swings it round him and it stays where it was left.
+var walk_anchor: Node3D
+var _walk_yaw: float = 0.0
+var _walk_pitch: float = 0.75
+const WALK_DISTANCE: float = 7.0
+const WALK_HEIGHT: float = 2.6
 var _yaw: float = 0.0
 var _orbit_yaw: float = 0.0
 var _orbit_pitch: float = 0.0
@@ -29,6 +36,9 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_dragging = event.pressed
+	elif event is InputEventMouseMotion and _dragging and walk_anchor != null:
+		_walk_yaw -= event.relative.x * 0.006
+		_walk_pitch = clampf(_walk_pitch + event.relative.y * 0.004, -0.15, 0.9)
 	elif event is InputEventMouseMotion and _dragging:
 		_orbit_yaw -= event.relative.x * 0.005
 		_orbit_pitch = clampf(_orbit_pitch + event.relative.y * 0.005, -0.5, 0.9)
@@ -40,6 +50,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	if target == null:
+		return
+	if walk_anchor != null and is_instance_valid(walk_anchor):
+		_follow_walker(delta)
 		return
 	var fwd: Vector3 = -target.global_transform.basis.z
 	var ship_yaw: float = atan2(fwd.x, fwd.z)
@@ -60,6 +73,26 @@ func _process(delta: float) -> void:
 		pos += Vector3(sin(_shake_t * 61.0), sin(_shake_t * 47.0 + 1.3), cos(_shake_t * 53.0)) * _shake * 0.9 * scale
 	global_position = pos
 	camera.look_at(target.global_position + Vector3(0, 3.0, 0) + (-back) * 6.0, Vector3.UP)
+
+
+## Starts or stops following the captain on deck. The view starts behind him, looking toward the bow.
+func set_walker(anchor: Node3D) -> void:
+	walk_anchor = anchor
+	_walk_yaw = 0.0
+	_walk_pitch = 0.75
+	if anchor == null and target != null:  # back at the helm: the chase view picks up the ship's heading at once
+		var fwd: Vector3 = -target.global_transform.basis.z
+		_yaw = atan2(fwd.x, fwd.z)
+
+
+func _follow_walker(delta: float) -> void:
+	var fwd: Vector3 = -target.global_transform.basis.z
+	var yaw: float = atan2(fwd.x, fwd.z) + _walk_yaw
+	var back := Vector3(-sin(yaw), 0.0, -cos(yaw))
+	var focus: Vector3 = walk_anchor.global_position
+	var pos: Vector3 = focus + back * WALK_DISTANCE * cos(_walk_pitch) + Vector3.UP * (WALK_HEIGHT * 0.4 + WALK_DISTANCE * sin(_walk_pitch))
+	global_position = global_position.lerp(pos, clampf(1.0 - exp(-10.0 * delta), 0.0, 1.0)) if delta > 0.0 else pos
+	camera.look_at(focus + Vector3.UP * 0.3, Vector3.UP)
 
 
 ## Rattles the camera by `amount` (0..1) after a collision; a stronger shake replaces a weaker one.

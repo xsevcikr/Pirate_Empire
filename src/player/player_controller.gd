@@ -6,6 +6,8 @@ var ship: Ship
 var wind: WindModel
 ## The crew's standing order from the order buttons (CrewOrders); Tab picks a focus by hand and clears it.
 var order: CrewOrders.Order = CrewOrders.Order.NONE
+## Auto drive has the wheel (AutoDrive): the steer and sail keys walk the captain instead, and the guns stay quiet.
+var auto_drive: bool = false
 
 
 func give_order(o: CrewOrders.Order) -> void:
@@ -16,6 +18,8 @@ func give_order(o: CrewOrders.Order) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if ship == null:
+		return
+	if auto_drive and (event.is_action("sail_up") or event.is_action("sail_down")):
 		return
 	if event.is_action_pressed("sail_up"):
 		ship.sail_level = mini(ship.sail_level + 1, 3)
@@ -31,6 +35,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if ship == null:
+		return
+	if auto_drive:
 		return
 	ship.rudder_input = Input.get_axis("steer_left", "steer_right")
 	ship.broadside.set_elevation(ship.broadside.elevation_deg + Input.get_axis("elev_down", "elev_up") * 8.0 * delta)

@@ -19,6 +19,7 @@ var overlay: GameOverlay
 var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
+var auto_drive: AutoDrive
 var damage_panel: DamagePanel
 var convoys: ConvoyManager
 var tours: TourDirector
@@ -128,6 +129,11 @@ func _ready() -> void:
 	rig.target = ship
 	add_child(rig)
 
+	auto_drive = AutoDrive.new()
+	auto_drive.controller = pc
+	auto_drive.rig = rig
+	add_child(auto_drive)
+
 	day_night.sun = sun
 	day_night.env = env
 	day_night.sky_material = sky_mat
@@ -153,6 +159,7 @@ func _ready() -> void:
 func _start_game_layer() -> void:
 	overlay = GameOverlay.new()
 	add_child(overlay)
+	auto_drive.overlay = overlay
 	prizes = PrizeFlow.new()
 	prizes.player = ship
 	add_child(prizes)
@@ -463,6 +470,8 @@ func can_land() -> bool:
 
 
 func go_ashore() -> Dictionary:
+	if auto_drive != null:  # stepping ashore: back at the helm first
+		auto_drive.take_helm()
 	var i: int = landing_island()
 	if i < 0:
 		return {}
@@ -485,6 +494,8 @@ func can_land_lagoon() -> bool:
 
 
 func open_lagoon() -> void:
+	if auto_drive != null:  # stepping ashore: back at the helm first
+		auto_drive.take_helm()
 	if get_node_or_null("PortLayer") != null:
 		return
 	var layer := CanvasLayer.new()
@@ -518,6 +529,8 @@ func _lagoon_day() -> void:
 
 
 func open_port() -> void:
+	if auto_drive != null:  # stepping ashore: back at the helm first
+		auto_drive.take_helm()
 	if get_node_or_null("PortLayer") != null:
 		return
 	var menu := PortMenu.new()
