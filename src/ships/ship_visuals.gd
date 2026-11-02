@@ -12,6 +12,8 @@ var hull_material: ShaderMaterial
 var mast_groups: Array[Node3D] = []
 var sail_materials: Array[ShaderMaterial] = []
 var flag_materials: Array[ShaderMaterial] = []
+var flag_nodes: Array[MeshInstance3D] = []  ## same order as flag_materials: bowsprit jack first, ensign last
+var gun_nodes: Array[MeshInstance3D] = []  ## the deck cannons, which ShipLooks swaps for upgraded ones
 var _tiers: Array[Dictionary] = []  # {node, material, rig, tier, mast, square}
 var _wake: CPUParticles3D
 var _spray_l: CPUParticles3D
@@ -204,6 +206,7 @@ func _add_flag(parent: Node3D, at: Vector3, size: float, ensign: bool) -> void:
 	var fmat := ShaderMaterial.new()
 	fmat.shader = FLAG_SHADER
 	flag_materials.append(fmat)
+	flag_nodes.append(flag)
 	fmat.set_shader_parameter("skull", 1.0 if ensign else 0.0)
 	fmat.set_shader_parameter("base_color", Vector3(0.05, 0.05, 0.06) if ensign else Vector3(0.85, 0.15, 0.12))
 	flag.material_override = fmat
@@ -230,6 +233,7 @@ func _build_guns() -> void:
 			c.rotation_degrees.y = 90.0 * sgn
 			c.name = "Gun"
 			root.add_child(c)
+			gun_nodes.append(c)
 
 
 func _foam_particles(amount: int, life: float, size: float, speed: float) -> CPUParticles3D:

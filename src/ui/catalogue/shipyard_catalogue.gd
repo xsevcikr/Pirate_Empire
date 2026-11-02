@@ -19,7 +19,7 @@ func title_key() -> String:
 
 
 func categories() -> PackedStringArray:
-	return PackedStringArray(["cat.ships", "cat.upgrades", "cat.services"])
+	return PackedStringArray(["cat.ships", "cat.upgrades", "cat.looks", "cat.services"])
 
 
 static func ship_icon(class_id: String) -> String:
@@ -30,6 +30,7 @@ func items(s: Dictionary) -> Array[CatalogueItem]:
 	var out: Array[CatalogueItem] = []
 	_ships(s, out)
 	_upgrades(s, out)
+	_looks(s, out)
 	_services(s, out)
 	return out
 
@@ -105,6 +106,23 @@ func _upgrades(s: Dictionary, out: Array[CatalogueItem]) -> void:
 		out.append(it)
 
 
+## Sails, flags and cannons you can see on the ship (ShipLooks). They stay with the captain on every ship.
+func _looks(s: Dictionary, out: Array[CatalogueItem]) -> void:
+	for line: String in ShipLooks.LINES:
+		var tier: int = ShipLooks.tier(s, line)
+		var it := CatalogueItem.make("look:" + line, "cat.looks", Loc.t("looks." + line), ShipLooks.ICONS[line], ShipLooks.next_cost(s, line))
+		it.tier = tier
+		it.tiers = ShipLooks.TIERS
+		it.data = {"kind": "look", "line": line}
+		it.stat(Loc.t("looks.now"), Loc.t(ShipLooks.name_key(line, tier)))
+		if tier >= ShipLooks.TIERS:
+			it.status = CatalogueItem.Status.MAXED
+			it.blurb = Loc.t("looks.desc")
+		else:
+			it.blurb = Loc.t("looks.next") % Loc.t(ShipLooks.name_key(line, tier + 1))
+		out.append(it)
+
+
 func _services(s: Dictionary, out: Array[CatalogueItem]) -> void:
 	var repair := CatalogueItem.make("svc:repair", "cat.services", Loc.t("port.repair"), "pirate/crate", PortService.repair_cost(s))
 	repair.blurb = Loc.t("cat.repair_desc")
@@ -136,6 +154,8 @@ func buy(s: Dictionary, item: CatalogueItem) -> bool:
 				return false
 			s["gold"] = left
 			return true
+		"look":
+			return ShipLooks.buy(s, item.data["line"])
 		"repair":
 			return PortService.repair(s)
 		"insure":
@@ -150,5 +170,8 @@ func icon_list() -> PackedStringArray:
 	out.append_array(["pirate/ship-ghost", GIANT_ICON])
 	for line: String in UPGRADE_ICONS:
 		out.append(UPGRADE_ICONS[line])
+	for line: String in ShipLooks.ICONS:
+		if not out.has(ShipLooks.ICONS[line]):
+			out.append(ShipLooks.ICONS[line])
 	out.append_array(["pirate/crate", "dungeon/coin"])
 	return out

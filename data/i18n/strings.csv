@@ -1447,3 +1447,25 @@ bark.breach.1,Plug that hole!,Ucpěte tu díru!
 bark.breach.2,Water below decks!,Voda v podpalubí!
 bark.patched.0,"Hole's plugged, Captain!","Díra je ucpaná, kapitáne!"
 bark.patched.1,That'll hold her!,To vydrží!
+cat.looks,Ship looks,Vzhled lodi
+looks.sails,Sails,Plachty
+looks.flags,Flags,Vlajky
+looks.cannons,Cannons,Děla
+looks.now,Now,Teď
+looks.next,"Next: %s. Your crew will cheer, and it stays on every ship you sail.","Další: %s. Posádka bude jásat a zůstane ti to na každé lodi."
+looks.desc,The finest there is. Your crew is proud of it.,To nejlepší široko daleko. Posádka je na to hrdá.
+looks.sails.0,Patched canvas,Záplatované plátno
+looks.sails.1,Fresh white canvas with gold edging,Nové bílé plátno se zlatým lemem
+looks.sails.2,Red and white stripes,Červenobílé pruhy
+looks.sails.3,Black sails with a white skull,Černé plachty s bílou lebkou
+looks.sails.4,Crimson sails with a golden skull,Karmínové plachty se zlatou lebkou
+looks.flags.0,Small pennants,Malé praporky
+looks.flags.1,Big Jolly Roger,Velká pirátská vlajka
+looks.flags.2,Long streamers on every mast,Dlouhé stuhy na každém stěžni
+looks.flags.3,Party bunting from bow to stern,Slavnostní praporky od přídě po záď
+looks.flags.4,Giant banner with a golden skull,Obří prapor se zlatou lebkou
+looks.cannons.0,Iron cannons,Železná děla
+looks.cannons.1,Shiny bronze cannons,Lesklá bronzová děla
+looks.cannons.2,Swivel guns on the bow and stern,Otočná děla na přídi a zádi
+looks.cannons.3,Black and gold long guns,Černozlatá dlouhá děla
+looks.cannons.4,Golden dragon cannons,Zlatá dračí děla

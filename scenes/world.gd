@@ -410,6 +410,7 @@ func sync_player_ship() -> void:
 	if ship.stats.class_id != Session.state["ship_class"] or not _upgrades_applied():
 		_replace_player_ship()
 	Session.apply_to_ship(ship)
+	apply_customization()
 
 
 func _upgrades_applied() -> bool:
@@ -786,9 +787,10 @@ func open_fishing() -> void:
 	_open_screen(FishingScreen.make(int(Session.state["seed"]) + int(Session.state["day"]) * 13 + int(Time.get_ticks_msec() % 991)))
 
 
-## Push the flag, sail, hull and name choices onto the ship's look.
+## Push the flag, sail, hull and name choices, then the sails, flags and cannons bought at a shipyard, onto the ship.
 func apply_customization() -> void:
 	ShipCustom.apply(ship, Customization.get_custom(Session.state))
+	ShipLooks.apply(ship.visuals, Session.state)
 
 
 func open_rivals() -> void:
