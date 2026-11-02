@@ -37,6 +37,7 @@ static func burst(parent: Node, pos: Vector3, color: Color, amount: int, speed: 
 static func muzzle(parent: Node, pos: Vector3, dir: Vector3) -> void:
 	burst(parent, pos, Color(1.0, 0.7, 0.3, 0.9), 14, 9.0, 0.15, 0.25, 0.0, 25.0, dir)
 	burst(parent, pos + dir * 1.0, Color(0.85, 0.85, 0.85, 0.7), 24, 5.0, 4.0, 0.9, 0.5, 35.0, dir)
+	HitFx.flash(parent, pos + dir * 0.8, 2.5, 7.0)
 
 
 static func splash(parent: Node, pos: Vector3, size: float = 1.0) -> void:
@@ -56,3 +57,5 @@ static func flames(parent: Node, pos: Vector3) -> void:
 static func explosion(parent: Node, pos: Vector3) -> void:
 	burst(parent, pos, Color(1.0, 0.55, 0.15, 0.95), 80, 18.0, 1.2, 1.1, -3.0, 180.0)
 	burst(parent, pos, Color(0.25, 0.25, 0.25, 0.8), 40, 8.0, 5.0, 2.0, 1.0, 180.0)
+	HitFx.flash(parent, pos + Vector3.UP * 2.0, 8.0, 40.0)
+	HitFx.shake(parent, HitFx.SHAKE_EXPLOSION, pos, HitFx.EXPLOSION_FALLOFF_M)

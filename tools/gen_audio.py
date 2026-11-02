@@ -103,6 +103,30 @@ def fade_edges(x, ms=8):
     return x
 
 
+def echo(x, delay, feedback=0.35, taps=4, damp=1200):
+    """Sea echo: a few darker, quieter copies of the sound, as if thrown back off the water and far hulls."""
+    d = int(delay * SR)
+    out = list(x) + [0.0] * (d * taps)
+    tap = list(x)
+    for k in range(1, taps + 1):
+        tap = lowpass(tap, damp)
+        g = feedback ** k
+        for i, v in enumerate(tap):
+            out[i + d * k] += v * g
+    return out
+
+
+def make_loop(x, overlap_sec):
+    """Crossfades the tail into the head so the loop has no seam and no dip."""
+    o = int(overlap_sec * SR)
+    body = list(x[:len(x) - o])
+    tail = x[len(x) - o:]
+    for i in range(o):
+        g = i / o
+        body[i] = body[i] * math.sin(g * math.pi * 0.5) + tail[i] * math.cos(g * math.pi * 0.5)
+    return body
+
+
 def write_ogg(samples, path, quality=3):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     pcm = b"".join(struct.pack("<h", int(max(-1.0, min(1.0, v)) * 32000)) for v in samples)
@@ -204,17 +228,84 @@ def sfx_all():
     n = int(1.6 * SR)
     stroke = [abs(math.sin(math.pi * i / (0.8 * SR))) ** 2 for i in range(n)]
     out["pump"] = normalise(mul(mix(bandpass(noise(1.6, r2), 180, 900), sweep(140, 120, 1.6, 0.4)), stroke), 0.45)
+    # Sound and hit effects pass: richer cannons with a sea echo, two-stage splashes, ricochets, the thud of a
+    # hit on our own hull, the far rumble of someone else's battle and waves slapping the hull. Own seed again.
+    r3 = random.Random(41)
+
+    def big_gun(weight):
+        sec = 0.7 + weight * 0.9
+        n = int(sec * SR)
+        sub = mul(sweep(75 - weight * 25, 28, sec, 1.0), env_ad(n, 0.004, 2.0 + (1 - weight)))
+        body = mul(lowpass(noise(sec, r3), 700 - weight * 350), env_ad(n, 0.002, 3.0 - weight))
+        crack = mul(highpass(noise(sec, r3), 1800), env_ad(n, 0.0005, 18.0))
+        rattle = mul(bandpass(noise(sec, r3), 250, 1400), [abs(math.sin(i / SR * 31)) * (1 - i / n) ** 4 for i in range(n)])
+        dry = mix(sub, body, crack, rattle, gains=[1.3, 1.0, 0.45, 0.25])
+        return normalise(echo(dry, 0.16 + weight * 0.08, 0.32, 3, 900))
+
+    out["cannon_6pdr"] = big_gun(0.15)
+    out["cannon_12pdr"] = big_gun(0.5)
+    out["cannon_24pdr"] = big_gun(0.9)
+    n = int(2.6 * SR)
+    far = mix(mul(lowpass(noise(2.6, r3), 160), env_ad(n, 0.02, 2.2)), mul(sweep(55, 30, 2.6, 0.8), env_ad(n, 0.03, 2.5)))
+    out["cannon_far"] = normalise(echo(far, 0.35, 0.4, 3, 300), 0.8)
+
+    def plunge(sec, lo, hi, drops, body_pow):
+        n = int(sec * SR)
+        hit = mul(bandpass(noise(sec, r3), lo, hi), env_ad(n, 0.004, body_pow))
+        bloop = mul(sweep(420, 130, 0.18, 0.6), env_ad(int(0.18 * SR), 0.002, 3.0))
+        rain = silence(sec)
+        for k in range(drops):
+            at = int(r3.uniform(0.15, sec * 0.8) * SR)
+            c = mul(bandpass(noise(0.04, r3), 1200, 5000), env_ad(int(0.04 * SR), 0.001, 4))
+            for i, v in enumerate(c):
+                if at + i < len(rain):
+                    rain[at + i] += v * r3.uniform(0.15, 0.5) * (1.0 - at / (sec * SR))
+        return normalise(mix(hit, bloop, rain, gains=[1.0, 0.8, 0.6]))
+
+    out["splash"] = plunge(1.1, 250, 3800, 26, 2.4)
+    out["splash_near"] = plunge(1.8, 120, 3000, 60, 1.8)
+    n = int(0.9 * SR)
+    ping = mix(*[mul(sine(f, 0.9, v), env_ad(n, 0.0005, 6)) for f, v in [(2300, 1.0), (3550, 0.6), (5100, 0.3)]])
+    whine = mul(sweep(3200, 900, 0.9, 0.5), [math.sin(math.pi * min(1.0, i / (0.6 * SR))) * (1 - i / n) for i in range(n)])
+    knock = mul(lowpass(noise(0.9, r3), 1500), env_ad(n, 0.0005, 14))
+    out["ricochet"] = normalise(mix(ping, whine, knock, gains=[0.7, 0.6, 1.0]), 0.8)
+    n = int(0.9 * SR)
+    thud = mix(mul(sweep(95, 38, 0.9, 1.0), env_ad(n, 0.002, 3.0)), mul(lowpass(noise(0.9, r3), 400), env_ad(n, 0.001, 5.0)))
+    tick = silence(0.9)
+    for k in range(7):
+        at = int(r3.uniform(0.0, 0.25) * SR)
+        c = mul(highpass(noise(0.05, r3), 1600), env_ad(int(0.05 * SR), 0.0005, 6))
+        for i, v in enumerate(c):
+            tick[at + i] += v * r3.uniform(0.3, 0.8)
+    out["hit_thud"] = normalise(mix(thud, tick, gains=[1.0, 0.45]))
+    n = int(0.75 * SR)
+    slap = mul(bandpass(noise(0.75, r3), 150, 1800), env_ad(n, 0.03, 2.6))
+    wash = [0.0] * int(0.12 * SR) + mul(bandpass(noise(0.6, r3), 900, 4500), [math.sin(math.pi * i / (0.6 * SR)) ** 2 for i in range(int(0.6 * SR))])
+    out["wave_slap"] = normalise(mix(slap, wash, gains=[1.0, 0.35]), 0.6)
     return out
 
 
 def ambience_all():
     r = random.Random(11)
     out = {}
-    for name, cut, depth in [("waves_calm", 400, 0.5), ("waves_mid", 700, 0.7), ("waves_rough", 1100, 0.9)]:
-        n = 6 * SR
-        base = lowpass(noise(6, r), cut)
-        sw = [1.0 - depth + depth * (0.5 + 0.5 * math.sin(2 * math.pi * i / SR / 6.0 * (1 + k))) for i in range(n) for k in [0]]
-        out[name] = fade_edges(normalise(mul(base, sw), 0.6), 400)
+    # Each sea loop is a bed of low surf plus swells that rise, break into a fizzing wash and draw back. The swell
+    # times are fixed fractions of the loop and the tail is crossfaded into the head, so it loops without a seam.
+    for name, cut, depth, swells, fizz in [("waves_calm", 380, 0.45, 3, 0.18), ("waves_mid", 650, 0.6, 4, 0.3), ("waves_rough", 1000, 0.75, 6, 0.45)]:
+        sec, over = 9.0, 1.0
+        n = int((sec + over) * SR)
+        bed = lowpass(noise(sec + over, r), cut)
+        env = [1.0 - depth] * n
+        crest = [0.0] * n
+        for k in range(swells):
+            at = (k + r.uniform(0.15, 0.6)) * sec / swells
+            length = r.uniform(1.6, 2.6)
+            for i in range(int(at * SR), min(n, int((at + length) * SR))):
+                t = (i / SR - at) / length
+                env[i] += depth * max(0.0, math.sin(math.pi * t)) ** 1.5
+                crest[i] += max(0.0, math.sin(math.pi * min(1.0, max(0.0, (t - 0.35) / 0.65)))) ** 2
+        wash = highpass(lowpass(noise(sec + over, r), 5000), 1100)
+        loop = mix(mul(bed, env), mul(wash, crest), gains=[1.0, fizz * 3.0])
+        out[name] = normalise(make_loop(loop, over), 0.6)
     out["wind"] = fade_edges(normalise(mul(bandpass(noise(6, r), 200, 900), [0.7 + 0.3 * math.sin(2 * math.pi * i / SR / 3.0) for i in range(6 * SR)]), 0.5), 400)
     out["rain"] = fade_edges(normalise(highpass(lowpass(noise(5, r), 6000), 1200), 0.5), 400)
     return out
@@ -388,7 +479,8 @@ def main():
     for g in want:
         folder, fn = groups[g]
         for name, samples in fn().items():
-            write_ogg(fade_edges(list(samples)), os.path.join(ROOT, folder, name + ".ogg"), quality=2 if g == "music" else 3)
+            samples = list(samples) if name.startswith("waves_") else fade_edges(list(samples))  # waves loop seamlessly
+            write_ogg(samples, os.path.join(ROOT, folder, name + ".ogg"), quality=2 if g == "music" else 3)
             print(g, name, len(samples) / SR)
 
 

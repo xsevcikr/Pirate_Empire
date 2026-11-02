@@ -133,6 +133,16 @@ func current_track() -> String:
 func play_sfx(id: String, pos: Variant = null) -> bool:
 	if not AudioData.SFX.has(id):
 		return false
+	var extra_db: float = 0.0
+	if AudioData.is_cannon(id) and pos is Vector3:
+		var d: float = listener_distance(pos)
+		if d > AudioData.CANNON_FAR_M:  # someone else's battle on the horizon
+			played[id] = int(played.get(id, 0)) + 1
+			extra_db = AudioData.far_cannon_db(d)
+			if extra_db <= -79.0:
+				return true
+			id = "cannon_far"
+			pos = null
 	var def: Dictionary = AudioData.SFX[id]
 	if float(_cooldowns.get(id, 0.0)) > 0.0:
 		return false
@@ -145,17 +155,23 @@ func play_sfx(id: String, pos: Variant = null) -> bool:
 	if pos != null and bool(def["pos"]):
 		var p3: AudioStreamPlayer3D = _free3d()
 		p3.stream = stream
-		p3.volume_db = float(def["db"])
+		p3.volume_db = float(def["db"]) + extra_db
 		p3.pitch_scale = pitch
 		p3.global_position = pos if pos is Vector3 else Vector3((pos as Vector2).x, 0.0, (pos as Vector2).y)
 		p3.play()
 	else:
 		var p2: AudioStreamPlayer = _free2d()
 		p2.stream = stream
-		p2.volume_db = float(def["db"])
+		p2.volume_db = float(def["db"]) + extra_db
 		p2.pitch_scale = pitch
 		p2.play()
 	return true
+
+
+## Metres from the camera (the listener) to `pos`; 0 when there is no 3D camera.
+func listener_distance(pos: Vector3) -> float:
+	var cam: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	return cam.global_position.distance_to(pos) if cam != null else 0.0
 
 
 func _free3d() -> AudioStreamPlayer3D:

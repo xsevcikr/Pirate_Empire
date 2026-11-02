@@ -25,6 +25,7 @@ func save_settings() -> void:
 	cfg.set_value("access", "fov", accessibility.fov)
 	cfg.set_value("access", "subtitles", accessibility.subtitles)
 	cfg.set_value("access", "colorblind", accessibility.colorblind_markers)
+	cfg.set_value("access", "hit_effects", accessibility.hit_effects)
 	cfg.save(PATH)
 
 
@@ -45,6 +46,7 @@ func load_settings() -> void:
 	accessibility.set_fov(cfg.get_value("access", "fov", accessibility.fov))
 	accessibility.subtitles = cfg.get_value("access", "subtitles", accessibility.subtitles)
 	accessibility.colorblind_markers = cfg.get_value("access", "colorblind", accessibility.colorblind_markers)
+	accessibility.hit_effects = cfg.get_value("access", "hit_effects", accessibility.hit_effects)
 	apply()
 
 

@@ -13,6 +13,8 @@ var _hour_seen: int = -1
 var _near_land_prev: bool = false
 var _sail_seen: Dictionary = {}
 var ctx: Dictionary = {}
+var _slap_in: float = 3.0
+var _slap_rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -76,6 +78,7 @@ func _process(delta: float) -> void:
 	if audio == null or world == null or world.ship == null:
 		return
 	audio.update_ambience(world.wind.sea_state(), world.wind.speed_kn, _near_land_prev, delta)
+	_wave_slaps(delta)
 	if _t < THINK_S:
 		return
 	_t = 0.0
@@ -84,6 +87,18 @@ func _process(delta: float) -> void:
 	_near_land_prev = world.streamer != null and _land_close()
 	_hour_bell()
 	_barks(ctx)
+
+
+## Now and then a wave slaps the hull: more often in a rough sea and when she is moving.
+func _wave_slaps(delta: float) -> void:
+	if world.get_tree().paused or world.ship.damage.sunk:
+		return
+	_slap_in -= delta
+	if _slap_in > 0.0:
+		return
+	var speed: float = world.ship.linear_velocity.length()
+	_slap_in = AudioData.slap_interval(world.wind.sea_state(), speed) * _slap_rng.randf_range(0.7, 1.3)
+	Sfx.play("wave_slap")
 
 
 func _land_close() -> bool:

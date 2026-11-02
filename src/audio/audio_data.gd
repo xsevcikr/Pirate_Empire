@@ -35,6 +35,9 @@ const SFX: Dictionary = {
 	"card": {"db": -8.0, "pitch": 0.08, "pos": false}, "gulls": {"db": -14.0, "pitch": 0.1, "pos": false, "cd": 6.0},
 	"hull_crash": {"db": 0.0, "pitch": 0.08, "pos": true, "cd": 0.3}, "hammer": {"db": -6.0, "pitch": 0.1, "pos": false, "cd": 1.0},
 	"pump": {"db": -12.0, "pitch": 0.08, "pos": false, "cd": 1.6},
+	"cannon_far": {"db": -8.0, "pitch": 0.1, "pos": false, "cd": 0.25}, "splash_near": {"db": -5.0, "pitch": 0.08, "pos": false, "cd": 0.3},
+	"ricochet": {"db": -7.0, "pitch": 0.12, "pos": true}, "hit_thud": {"db": -4.0, "pitch": 0.06, "pos": false, "cd": 0.15},
+	"wave_slap": {"db": -15.0, "pitch": 0.15, "pos": false, "cd": 0.6},
 }
 
 ## Looped ambience: id -> {file, db}. The mixer sets each one's loudness from the situation.
@@ -105,12 +108,25 @@ const ACTION_SFX: Dictionary = {
 	"level_up": "level_up", "achievement": "achievement", "roll_dice": "dice_roll", "deal_card": "card", "gulls_near_land": "gulls",
 	"dock": "rope_creak", "prize_taken": "chest", "quest_done": "ui_confirm",
 	"ram_ship": "hull_crash", "patch_hole": "hammer", "work_pumps": "pump",
+	"distant_battle": "cannon_far", "near_miss": "splash_near", "shot_glances_off": "ricochet", "our_hull_hit": "hit_thud",
+	"waves_on_hull": "wave_slap",
 }
 
 const CANNON_OF: Dictionary = {
 	"swivel": "cannon_swivel", "6pdr": "cannon_6pdr", "long9": "cannon_6pdr", "12pdr": "cannon_12pdr",
 	"carronade": "cannon_12pdr", "24pdr": "cannon_24pdr", "32pdr": "cannon_24pdr",
 }
+
+## Cannons further than this from the listener are heard as a flat far-off rumble instead (the 3D report would be
+## too thin out there). It fades with distance and is gone past CANNON_FAR_MAX_M.
+const CANNON_FAR_M: float = 380.0
+const CANNON_FAR_MAX_M: float = 2600.0
+## Waves slapping the hull: seconds between slaps in a flat calm at rest, the quickest they come, and how much
+## each knot of sea state and each m/s of speed shortens the wait.
+const SLAP_CALM_S: float = 7.0
+const SLAP_MIN_S: float = 0.9
+const SLAP_PER_SEA: float = 0.75
+const SLAP_PER_MPS: float = 0.35
 
 ## The monster that roars for each boss id.
 const ROAR_OF: Dictionary = {
@@ -122,6 +138,22 @@ const ROAR_OF: Dictionary = {
 ## The effect for a gun: the nearest calibre we have a recording of.
 static func cannon_sfx(gun_id: String) -> String:
 	return str(CANNON_OF.get(gun_id, "cannon_6pdr"))
+
+
+static func is_cannon(id: String) -> bool:
+	return id.begins_with("cannon_") and id != "cannon_far"
+
+
+## Extra loudness (dB) of the far rumble for a cannon `dist` metres away, or -80 when it is too far to hear.
+static func far_cannon_db(dist: float) -> float:
+	if dist >= CANNON_FAR_MAX_M:
+		return -80.0
+	return -14.0 * log(maxf(dist, CANNON_FAR_M) / CANNON_FAR_M) / log(2.0)
+
+
+## Seconds until the next wave slaps the hull, for the sea state (0..9) and the ship's speed in m/s.
+static func slap_interval(sea_state: float, speed_mps: float) -> float:
+	return maxf(SLAP_CALM_S - maxf(sea_state, 0.0) * SLAP_PER_SEA - maxf(speed_mps, 0.0) * SLAP_PER_MPS, SLAP_MIN_S)
 
 
 static func sfx_path(id: String) -> String:

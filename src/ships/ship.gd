@@ -303,10 +303,16 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 	var parent: Node = get_parent()
 	if result["ricochet"]:
 		Vfx.burst(parent, world_pos, Color(1, 0.9, 0.5), 8, 8.0, 0.4, 0.06, -9.8, 60.0, world_normal)
+		HitFx.sparks(parent, world_pos, world_normal, 30)
+		Sfx.play("ricochet", world_pos)
 	else:
 		Vfx.splinters(parent, world_pos)
+		HitFx.sparks(parent, world_pos, world_normal)
 		Sfx.play("wood_impact", world_pos)
 		Sfx.play("splinter", world_pos)
+	if HitFx.focus(self) == self:  # our own ship, the one the camera follows
+		Sfx.play("hit_thud")
+		HitFx.shake(self, HitFx.hit_shake(info.damage, stats.hull_hp) * (0.5 if result["ricochet"] else 1.0))
 	_update_damage_visuals()
 	hit_taken.emit(result)
 	return result
