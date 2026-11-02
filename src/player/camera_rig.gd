@@ -8,6 +8,17 @@ const FOLLOW_LAG: float = 2.5
 const FOV_DEG: float = 65.0
 
 var target: Node3D
+## While the captain walks the deck the camera stays close behind him instead (the ship still sets the yaw).
+var focus: Node3D
+## ... from off the ship's beam (the sails are edge-on from there), looking down on the deck.
+const FOCUS_DISTANCE: float = 8.0
+const FOCUS_HEIGHT: float = 7.0
+const FOCUS_SIDE_YAW: float = PI * 0.5
+var _had_focus: bool = false
+var _glide: float = 0.0  ## 1 just after switching between ship and captain, gliding to 0
+var _from_pos: Vector3
+var _from_look: Vector3
+var _last_look: Vector3
 var camera: Camera3D
 var _yaw: float = 0.0
 var _orbit_yaw: float = 0.0
@@ -54,12 +65,30 @@ func _process(delta: float) -> void:
 		scale = clampf((target as Ship).stats.length_m / 18.0, 0.7, 3.2)
 	var height: float = (HEIGHT + _orbit_pitch * 25.0) * scale
 	var pos: Vector3 = target.global_position + back * DISTANCE * scale + Vector3.UP * height
+	var look_at_pos: Vector3 = target.global_position + Vector3(0, 3.0, 0) + (-back) * 6.0
+	if focus != null and is_instance_valid(focus):
+		var fy: float = yaw + FOCUS_SIDE_YAW
+		var side := Vector3(-sin(fy), 0.0, -cos(fy))
+		pos = focus.global_position + side * FOCUS_DISTANCE + Vector3.UP * (FOCUS_HEIGHT + _orbit_pitch * 8.0)
+		look_at_pos = focus.global_position + Vector3(0, 0.9, 0)
+	var has_focus: bool = focus != null and is_instance_valid(focus)
+	if has_focus != _had_focus:
+		_had_focus = has_focus
+		_glide = 1.0
+		_from_pos = global_position
+		_from_look = _last_look
+	if _glide > 0.0:
+		_glide = maxf(_glide - delta / 0.8, 0.0)
+		var k: float = _glide * _glide * (3.0 - 2.0 * _glide)
+		pos = pos.lerp(_from_pos, k)
+		look_at_pos = look_at_pos.lerp(_from_look, k)
+	_last_look = look_at_pos
 	if _shake > 0.0:  # a crash rattles the view; it dies away in about a second
 		_shake_t += delta
 		_shake = maxf(_shake - delta * 1.2, 0.0)
 		pos += Vector3(sin(_shake_t * 61.0), sin(_shake_t * 47.0 + 1.3), cos(_shake_t * 53.0)) * _shake * 0.9 * scale
 	global_position = pos
-	camera.look_at(target.global_position + Vector3(0, 3.0, 0) + (-back) * 6.0, Vector3.UP)
+	camera.look_at(look_at_pos, Vector3.UP)
 
 
 ## Rattles the camera by `amount` (0..1) after a collision; a stronger shake replaces a weaker one.

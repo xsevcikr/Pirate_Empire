@@ -28,6 +28,8 @@ var progress: ProgressDirector
 var world_audio: WorldAudio
 var streamer: WorldStreamer
 var debris: DebrisManager
+var sea_life: SeaLife
+var deck_walk: DeckWalk
 var _dock_hit_cool: float = 0.0
 var discovery: Discovery
 var _discover_accum: float = 99.0
@@ -127,6 +129,18 @@ func _ready() -> void:
 	rig = CameraRig.new()
 	rig.target = ship
 	add_child(rig)
+
+	sea_life = SeaLife.new()
+	sea_life.ship = ship
+	sea_life.islands = streamer.gen.islands
+	add_child(sea_life)
+	deck_walk = DeckWalk.new()
+	deck_walk.ship = ship
+	deck_walk.rig = rig
+	deck_walk.controller = pc
+	deck_walk.sea_life = sea_life
+	deck_walk.islands = streamer.gen.islands
+	add_child(deck_walk)
 
 	day_night.sun = sun
 	day_night.env = env

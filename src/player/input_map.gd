@@ -31,6 +31,7 @@ const ACTIONS: Dictionary = {
 	"customize": [KEY_Y],
 	"damage_control": [KEY_Z],
 	"fish": [KEY_COMMA],
+	"autopilot": [KEY_ENTER, KEY_KP_ENTER],
 	"ammo_1": [KEY_1],
 	"ammo_2": [KEY_2],
 	"ammo_3": [KEY_3],
