@@ -251,7 +251,7 @@ static func _cannons(v: ShipVisuals, root: Node3D, t: int) -> void:
 		var s: ShipStats = v.stats
 		var sc: float = clampf(s.beam_m / 7.0, 0.55, 1.5) * 0.6
 		var rail: float = v.hull_half_width() * 0.6
-		for z: float in [-s.length_m * 0.2, s.length_m * 0.3]:
+		for z: float in [-s.length_m * 0.2]:  # the raised stern deck has no room on the waist-deck height
 			for side: float in [-1.0, 1.0]:
 				var sw: Node3D = build_swivel(barrel)
 				sw.position = Vector3(side * rail, v.deck_y() + 0.75 * sc, z)
@@ -330,7 +330,7 @@ static func build_cannon(barrel: Color, carriage: Color, length_mult: float, ban
 	return gun
 
 
-## A small swivel gun on a post, for the bow and stern rails.
+## A small swivel gun on a post, for the bow rails.
 static func build_swivel(barrel: Color) -> Node3D:
 	var gun := Node3D.new()
 	_part(gun, _cyl(0.06, 0.08, 0.7), Vector3(0, -0.35, 0), Color(0.3, 0.2, 0.12))

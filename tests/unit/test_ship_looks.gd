@@ -100,7 +100,7 @@ func test_looks_change_the_ship() -> void:
 	var looks: Node = v.root.get_node("Looks")
 	assert_eq(_count(looks, "look_gun"), v.gun_nodes.size())
 	assert_true(not v.gun_nodes[0].visible, "kit guns hidden")
-	assert_eq(_count(looks, "swivel"), 4)
+	assert_eq(_count(looks, "swivel"), 2)
 	assert_eq(_count(looks, "bow_chaser"), 2)
 	assert_eq(_count(looks, "bunting"), 1)
 	assert_eq(_count(looks, "streamer"), v.flag_nodes.size() - 1)
