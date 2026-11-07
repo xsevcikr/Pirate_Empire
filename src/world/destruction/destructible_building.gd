@@ -16,6 +16,7 @@ var roof_color: Color = Color(0.4, 0.15, 0.1)
 var max_hp: float = 250.0
 var hp: float = 250.0
 var is_ruin: bool = false
+var light_dress: bool = false  ## town houses seen from the sea: fewer detail pieces, as a town has dozens
 var _body: MeshInstance3D
 var _roof: MeshInstance3D
 var _material: ShaderMaterial
@@ -57,7 +58,7 @@ func _ready() -> void:
 	_body.material_override = _material
 	_body.position.y = size.y * 0.5
 	add_child(_body)
-	TownBuilder.dress_body(_body, kind, size, building_id.hash())
+	TownBuilder.dress_body(_body, kind, size, building_id.hash(), light_dress)
 	if kind in ["house", "warehouse"]:
 		_roof = MeshInstance3D.new()
 		var prism := PrismMesh.new()
