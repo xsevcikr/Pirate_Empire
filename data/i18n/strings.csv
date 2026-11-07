@@ -1599,3 +1599,25 @@ hud.card_captain,Captain %d/%d health,Kapitán %d/%d zdraví
 hud.status_short,Gold %d   Food %.0f d   Water %.0f d,Zlato %d   Jídlo %.0f d   Voda %.0f d
 hud.status_cargo,Hold %.0f%% full,Náklad %.0f %%
 hud.status_morale,Morale: %s,Morálka: %s
+weather.clear,Clear,Jasno
+weather.overcast,Overcast,Zataženo
+weather.rain,Rain,Déšť
+weather.storm,Storm,Bouře
+weather.fog,Fog,Mlha
+weather.turns,The weather turns: %s.,Počasí se mění: %s.
+weather.badge,"%s, %s","%s, %s"
+weather.phase.dawn,dawn,svítání
+weather.phase.day,day,den
+weather.phase.dusk,dusk,soumrak
+weather.phase.night,night,noc
+weather.st_elmo,St Elmo's fire on our masthead! Shorten sail!,Eliášův oheň na našem stěžni! Stáhněte plachty!
+weather.struck,Lightning struck our mast!,Blesk udeřil do našeho stěžně!
+weather.struck_fell,Lightning brought our mast down!,Blesk nám srazil stěžeň!
+weather.big_sea,Big sea coming on the %s! Turn into it!,Velká vlna z %s! Natočte se proti ní!
+weather.side.port,port beam,levoboku
+weather.side.starboard,starboard beam,pravoboku
+weather.side.bow,bow,přídě
+weather.side.stern,stern,zádi
+weather.sea_hit,The sea broke over us: %d hull damage.,Vlna se přes nás převalila: poškození trupu %d.
+weather.weathered,We rode out the storm. The crew learned from it.,Přestáli jsme bouři. Posádka se přiučila.
+log.storm_weathered,Rode out a storm at sea.,Přestáli jsme bouři na moři.
