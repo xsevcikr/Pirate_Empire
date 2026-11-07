@@ -92,13 +92,15 @@ static func award_xp(state: Dictionary, kind: String) -> int:
 	for m: Dictionary in state["roster"]:
 		if CrewTypes.add_xp(m, kind):
 			ups += 1
+			CrewPersona.on_level_up(m)
 	return ups
 
 
 ## One game day. `ctx`: {in_port, friendly_port, storm_day, shore_leave, victories, defeat, loot_gold}.
 ## Returns a report: {morale, deaths, deserted, wages_paid, wages_unpaid, no_food, no_water, mutiny}.
 static func daily_tick(state: Dictionary, ctx: Dictionary = {}) -> Dictionary:
-	var report: Dictionary = {"deaths": 0, "deserted": 0, "wages_paid": 0, "wages_unpaid": false, "no_food": false, "no_water": false, "mutiny": false, "died_of": ""}
+	var report: Dictionary = {"deaths": 0, "deserted": 0, "wages_paid": 0, "wages_unpaid": false, "no_food": false, "no_water": false, "mutiny": false, "died_of": "",
+		"persona_events": [], "deserted_names": [], "talked_down": ""}
 	var fx: Dictionary = CrewEffects.compute(state["roster"])
 	var sup: Dictionary = state["supplies"]
 	var causes: Dictionary = {}
@@ -191,11 +193,23 @@ static func daily_tick(state: Dictionary, ctx: Dictionary = {}) -> Dictionary:
 	causes["victories"] = int(ctx.get("victories", 0))
 	causes["loot_gold"] = float(ctx.get("loot_gold", 0.0))
 	state["morale"] = Morale.daily(float(state["morale"]), causes, bool(fx["quartermaster"]))
+	# --- personalities and loyalty: cheer, brawls, omens, and the disloyal walking off in port ---
+	var day: int = int(ctx.get("day", state["day"]))
+	var prng := RandomNumberGenerator.new()
+	prng.seed = int(state.get("seed", 1)) * 613 + day
+	var persona: Dictionary = CrewPersona.daily(state, causes, ctx, prng)
+	state["morale"] = clampf(float(state["morale"]) + float(persona["morale_delta"]), 0.0, 100.0)
+	report["persona_events"] = persona["events"]
+	report["deserted_names"] = persona["deserted"]
+	report["deserted"] = int(report["deserted"]) + persona["deserted"].size()
 	report["morale"] = state["morale"]
 	# --- mutiny ---
 	if float(state["morale"]) < MUTINY_BELOW and int(state["crew"]) > 0:
-		var day: int = int(ctx.get("day", state["day"]))
-		if bool(fx["prevents_mutiny"]) and day - int(state["mutiny_shield_day"]) >= MUTINY_SHIELD_DAYS:
+		if CrewPersona.talks_down(state) and day - int(state.get("persona_talk_day", -99)) >= CrewPersona.TALK_DOWN_DAYS:
+			state["persona_talk_day"] = day
+			state["morale"] = MUTINY_BELOW + 5.0
+			report["talked_down"] = CrewPersona.ringleader(state)
+		elif bool(fx["prevents_mutiny"]) and day - int(state["mutiny_shield_day"]) >= MUTINY_SHIELD_DAYS:
 			state["mutiny_shield_day"] = day
 			state["morale"] = MUTINY_BELOW + 5.0
 		else:

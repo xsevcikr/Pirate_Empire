@@ -150,9 +150,15 @@ func _player() -> void:
 	add_child(target)
 
 
+## The accessibility camera-shake slider (0..1).
+func _shake_scale() -> float:
+	var st: Node = Svc.node("Settings")
+	return float(st.accessibility.camera_shake) if st != null and st.get("accessibility") != null else 1.0
+
+
 func _place_camera() -> void:
 	var off: Vector3 = _look["cam"]
-	cam.position = _target_home + off + Vector3(randf_range(-1, 1), randf_range(-1, 1), 0) * _shake
+	cam.position = _target_home + off + Vector3(randf_range(-1, 1), randf_range(-1, 1), 0) * _shake * _shake_scale()
 	var focus: Vector3 = Vector3(0, float(_look.get("focus_y", float(_look["dist"]) * 0.22)), float(_look["dist"]) * 0.35)
 	cam.look_at(focus, Vector3.UP)
 

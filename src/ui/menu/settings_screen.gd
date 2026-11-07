@@ -12,6 +12,7 @@ func _init() -> void:
 	super()
 	_title_key = "menu.settings"
 	dim = 0.0
+	force_frame = true
 
 
 func build() -> void:
@@ -84,6 +85,10 @@ func _build_access() -> void:
 	shake.value = a.camera_shake
 	shake.value_changed.connect(a.set_camera_shake)
 	add_row("menu.camera_shake", shake)
+	var fx := CheckButton.new()
+	fx.button_pressed = a.hit_effects
+	fx.toggled.connect(func(on: bool) -> void: a.hit_effects = on)
+	add_row("menu.hit_effects", fx)
 	var fov := HSlider.new()
 	fov.min_value = 50.0
 	fov.max_value = 100.0
@@ -99,6 +104,15 @@ func _build_access() -> void:
 	cb.button_pressed = a.colorblind_markers
 	cb.toggled.connect(func(on: bool) -> void: a.colorblind_markers = on)
 	add_row("menu.colorblind", cb)
+	var st: Node = Svc.node("Settings")
+	var tips := CheckButton.new()
+	tips.button_pressed = bool(st.get("tips_enabled"))
+	tips.toggled.connect(func(on: bool) -> void: st.set("tips_enabled", on))
+	add_row("menu.tips", tips)
+	add_button("menu.tips_reset", func() -> void:
+		st.set("tips_seen", PackedStringArray())
+		st.set("tips_enabled", true)
+		_rebuild())
 
 
 func _build_keys() -> void:

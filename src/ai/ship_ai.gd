@@ -1,7 +1,7 @@
 class_name ShipAI
 extends Node
 ## Hierarchical AI for one ship: strategic state (patrol, trade, engage, flee, surrender) plus tactical
-## steering and gunnery. Obeys the same wind, reload and turning rules as the player.
+## steering and gunnery. Obeys the same reload and turning rules as the player.
 
 signal state_changed(new_state: int)
 
@@ -102,6 +102,7 @@ func _think() -> void:
 		"hull_frac": ship.damage.hull_fraction(), "crew_frac": float(ship.crew.count) / float(ship.stats.crew_max),
 		"hostile_seen": seen, "hostile_dist": _threat_dist, "ratio": ratio, "is_merchant": ship.faction == "merchant",
 		"personality": personality, "lost_s": _lost_s,
+		"fear": Bounty.fear(Session.state) if ship.faction == "merchant" and target != null and target.faction == "player" and Session.has_state() else 0.0,
 	}
 	var next: AiLogic.State = AiLogic.next_state(state, ctx)
 	if next != state:
@@ -180,9 +181,8 @@ func _apply_steering() -> void:
 		if s == target and state == AiLogic.State.ENGAGE and rel.length() > 45.0:
 			continue  # the enemy we are circling is not an obstacle until it is very close
 		threats.append({"rel": rel, "dist": rel.length()})
-	var no_go: float = (38.0 if ship.stats.square_rig else 28.0) + 6.0
-	var wind_from: Vector2 = ship.wind.wind_from()
-	_chosen_dir = AiLogic.steer_direction(_desired_dir, wind_from, no_go, threats, ship.damage.sunk)
+	# No wind mechanics: every heading is open, so only other ships are steered around.
+	_chosen_dir = AiLogic.steer_direction(_desired_dir, Vector2.ZERO, 0.0, threats, true)
 	ship.rudder_input = AiLogic.rudder_for(ship.heading(), _chosen_dir)
 
 

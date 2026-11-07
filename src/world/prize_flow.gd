@@ -53,6 +53,40 @@ func _physics_process(delta: float) -> void:
 	(_controllers[t] as BoardingController).process_grapple(Input.is_action_pressed("grapple"), delta)
 
 
+## The nearest ship that would listen to a hail, within Parley.RANGE_M, or null.
+func nearest_hailable() -> Ship:
+	var best: Ship = null
+	var best_d: float = Parley.RANGE_M
+	for t in targets:
+		if Parley.can_hail(t):
+			var d: float = t.global_position.distance_to(player.global_position)
+			if d < best_d:
+				best_d = d
+				best = t
+	return best
+
+
+## "Strike your colours!": demand the surrender of the nearest ship. If she strikes, the prize screen opens as after
+## a won boarding with no blood spilt. Returns {struck, chance}, or {} when nobody is in hailing range.
+func hail() -> Dictionary:
+	if player == null or _busy:
+		return {}
+	var t: Ship = nearest_hailable()
+	var bus: Node = Svc.node("EventBus")
+	if t == null:
+		if bus != null:
+			bus.toast.emit(Loc.t("parley.nobody"))
+		return {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(Session.state.get("seed", 1)) * 389 + int(t.get_meta("loot_seed", 7)) + int(Session.state.get("day", 0))
+	var res: Dictionary = Parley.hail(player, t, Session.state, rng)
+	if bus != null:
+		bus.toast.emit(Loc.t("parley.struck" if res["struck"] else "parley.refused") % int(float(res["chance"]) * 100.0))
+	if res["struck"]:
+		_on_boarding_finished(true, t)
+	return res
+
+
 func _on_deck_started(deck: DeckCombat, bc: BoardingController) -> void:
 	var scene := DeckFightScene.new()
 	bc.deck_driven = true
@@ -71,11 +105,13 @@ func _on_boarding_finished(won: bool, ship: Ship) -> void:
 	_report_losses(losses)
 	if not won:
 		CrewLife.add_morale(Session.state, Morale.DELTA["defeat"])
+		CrewPersona.on_event(Session.state, "defeat")
 		Svc.node("EventBus").toast.emit(Loc.t("prize.repelled"))
 		(_controllers[ship] as BoardingController).queue_free()
 		_controllers.erase(ship)
 		return
 	_busy = true
+	CrewPersona.on_event(Session.state, "boarding_win")
 	var loot: Dictionary = roll_loot(ship, Session.state)
 	var split: Dictionary = share_out(loot, Session.state)
 	apply_loot(loot, Session.state)
@@ -90,6 +126,11 @@ func _on_boarding_finished(won: bool, ship: Ship) -> void:
 		lines.append("%d × %s" % [int(loot["supplies"][s]), Loc.t("supply." + s)])
 	if loot["map_fragment"] != "":
 		lines.append(Loc.t("prize.map_fragment"))
+	var drop_rng := RandomNumberGenerator.new()
+	drop_rng.seed = int(Session.state["seed"]) * 4721 + int(ship.get_meta("loot_seed", 7)) + int(Session.state["day"])
+	var buried: Dictionary = BuriedTreasure.roll_drop(Session.state, str(ship.get_meta("loot_source", ship.get_meta("rep_faction", "merchant"))), drop_rng)
+	if not buried.is_empty():
+		lines.append(Loc.t("buried.found_in_cabin") % str(buried["island"]))
 	var screen := PrizeScreen.new()
 	screen.summary_lines = lines
 	screen.can_capture = FateEffects.prize_crew_available(Session.state) > 0
@@ -109,6 +150,7 @@ func _on_fate(fate: int, ship: Ship, loot: Dictionary, layer: CanvasLayer) -> vo
 	var info: Dictionary = FateEffects.fate_info(Session.state, ship.stats.price, ship.crew.count, faction == "merchant")
 	var effects: Dictionary = CaptureFate.resolve(fate as CaptureFate.Fate, info, rng)
 	Session.state["rep"][faction] = clampf(float(Session.state["rep"][faction]) + float(effects["reputation"]), -100.0, 100.0)
+	_bounty_for_prize(ship, faction, fate)
 	var applied: Dictionary = FateEffects.apply(Session.state, effects, ship.stats.class_id, str(ship.display_label))
 	var bus: Node = Svc.node("EventBus")
 	if applied["gold"] > 0:
@@ -125,10 +167,22 @@ func _on_fate(fate: int, ship: Ship, loot: Dictionary, layer: CanvasLayer) -> vo
 	_busy = false
 
 
+## Taking a lawful ship puts a price on the captain's head; taking a pirate earns the navy's reward.
+func _bounty_for_prize(ship: Ship, faction: String, fate: int) -> void:
+	if fate == CaptureFate.Fate.RELEASE:
+		return
+	if faction == "pirate":
+		var owed: int = Bounty.pirate_taken(Session.state, ship.stats.price, str(ship.get_meta("crew", "")))
+		Svc.node("EventBus").toast.emit(Loc.t("bounty.reward_owed") % owed)
+	else:
+		Bounty.announce(Bounty.crime(Session.state, faction, "capture"), faction)
+
+
 ## Quest, log and tutorial bookkeeping after a ship was looted. Also used by the scripted test.
 func finish_prize(ship: Ship, loot: Dictionary, fate: int) -> void:
 	var bus: Node = Svc.node("EventBus")
 	CrewLife.add_morale(Session.state, Morale.DELTA["victory"])
+	CrewPersona.on_event(Session.state, "victory")
 	CrewLife.award_xp(Session.state, "battle")
 	if ship.has_meta("convoy"):
 		TradeNetwork.lose_ships(Session.state, int(ship.get_meta("convoy")), 1)
@@ -173,6 +227,7 @@ static func share_out(loot: Dictionary, state: Dictionary) -> Dictionary:
 	var split: Dictionary = Morale.loot_split(float(loot["gold"]), float(state["captain_cut"]), int(state["crew"]))
 	loot["gold"] = floori(split["captain"])
 	CrewLife.add_morale(state, split["morale"])
+	CrewPersona.on_loot(state, split["crew"])
 	return split
 
 
