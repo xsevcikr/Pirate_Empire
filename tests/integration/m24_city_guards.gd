@@ -52,6 +52,8 @@ func _process(_delta: float) -> bool:
 			for b: Ship in _boats:
 				_check(w.prizes.targets.has(b), "guard boat is a prize")
 				_check(b.ai != null and b.faction == CityGuardData.GUARD_FACTION, "guard boat is crewed and hostile")
+			for goal: Dictionary in GoalData.LIST:  # easy-play goals pay gold too (first ship sunk...): keep them out of the sum
+				EasyPlay.store(st)["done"][str(goal["id"])] = 0
 			var gold0: int = int(st["gold"])
 			var round0: int = int(w.ship.broadside.ammo["round"])
 			var shots0: int = int(st["pistol_shots"])
