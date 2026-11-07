@@ -3,7 +3,9 @@ extends RefCounted
 ## Maths of the corner minimap, kept apart from the drawing so it can be tested: the map is north-up and centred
 ## on the ship, world x east and z south become screen x right and y down.
 
-const RANGES_M: Array[float] = [1500.0, 3000.0, 6000.0]  ## the radius the map shows, cycled by clicking it
+const RANGES_M: Array[float] = [800.0, 1500.0, 3000.0, 6000.0]  ## the radius the map shows, zoomed with + and -
+const ISLAND_MIN_PX: float = 13.0  ## islands are drawn at least this big (in radius) so they read as land, not dots
+const ISLAND_MAX_GROW: float = 3.0
 const SHIP_COLOURS: Dictionary = {
 	"player": Color(1.0, 0.95, 0.75),
 	"pirate": Color(0.85, 0.2, 0.15),
@@ -52,3 +54,9 @@ static func bearing_text(from: Vector2, to: Vector2) -> String:
 	var names: Array[String] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 	var deg: float = fposmod(rad_to_deg(atan2(d.x, -d.y)), 360.0)
 	return "%.1f km %s" % [d.length() / 1000.0, names[int(round(deg / 45.0)) % 8]]
+
+
+## How much bigger than life an island is drawn so that it reads on a small chart: never smaller than
+## ISLAND_MIN_PX in radius, never more than ISLAND_MAX_GROW times its size.
+static func island_grow(radius_px: float) -> float:
+	return clampf(ISLAND_MIN_PX / maxf(radius_px, 0.001), 1.0, ISLAND_MAX_GROW)
