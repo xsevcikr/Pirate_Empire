@@ -48,7 +48,7 @@ static func _store(state: Dictionary) -> Dictionary:
 	if not state.has("sea_events"):
 		state["sea_events"] = {}
 	var s: Dictionary = state["sea_events"]
-	for k in ["acc", "pending", "plague_days", "becalmed_h", "spies", "counts"]:
+	for k in ["acc", "pending", "plague_days", "spies", "counts"]:
 		if not s.has(k):
 			s[k] = {} if k in ["acc", "counts"] else ([] if k == "pending" else 0)
 	return s
@@ -121,10 +121,6 @@ static func apply(id: String, state: Dictionary, rng: RandomNumberGenerator, ctx
 			state["crew"] = int(state["crew"]) + 1
 			state["morale"] = minf(100.0, float(state["morale"]) + 2.0)
 			return {"toast": "event.stowaway_boy", "args": [], "thief": false}
-		"becalmed":
-			var h: int = rng.randi_range(int(e["hours"][0]), int(e["hours"][1]))
-			store["becalmed_h"] = h
-			return {"toast": "event.becalmed", "args": [h]}
 	return {"toast": "", "args": []}
 
 
@@ -176,15 +172,3 @@ static func plague_day(state: Dictionary) -> Dictionary:
 	return {"active": true, "lost": lost}
 
 
-## Hourly while becalmed: the wind is dead, and the crew fish and play to keep their spirits up.
-static func becalmed_hour(state: Dictionary) -> bool:
-	var store: Dictionary = _store(state)
-	if int(store["becalmed_h"]) <= 0:
-		return false
-	store["becalmed_h"] = int(store["becalmed_h"]) - 1
-	state["morale"] = minf(100.0, float(state["morale"]) + float(SeaEventData.EVENTS["becalmed"]["morale_per_hour"]))
-	return true
-
-
-static func is_becalmed(state: Dictionary) -> bool:
-	return int(_store(state)["becalmed_h"]) > 0

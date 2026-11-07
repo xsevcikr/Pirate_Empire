@@ -196,7 +196,7 @@ func test_market_persists_through_state() -> void:
 
 func test_tutorial_steps_run_in_order() -> void:
 	var step: String = "leave_dock"
-	for ev in ["faced_wind", "left_dock", "faced_wind", "timer", "docked", "finn_talked", "lugger_looted", "docked", "sold_fish", "hired_crew", "bought_food", "quest_taken"]:
+	for ev in ["steered", "left_dock", "steered", "timer", "docked", "finn_talked", "lugger_looted", "docked", "sold_fish", "hired_crew", "bought_food", "quest_taken"]:
 		step = TutorialData.advance(step, ev)
 	assert_eq(step, "done")
 	assert_eq(TutorialData.advance("leave_dock", "docked"), "leave_dock")  # other events change nothing

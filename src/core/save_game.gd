@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 20
+const VERSION: int = 21
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -19,6 +19,7 @@ static func new_state() -> Dictionary:
 		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "streams_known": [], "course": [], "wrecks": [], "destroyed": {}, "tours": {}, "rivals": {}, "crews": {}, "sea_events": {}, "prizes_taken": 0, "captain_xp": 0, "skills": {}, "skill_points_spent": 0, "stats": {}, "achievements": {}, "islands_seen": [], "trade_rem": 0, "custom": {}, "ship_damage": {}, "siren_paid": false, "act": 0, "beat": 0,
 		"landings": {}, "buried": {}, "price_book": {},
 		"bounty_crime_day": -99, "bounty_claims": 0, "hunter_next_h": -1.0, "shanty_day": -99, "shanties_sung": 0,
+		"easy_play": EasyPlay.fresh(),
 		"fleet": [], "bases": [], "lagoon": {}, "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
 	}
@@ -137,6 +138,13 @@ static func migrate(d: Dictionary) -> Dictionary:
 		# v20 makes the bounty system live (when the last crime was, the navy's rewards owed, the next hunters) and
 		# remembers the day the crew last sang at sea. The defaults below fill them in; old bounties stand.
 		d["version"] = 20
+	if v < 21:
+		# v21: the kid-friendly layer, with goals, stars, the collection book and the parrot's finds. An old save
+		# starts them fresh; the steering step replaced the old "face the wind" tutorial step.
+		d["easy_play"] = EasyPlay.fresh()
+		if str(d.get("tutorial", "")) == "into_wind":
+			d["tutorial"] = "steer"
+		d["version"] = 21
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):
