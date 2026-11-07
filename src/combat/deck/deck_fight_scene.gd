@@ -338,8 +338,14 @@ func _place_camera(delta: float) -> void:
 	want.x = clampf(want.x, -DeckData.DECK_HALF_WIDTH_M - 3.0, DeckData.DECK_HALF_WIDTH_M)
 	camera.position = camera.position.lerp(want, clampf(delta * 6.0, 0.0, 1.0))
 	if _shake > 0.0:
-		camera.position += Vector3(sin(combat.time_s * 90.0), cos(combat.time_s * 70.0), 0.0) * 0.05 * _shake
+		camera.position += Vector3(sin(combat.time_s * 90.0), cos(combat.time_s * 70.0), 0.0) * 0.05 * _shake * _shake_scale()
 	camera.look_at(global_position + focus + Vector3(2.0, 0.0, 0.0), Vector3.UP)
+
+
+## The accessibility camera-shake slider (0..1).
+func _shake_scale() -> float:
+	var st: Node = Svc.node("Settings")
+	return float(st.accessibility.camera_shake) if st != null and st.get("accessibility") != null else 1.0
 
 
 func _on_hit(_a: int, t_id: int, info: Dictionary) -> void:
@@ -352,6 +358,8 @@ func _on_hit(_a: int, t_id: int, info: Dictionary) -> void:
 	var att: FighterState = combat.by_id(_a)
 	if res == "parried":
 		Sfx.play("parry_ring")
+		if v != null:
+			HitFx.sparks(self, v.global_position + Vector3(0.0, 1.4, 0.0), Vector3.UP, 12)
 	elif att != null and att.melee == "fists" and att.state == FighterState.State.SWING:
 		Sfx.play("wood_impact")  # a fist on a jaw
 	else:

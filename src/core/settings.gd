@@ -29,6 +29,7 @@ func save_settings() -> void:
 	cfg.set_value("access", "colorblind", accessibility.colorblind_markers)
 	cfg.set_value("tips", "enabled", tips_enabled)
 	cfg.set_value("tips", "seen", tips_seen)
+	cfg.set_value("access", "hit_effects", accessibility.hit_effects)
 	cfg.save(PATH)
 
 
@@ -51,6 +52,7 @@ func load_settings() -> void:
 	accessibility.colorblind_markers = cfg.get_value("access", "colorblind", accessibility.colorblind_markers)
 	tips_enabled = bool(cfg.get_value("tips", "enabled", tips_enabled))
 	tips_seen = PackedStringArray(cfg.get_value("tips", "seen", tips_seen))
+	accessibility.hit_effects = cfg.get_value("access", "hit_effects", accessibility.hit_effects)
 	apply()
 
 
