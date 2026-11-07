@@ -60,10 +60,26 @@ static func nearest_friendly_port(state: Dictionary, pos: Vector2) -> String:
 	return best if best != "" else PortData.START_PORT
 
 
-## Sunk: wash up at the nearest friendly port, lose half the gold carried, the ship (unless insured) and 30% of the
-## crew. The bank is safe. Returns what happened.
+## Whether a sinking gets the second chance: on Easy and Normal the ship washes ashore instead.
+static func second_chance(state: Dictionary) -> bool:
+	return TradeData.SECOND_CHANCE_GOLD_LOSS.has(int(state.get("difficulty", 1)))
+
+
+## Sunk: wash up at the nearest friendly port. On Easy and Normal that is a second chance: ship, crew and cargo are
+## kept, the hull is patched to half and only 10% (Easy) or 20% (Normal) of the gold carried is lost. On Hard and
+## Legendary: lose half the gold carried, the ship (unless insured), the cargo and 30% of the crew. The bank is
+## always safe. Returns what happened.
 static func defeat(state: Dictionary, pos: Vector2) -> Dictionary:
 	var port: String = nearest_friendly_port(state, pos)
+	if second_chance(state):
+		var lost: int = floori(float(state["gold"]) * float(TradeData.SECOND_CHANCE_GOLD_LOSS[int(state["difficulty"])]))
+		state["gold"] = int(state["gold"]) - lost
+		state["ship_hull"] = TradeData.SECOND_CHANCE_HULL
+		state["ship_damage"] = {}
+		state["docked_at"] = port
+		var at: Vector2 = PortData.PORTS[port]["dock"]
+		state["pos"] = [at.x, at.y]
+		return {"port": port, "gold_lost": lost, "crew_lost": 0, "ship_kept": true, "second_chance": true}
 	var lost_gold: int = floori(float(state["gold"]) * TradeData.DEFEAT_GOLD_LOSS)
 	state["gold"] = int(state["gold"]) - lost_gold
 	var crew_lost: int = floori(float(state["crew"]) * TradeData.DEFEAT_CREW_LOSS)
@@ -83,7 +99,7 @@ static func defeat(state: Dictionary, pos: Vector2) -> Dictionary:
 	state["docked_at"] = port
 	var dock: Vector2 = PortData.PORTS[port]["dock"]
 	state["pos"] = [dock.x, dock.y]
-	return {"port": port, "gold_lost": lost_gold, "crew_lost": crew_lost, "ship_kept": kept_ship}
+	return {"port": port, "gold_lost": lost_gold, "crew_lost": crew_lost, "ship_kept": kept_ship, "second_chance": false}
 
 
 ## Standing with a port's faction: tier name and the price modifier it brings.

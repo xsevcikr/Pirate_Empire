@@ -3,7 +3,6 @@ extends Node
 ## Turns keyboard input into rudder and sail commands for one ship.
 
 var ship: Ship
-var wind: WindModel
 ## The crew's standing order from the order buttons (CrewOrders); Tab picks a focus by hand and clears it.
 var order: CrewOrders.Order = CrewOrders.Order.NONE
 
@@ -33,19 +32,21 @@ func _physics_process(delta: float) -> void:
 	if ship == null:
 		return
 	ship.rudder_input = Input.get_axis("steer_left", "steer_right")
-	ship.broadside.set_elevation(ship.broadside.elevation_deg + Input.get_axis("elev_down", "elev_up") * 8.0 * delta)
+	var elev_in: float = Input.get_axis("elev_down", "elev_up")
+	ship.broadside.set_elevation(ship.broadside.elevation_deg + elev_in * 8.0 * delta)
+	var assist: bool = AimAssist.enabled(Session.state) and is_inside_tree()
+	var ships: Array = get_tree().get_nodes_in_group("ships") if assist else []
+	if assist and is_zero_approx(elev_in):  # Easy: the guns follow the nearest enemy so the aim marker is on him
+		var side: int = AimAssist.best_side(ship, ships)
+		if side >= 0:
+			AimAssist.lay_guns(ship, side, ships)
 	if Input.is_action_pressed("fire_port"):
+		if assist:
+			AimAssist.lay_guns(ship, Broadside.Side.PORT, ships)
 		ship.broadside.fire(Broadside.Side.PORT)
 	if Input.is_action_pressed("fire_starboard"):
+		if assist:
+			AimAssist.lay_guns(ship, Broadside.Side.STARBOARD, ships)
 		ship.broadside.fire(Broadside.Side.STARBOARD)
 	if order == CrewOrders.Order.ATTACK and is_inside_tree():
 		CrewOrders.fight_at_will(ship, get_tree().get_nodes_in_group("ships"))
-	if wind:
-		if Input.is_action_pressed("wind_cw"):
-			wind.direction = wind.direction.rotated(deg_to_rad(20.0) * delta)
-		if Input.is_action_pressed("wind_ccw"):
-			wind.direction = wind.direction.rotated(deg_to_rad(-20.0) * delta)
-		if Input.is_action_pressed("wind_stronger"):
-			wind.speed_kn = minf(wind.speed_kn + 8.0 * delta, 50.0)
-		if Input.is_action_pressed("wind_weaker"):
-			wind.speed_kn = maxf(wind.speed_kn - 8.0 * delta, 0.0)

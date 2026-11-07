@@ -139,6 +139,8 @@ func _shoot(side: int, idx: int) -> void:
 	Vfx.muzzle(ship.get_parent(), muzzle_world, dir)
 	Sfx.play(AudioData.cannon_sfx(gun_id), muzzle_world)
 	Sfx.play("ball_whistle", muzzle_world)
+	if HitFx.focus(ship) == ship:
+		HitFx.shake(ship, HitFx.SHAKE_FIRE)
 	var ball_mass: float = GunData.GUNS[gun_id]["damage"] / 40.0 * 2.7
 	ship.apply_impulse(-dir * ball_mass * muzzle_speed() * RECOIL_SCALE, ship.to_global(muzzle_local(side, idx)) - ship.global_position)
 

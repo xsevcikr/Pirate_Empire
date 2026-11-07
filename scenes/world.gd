@@ -29,6 +29,8 @@ var crews: CrewDirector
 var guards: CityGuards
 var bounties: BountyDirector
 var progress: ProgressDirector
+var easy_play: EasyPlayDirector
+var goals_card: GoalsCard
 var world_audio: WorldAudio
 var weather: WeatherSystem
 var streamer: WorldStreamer
@@ -126,7 +128,6 @@ func _ready() -> void:
 	var pc := PlayerController.new()
 	player_controller = pc
 	pc.ship = ship
-	pc.wind = wind
 	add_child(pc)
 
 	rig = CameraRig.new()
@@ -218,6 +219,18 @@ func _start_game_layer() -> void:
 	add_child(progress)
 	tours.step_completed.connect(progress.on_tour_step)
 	tours.tour_completed.connect(progress.on_tour_done)
+	easy_play = EasyPlayDirector.new()
+	easy_play.name = "EasyPlay"
+	easy_play.ship = ship
+	easy_play.ocean = ocean.model
+	easy_play.state = Session.state
+	add_child(easy_play)
+	goals_card = GoalsCard.new()
+	goals_card.name = "GoalsCard"
+	goals_card.open_goals.connect(open_goals)
+	goals_card.open_book.connect(open_collection)
+	goals_card.ask_parrot.connect(func() -> void: easy_play.hint())
+	add_child(goals_card)
 	var orders := SeaOrderBar.new()
 	orders.name = "SeaOrderBar"
 	orders.controller = player_controller
@@ -231,6 +244,13 @@ func _start_game_layer() -> void:
 	damage_panel = DamagePanel.new()
 	damage_panel.world = self
 	add_child(damage_panel)
+	var markers := WorldMarkers.new()  # nameplates over close ships, floating damage and gold numbers
+	markers.world = self
+	add_child(markers)
+	var tips := FirstTips.new()  # first-time tips; Settings > Accessibility switches them off
+	tips.name = "FirstTips"
+	tips.world = self
+	add_child(tips)
 	apply_customization()
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
@@ -396,6 +416,14 @@ func _on_player_sunk() -> void:
 		get_tree().paused = false
 		var dock: Vector2 = PortData.PORTS[result["port"]]["dock"]
 		sync_player_ship()
+		if bool(result.get("ship_kept", false)):  # the same hull floats again: pump her out and patch her up
+			ship.damage.reset_all()
+			ship.damage.sunk = false
+			Session.apply_hull(ship)
+			ship.refresh_damage()
+			ship.linear_velocity = Vector3.ZERO
+			ship.angular_velocity = Vector3.ZERO
+			ship.rotation = Vector3(0.0, ship.rotation.y, 0.0)
 		ship.global_position = Vector3(dock.x, 0.5, dock.y)
 		ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 		Session.autosave(self))
@@ -458,6 +486,7 @@ func sync_player_ship() -> void:
 	if ship.stats.class_id != Session.state["ship_class"] or not _upgrades_applied():
 		_replace_player_ship()
 	Session.apply_to_ship(ship)
+	apply_customization()
 
 
 func _upgrades_applied() -> bool:
@@ -909,6 +938,14 @@ func open_log() -> void:
 	_open_screen(JournalScreen.new())
 
 
+func open_goals() -> void:
+	_open_screen(GoalsScreen.new())
+
+
+func open_collection() -> void:
+	_open_screen(CollectionScreen.new())
+
+
 func open_customize() -> void:
 	var screen: MenuScreen = _open_screen(CustomizeScreen.new())
 	if screen != null:
@@ -923,9 +960,10 @@ func open_fishing() -> void:
 	_open_screen(FishingScreen.make(int(Session.state["seed"]) + int(Session.state["day"]) * 13 + int(Time.get_ticks_msec() % 991)))
 
 
-## Push the flag, sail, hull and name choices onto the ship's look.
+## Push the flag, sail, hull and name choices, then the sails, flags and cannons bought at a shipyard, onto the ship.
 func apply_customization() -> void:
 	ShipCustom.apply(ship, Customization.get_custom(Session.state))
+	ShipLooks.apply(ship.visuals, Session.state)
 
 
 func open_rivals() -> void:
