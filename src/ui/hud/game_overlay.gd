@@ -19,8 +19,8 @@ func _ready() -> void:
 	_info.anchor_top = 1.0
 	_info.anchor_bottom = 1.0
 	_info.offset_left = 32.0
-	_info.offset_top = -130.0
-	_info.offset_bottom = -100.0
+	_info.offset_top = -76.0
+	_info.offset_bottom = -46.0
 	_nav = _make_label(Vector2.ZERO, 18)
 	_nav.anchor_left = 1.0
 	_nav.anchor_right = 1.0
@@ -80,6 +80,20 @@ func set_dock_hint(text: String) -> void:
 
 func set_info(text: String) -> void:
 	_info.text = text
+
+
+## The one-line status at the bottom left: gold, food and water always; the hold only when it is nearly full and
+## morale only when the men are unhappy.
+static func status_text(st: Dictionary) -> String:
+	var out: String = Loc.t("hud.status_short") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water")]
+	var cap: float = PortService.cargo_capacity(st)
+	var full: float = PortService.cargo_used(st) / cap if cap > 0.0 else 0.0
+	if full >= 0.8:
+		out += "   " + Loc.t("hud.status_cargo") % (full * 100.0)
+	var morale: float = float(st["morale"])
+	if morale < Morale.BANDS["content"]["min"]:
+		out += "   " + Loc.t("hud.status_morale") % Loc.t("morale." + Morale.band(morale))
+	return out
 
 
 func add_toast(text: String) -> void:
