@@ -34,6 +34,11 @@ func items(s: Dictionary) -> Array[CatalogueItem]:
 	return out
 
 
+## The yard's level, which decides whether the top upgrade tier can be fitted.
+func yard_level(_s: Dictionary) -> int:
+	return int(PortData.PORTS[port_id]["shipyard_level"])
+
+
 func _ship_stats(it: CatalogueItem, st: ShipStats) -> void:
 	it.stat(Loc.t("cat.stat_speed"), Loc.t("cat.kn") % st.max_speed_kn)
 	it.stat(Loc.t("cat.stat_cargo"), Loc.t("cat.tons") % int(st.cargo_t))
@@ -83,7 +88,7 @@ func _ships(s: Dictionary, out: Array[CatalogueItem]) -> void:
 
 
 func _upgrades(s: Dictionary, out: Array[CatalogueItem]) -> void:
-	var level: int = PortData.PORTS[port_id]["shipyard_level"]
+	var level: int = yard_level(s)
 	for line: String in Upgrades.BASE_COST.keys():
 		var tier: int = int(s["upgrades"].get(line, 0))
 		var maxed: bool = tier >= Upgrades.TIERS
@@ -130,7 +135,7 @@ func buy(s: Dictionary, item: CatalogueItem) -> bool:
 		"helm":
 			return LegendaryShips.take_helm(s, item.data["class"])
 		"upgrade":
-			var level: int = PortData.PORTS[port_id]["shipyard_level"]
+			var level: int = yard_level(s)
 			var left: int = Upgrades.purchase(s["upgrades"], item.data["line"], s["ship_class"], int(s["gold"]), level)
 			if left < 0:
 				return false

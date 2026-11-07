@@ -241,6 +241,9 @@ func _card(it: CatalogueItem, gold: int) -> Control:
 	col.add_child(bottom)
 	var tag: Label
 	match it.status:
+		_ when it.note != "" and it.status != CatalogueItem.Status.LOCKED:
+			tag = _label(it.note, 17, RED_INK if it.note_bad else GREEN_INK if it.status != CatalogueItem.Status.AVAILABLE else GOLD_INK)
+			tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		CatalogueItem.Status.OWNED:
 			tag = _label(Loc.t("cat.owned"), 18, GREEN_INK)
 		CatalogueItem.Status.MAXED:

@@ -293,6 +293,30 @@ static func pier(level: int) -> Node3D:
 	return root
 
 
+## The harbour office by the foot of the first pier: a blue-roofed house with an anchor sign, a notice board of
+## missions for the residents and a crate of ship fittings.
+static func office() -> Node3D:
+	var root := Node3D.new()
+	root.name = "HarbourOffice"
+	root.set_meta("kind", "lagoon_office")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 41
+	TownBuilder.house(root, Vector3(0, 0, -1.0), 0.0, 9.0, 7.0, 1, ROOFS[2], rng)
+	# the anchor sign over the door
+	TownBuilder.box(root, Vector3(2.4, 1.3, 0.12), Vector3(0, 3.6, 2.6), Color("6794d9"))
+	TownBuilder.box(root, Vector3(0.22, 0.9, 0.14), Vector3(0, 3.65, 2.68), Color("ffc044"))
+	TownBuilder.box(root, Vector3(0.9, 0.18, 0.14), Vector3(0, 3.3, 2.68), Color("ffc044"))
+	# the mission board on two posts
+	for x in [3.4, 5.6]:
+		TownBuilder.cyl(root, 0.12, 0.12, 2.6, Vector3(x, 1.3, 4.0), Color("b06041"), 6)
+	TownBuilder.box(root, Vector3(2.6, 1.5, 0.15), Vector3(4.5, 2.0, 4.0), Color("b06041"))
+	for i in 4:
+		TownBuilder.box(root, Vector3(0.5, 0.6, 0.05), Vector3(3.7 + i * 0.55, 2.0 + 0.15 * (i % 2), 4.1), Color("fff2c4"))
+	_crates(root, Vector3(-4.0, 0, 3.5), 3, rng)
+	Kenney.place(root, "town", "lantern", Vector3(-1.8, 0, 3.2), 0.0, 2.2)
+	return root
+
+
 ## A ship of the fleet as a still model: the Kenney hull of its class, scaled to its length, sitting at its waterline.
 static func moored_ship(class_id: String) -> Node3D:
 	var stats: ShipStats = PortService.ship_stats(class_id if ResourceLoader.exists("res://data/ships/%s.tres" % class_id) else "sloop")
