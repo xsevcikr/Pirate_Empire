@@ -28,6 +28,7 @@ var muted: bool = false  ## tests and headless runs can switch the players off b
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_rng.seed = 4242
+	_preload_music()
 	_ensure_buses()
 	for p in [_a, _b]:
 		p.bus = "Music"
@@ -80,9 +81,22 @@ func apply_volumes() -> void:
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index(n), linear_to_db(maxf(v, 0.0001)))
 
 
+## The music tracks are a minute or more each: decoding one when the ship crosses into a new sea would stall a frame,
+## so they all load on worker threads from the start and are picked up from there.
+func _preload_music() -> void:
+	for track: String in AudioData.all_music():
+		var path: String = AudioData.music_path(track)
+		if ResourceLoader.exists(path):
+			ResourceLoader.load_threaded_request(path, "", true)
+
+
 func _load(path: String) -> AudioStream:
 	if not _streams.has(path):
-		_streams[path] = load(path) if ResourceLoader.exists(path) else null
+		var threaded: bool = ResourceLoader.load_threaded_get_status(path) != ResourceLoader.THREAD_LOAD_INVALID_RESOURCE
+		if threaded:
+			_streams[path] = ResourceLoader.load_threaded_get(path)
+		else:
+			_streams[path] = load(path) if ResourceLoader.exists(path) else null
 	return _streams[path]
 
 
