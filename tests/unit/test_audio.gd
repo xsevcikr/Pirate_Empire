@@ -140,4 +140,4 @@ func test_mixer_plays_and_ducks() -> void:
 
 
 func test_shanty_needs_loyal_morale() -> void:
-	assert_true(AudioData.SHANTY_MIN_MORALE >= 70.0 and AudioData.SHANTIES.size() == 3)
+	assert_true(AudioData.SHANTY_MIN_MORALE >= 70.0 and AudioData.SHANTIES.size() == 5)

@@ -1026,8 +1026,6 @@ menu.vol_voice,Voice volume,Hlasitost hlasů
 menu.vol_ambience,Ambience volume,Hlasitost okolí
 tavern.shanty,Sing a shanty,Zazpívat šantu
 tavern.sung_drunken_sailor,"The crew roars out ""Drunken Sailor"".","Posádka řve ""Opilého námořníka""."
-tavern.sung_leave_her_johnny,"The crew sings ""Leave Her, Johnny"".","Posádka zpívá ""Leave Her, Johnny""."
-tavern.sung_wellerman,"The crew sings ""Wellerman"".","Posádka zpívá ""Wellermana""."
 bark.reload.0,"Guns loaded, Captain!","Děla nabitá, kapitáne!"
 bark.reload.1,Ready on the gundeck!,Připraveno na dělové palubě!
 bark.fire.0,"Hold your fire, lads!","Držte palbu, hoši!"
@@ -1583,8 +1581,8 @@ troute.trip_lost,%s lost her cargo to pirates between %s and %s.,%s přišla o n
 troute.trip_empty,%s came back empty: no profit left between %s and %s.,%s se vrátila prázdná: mezi %s a %s už není zisk.
 hud.help_hint,Press / for all controls,Stiskni / pro všechny klávesy
 hud.help_keys,"A/D steer   W/S sails   RMB drag look   Q/E fire port/starboard   R/F elevation   1-5 ammo   Tab crew focus
-F1-F5 crew orders   F6 rum   F7 demand surrender   Z damage control   Space dock   G hold to board   M map   Esc pause   / hide","A/D kormidlo   W/S plachty   PTM rozhlížení   Q/E pal levobok/pravobok   R/F náměr   1-5 střelivo   Tab zaměření posádky
-F1-F5 rozkazy   F6 rum   F7 výzva ke kapitulaci   Z oprava škod   Mezerník kotvení   G drž pro abordáž   M mapa   Esc pauza   / skrýt"
+F1-F5 crew orders   F6 rum   F7 demand surrender   Z damage control   H sing a shanty   Space dock   G hold to board   M map   Esc pause   / hide","A/D kormidlo   W/S plachty   PTM rozhlížení   Q/E pal levobok/pravobok   R/F náměr   1-5 střelivo   Tab zaměření posádky
+F1-F5 rozkazy   F6 rum   F7 výzva ke kapitulaci   Z oprava škod   H zazpívat píseň   Mezerník kotvení   G drž pro abordáž   M mapa   Esc pauza   / skrýt"
 hud.card_sail,%.1f kn   %s   Wind %.0f kn,%.1f kn   %s   Vítr %.0f kn
 hud.sails_0,Sails furled,Plachty svinuté
 hud.sails_1,Battle sails,Bojové plachty
@@ -1640,3 +1638,44 @@ npc.line_10,Try the fish stew at the tavern.,Zkus v hospodě rybí polévku.
 npc.guard_1,Move along. No trouble in my town.,Pokračuj. V mém městě žádné potíže.
 npc.guard_2,Keep your blade sheathed in the streets.,Na ulici nech čepel v pochvě.
 npc.guard_3,The castle is closed to visitors.,Hrad je pro návštěvy zavřený.
+port.wanted_board,Wanted board,Tabule hledaných
+bounty.stars_up,Wanted: %d stars with the %s!,Hledaný: %d hvězd u frakce %s!
+bounty.ports_closed,The ports of the %s are shut to you now.,Přístavy frakce %s jsou pro tebe teď zavřené.
+bounty.port_shut,%s will not let a wanted ship in. Clear your bounty first.,%s nepustí hledanou loď dovnitř. Nejdřív se zbav odměny na svou hlavu.
+bounty.hunters_sighted,Bounty hunters of the %s on the horizon!,Lovci odměn frakce %s na obzoru!
+bounty.reward_owed,The navy owes you %d gold for that pirate. Collect it at a lawful port's wanted board.,Námořnictvo ti za toho piráta dluží %d zlatých. Vyzvedni si je u tabule hledaných v zákonném přístavu.
+bounty.wanted_by,WANTED by the %s,HLEDANÝ frakcí %s
+bounty.your_name,Your name: %s (infamy %d).,Tvoje pověst: %s (proslulost %d).
+bounty.next_rank,%d more to the next rank.,Do další hodnosti chybí %d.
+bounty.on_your_head,The price on your head:,Odměna vypsaná na tvou hlavu:
+bounty.stars,%d stars,%d hvězd
+bounty.pardon,Pardon (%d g),Milost (%d zl.)
+bounty.no_pardon,(the governor will not deal with you),(guvernér s tebou nebude jednat)
+bounty.bribe,Bribe the clerk (%d g),Podplatit písaře (%d zl.)
+bounty.clean,No flag wants you. Yet.,Zatím tě nikdo nehledá.
+bounty.owed,Navy rewards for pirates taken: %d g,Odměny námořnictva za dopadené piráty: %d zl.
+bounty.collect,Collect,Vyzvednout
+bounty.posters,Wanted posters:,Plakáty hledaných:
+bounty.poster,"%s, captain %s: %d g for each of their ships","%s, kapitán %s: %d zl. za každou jejich loď"
+bounty.pardoned,The governor signs your pardon.,Guvernér podepsal tvou milost.
+bounty.bribed,"Some papers go missing, and half your bounty with them.",Pár listin se ztratilo a s nimi polovina tvé odměny.
+bounty.collected,The harbourmaster pays out %d gold.,Přístavní mistr ti vyplatil %d zlatých.
+rank.nobody,Nobody,Nikdo
+rank.cutthroat,Cutthroat,Hrdlořez
+rank.buccaneer,Buccaneer,Bukanýr
+rank.sea_wolf,Sea Wolf,Mořský vlk
+rank.dread_pirate,Dread Pirate,Obávaný pirát
+rank.pirate_lord,Pirate Lord,Pirátský pán
+rank.desc_nobody,Nobody has heard of you. Take prizes and raid to make a name.,"Nikdo o tobě neslyšel. Ber kořist a pleň, ať si uděláš jméno."
+rank.desc_cutthroat,"Sailors whisper your name. Merchants strike their colours a little sooner, haven taverns hire cheaper.",Námořníci šeptají tvé jméno. Obchodníci se vzdávají o něco dřív a krčmy v pirátských přístavech najímají levněji.
+rank.desc_buccaneer,A name in every port. Merchants fear your flag.,Jméno známé v každém přístavu. Obchodníci se tvé vlajky bojí.
+rank.desc_sea_wolf,Your flag empties the sea lanes.,Tvoje vlajka vyprazdňuje obchodní trasy.
+rank.desc_dread_pirate,Mothers frighten children with your name.,Matky straší děti tvým jménem.
+rank.desc_pirate_lord,The whole sea knows who rules it.,"Celé moře ví, kdo mu vládne."
+shanty.refuse_fight,No time for singing: there is a fight on!,"Na zpěv není čas, bojuje se!"
+shanty.refuse_morale,The crew is too low to sing.,Posádka nemá náladu zpívat.
+shanty.morale,Morale +%d.,Morálka +%d.
+tavern.sung_haul_the_anchor,"The crew sings ""Haul the Anchor"".","Posádka zpívá ""Vytáhni kotvu""."
+tavern.sung_black_gale,"The crew sings ""The Black Gale"".","Posádka zpívá ""Černou vichřici""."
+tavern.sung_pieces_of_eight,"The crew sings ""Pieces of Eight"".","Posádka zpívá ""Osmireálky""."
+tavern.sung_rum_and_rope,"The crew sings ""Rum and Rope"".","Posádka zpívá ""Rum a lano""."

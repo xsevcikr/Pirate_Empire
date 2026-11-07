@@ -146,7 +146,7 @@ static func hire(state: Dictionary, tier: String, port_id: String) -> bool:
 	var cm := CrewManager.new()
 	cm.gold = int(state["gold"])
 	var level: int = PortData.PORTS[port_id]["tavern_level"]
-	if not cm.hire(1, tier, level, int(state["crew"]), ship_stats(state["ship_class"]).crew_max, Progression.stat(state, "hire_cost_mult")):
+	if not cm.hire(1, tier, level, int(state["crew"]), ship_stats(state["ship_class"]).crew_max, Progression.stat(state, "hire_cost_mult") * Bounty.hire_mult(state, port_id)):
 		return false
 	state["gold"] = cm.gold
 	var rng := RandomNumberGenerator.new()
