@@ -18,8 +18,13 @@ func build() -> void:
 	for id: String in TourData.all_ids():
 		if MapFragments.owned(Session.state, id) > 0:
 			tours.append(id)
+	var buried: Array = BuriedTreasure.maps(Session.state)
+	if not buried.is_empty():
+		_label(Loc.t("buried.journal") % [buried.size(), BuriedTreasure.MAX_HELD])
+		for m: Dictionary in buried:
+			_label("  " + BuriedTreasure.clue(m))
 	if tours.is_empty():
-		_label(Loc.t("tour.no_map"))
+		_label(Loc.t("tour.no_map") if buried.is_empty() else "")
 		add_button("menu.back", close)
 		return
 	if tour_id == "" or not tours.has(tour_id):
