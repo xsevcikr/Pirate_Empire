@@ -12,7 +12,7 @@ var _label: Label
 
 func _ready() -> void:
 	_label = Label.new()
-	_label.position = Vector2(32, 28)
+	_label.position = Vector2(32, Minimap.BOTTOM_PX)  # below the minimap
 	_label.add_theme_font_size_override("font_size", 22)
 	_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	_label.add_theme_constant_override("outline_size", 6)
