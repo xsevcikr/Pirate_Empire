@@ -66,7 +66,9 @@ func test_crew_cards() -> void:
 
 
 func test_no_wind_left_in_the_rules() -> void:
-	assert_true(not SeaEventData.EVENTS.has("becalmed") or float(SeaEventData.EVENTS["becalmed"]["chance"]) == 0.0, "nothing can becalm the ship")
+	# read through get(): the easy-play PR removed the entry, and indexing a const Dictionary by a missing key is a parse error
+	var calm: Dictionary = SeaEventData.EVENTS.get("becalmed", {})
+	assert_eq(float(calm.get("chance", 0.0)), 0.0, "nothing can becalm the ship")
 	for a: String in ["wind_cw", "wind_ccw", "wind_stronger", "wind_weaker"]:
 		assert_true(not GameInput.ACTIONS.has(a), a)
 	assert_true(Loc.t("hud.card_sail").find("%.0f") < 0, "no wind speed on the ship card")
