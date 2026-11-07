@@ -64,7 +64,7 @@ tut.sell_fish,Open the market and sell the fish.,Otevři trh a prodej ryby.
 tut.hire_crew,Hire four deckhands at the tavern. Crew eat every day.,Najmi v hospodě čtyři lodníky. Posádka jí každý den.
 tut.buy_food,Buy food at the market. One unit feeds four crew for a day.,Kup na trhu jídlo. Jedna jednotka nasytí čtyři muže na den.
 tut.quest_board,Take a job from the quest board.,Vezmi si zakázku z nástěnky.
-hud.dock_hint,Press Space to dock,Mezerníkem zakotvíš
+hud.dock_hint,"Space: harbour menu   F: tie up the ship and go ashore with the crew","Mezerník: přístav   F: přivaž loď a vystup s posádkou na břeh"
 hud.status,Gold %d   Food %.1f d   Water %.1f d   Cargo %.2f / %.1f t   Morale %d (%s),Zlato %d   Jídlo %.1f d   Voda %.1f d   Náklad %.2f / %.1f t   Morálka %d (%s)
 port.header,Gold %d   Cargo %.2f / %.1f t   Food %.1f days,Zlato %d   Náklad %.2f / %.1f t   Jídlo %.1f dne
 port.market,Market,Trh
@@ -300,7 +300,7 @@ tide.rising,rising,stoupá
 tide.falling,falling,klesá
 port.walk,Walk the docks,Projít přístavem
 dock.district,Dock district,Přístavní čtvrť
-dock.use,Press E: %s,Stiskni E: %s
+dock.use,Press F: %s,Stiskni F: %s
 dock.sign_market,Market,Trh
 dock.sign_shipyard,Shipyard,Loděnice
 dock.sign_tavern,Tavern,Hospoda
@@ -1189,7 +1189,7 @@ cat.stat_vs_crew,vs crew,na posádku
 cat.stat_units,Crates,Bedny
 cat.small_arms_desc,Each crate of small-arms shot loads %d pistol shots.,Každá bedna střeliva nabije %d pistolových ran.
 cat.no_small_arms,Buy small-arms shot at the market first,Nejdřív kup střelivo na trhu
-lagoon.hint,Press Space to go ashore at your lagoon,Mezerníkem vystoupíš ve své laguně
+lagoon.hint,Press Space or F to go ashore at your lagoon,Mezerníkem nebo F vystoupíš ve své laguně
 lagoon.unclaimed,"No one lives on Skull Atoll. Claim it and build a pirate lagoon where you and your crew live, with houses, a tavern, a harbour for your fleet and defences against the navy.","Na Lebkovém atolu nikdo nežije. Zaber ho a postav si pirátskou lagunu, kde budeš žít se svou posádkou: domy, krčma, přístav pro tvou flotilu a obrana proti námořnictvu."
 lagoon.claim,Claim Skull Atoll (%d gold),Zabrat Lebkový atol (%d zlaťáků)
 lagoon.claimed,Skull Atoll is yours! Build your pirate lagoon.,Lebkový atol je tvůj! Postav si pirátskou lagunu.
@@ -1534,3 +1534,50 @@ loyalty.devoted,devoted,oddaný
 loyalty.loyal,loyal,věrný
 loyalty.wavering,wavering,váhavý
 loyalty.disloyal,disloyal,nevěrný
+moor.too_fast,Slow down to tie up at the harbour,"Zpomal, abys mohl přivázat loď v přístavu"
+moor.ashore,Your ship is tied up at the pier. %d crew came ashore with you.,Loď je přivázaná u mola. Na břeh s tebou vystoupilo %d mužů.
+buried.clue,%s: X on the %s shore of %s,%s: X na %s pobřeží ostrova %s
+buried.tier.common,Treasure map,Mapa pokladu
+buried.tier.rich,Rich treasure map,Mapa bohatého pokladu
+buried.tier.legendary,Legendary hoard map,Mapa legendárního pokladu
+buried.shore.n,north,severním
+buried.shore.ne,north-east,severovýchodním
+buried.shore.e,east,východním
+buried.shore.se,south-east,jihovýchodním
+buried.shore.s,south,jižním
+buried.shore.sw,south-west,jihozápadním
+buried.shore.w,west,západním
+buried.shore.nw,north-west,severozápadním
+buried.nothing,There is nothing buried here.,Nic tu není zakopáno.
+buried.dug,The crew digs up a chest on %s: %s.,Posádka vykopala truhlu na ostrově %s: %s.
+buried.left,%d units left on the beach for want of room in the hold.,"%d jednotek zůstalo na pláži, v podpalubí není místo."
+buried.hint,Press Space to row ashore and dig at the X,Mezerníkem vyrazíš na břeh kopat u X
+buried.seller,A one-eyed sailor sells treasure maps:,Jednooký námořník prodává mapy pokladů:
+buried.sold_out,No map today. Come back in a few days.,Dnes žádná mapa. Přijď za pár dní.
+buried.offer.common,A treasure map,Mapa pokladu
+buried.offer.rich,A map to a rich treasure,Mapa k bohatému pokladu
+buried.buy,Buy,Koupit
+buried.held,Treasure maps held: %d / %d,Mapy pokladů: %d / %d
+buried.bought,The X is on %s. It is marked on your chart.,X je na ostrově %s. Je zakreslen v mapě.
+buried.found_in_cabin,A treasure map in the captain's cabin: X on %s,Mapa pokladu v kapitánově kajutě: X na ostrově %s
+buried.journal,"Treasure maps (%d / %d), the X is marked on the chart:","Mapy pokladů (%d / %d), X je zakreslen v mapě:"
+troute.title,Trade routes,Obchodní trasy
+troute.book,Your price book has prices from %d ports. Dock at a port to note its prices.,Tvoje kniha cen má ceny z %d přístavů. Zakotvi v přístavu a zapíšeš si jeho ceny.
+troute.from_here,Best routes from here:,Nejlepší trasy odsud:
+troute.anywhere,Best known routes anywhere:,Nejlepší známé trasy kdekoli:
+troute.none,No route worth sailing yet. Visit more ports.,Zatím žádná výhodná trasa. Navštiv víc přístavů.
+troute.row,"%s: %s %.0f g > %s %.0f g (+%.0f a unit, ~%d g a hold, %s)","%s: %s %.0f g > %s %.0f g (+%.0f za kus, ~%d g za náklad, %s)"
+troute.age,prices %d days old,ceny staré %d dní
+troute.course,Set course,Nastavit kurz
+troute.assign,Send a fleet ship,Poslat loď flotily
+troute.course_set,Course set for %s.,Kurz nastaven na %s.
+troute.assigned,%s sails the route and pays you after every round trip.,%s pluje po trase a po každé cestě tam a zpět ti zaplatí.
+troute.fleet,Your fleet on trade routes:,Tvoje flotila na obchodních trasách:
+troute.no_fleet,No fleet ships yet. Capture a prize or buy a ship at your lagoon.,Zatím žádné lodě flotily. Zajmi kořist nebo kup loď ve své laguně.
+troute.idle,%s: idle,%s: nečinná
+troute.running,"%s: %s from %s to %s, %d trips, %d g earned, next trip about %d g","%s: %s z %s do %s, %d cest, vydělala %d g, příští cesta asi %d g"
+troute.recall,Recall,Odvolat
+troute.recalled,The ship leaves its route.,Loď opouští trasu.
+troute.trip_profit,%s sold %s from %s at %s: +%d g,%s prodala %s z %s v %s: +%d g
+troute.trip_lost,%s lost her cargo to pirates between %s and %s.,%s přišla o náklad kvůli pirátům mezi %s a %s.
+troute.trip_empty,%s came back empty: no profit left between %s and %s.,%s se vrátila prázdná: mezi %s a %s už není zisk.
