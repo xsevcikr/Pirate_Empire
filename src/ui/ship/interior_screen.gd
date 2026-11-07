@@ -61,7 +61,7 @@ func build() -> void:
 		b.pressed.connect(_pick.bind(id))
 		row.add_child(b)
 	add_button("menu.back", close)
-	var holder: Control = _box.get_parent()
+	var holder: Control = holder()
 	holder.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	holder.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	var info := Label.new()

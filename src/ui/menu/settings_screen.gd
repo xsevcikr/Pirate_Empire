@@ -12,6 +12,7 @@ func _init() -> void:
 	super()
 	_title_key = "menu.settings"
 	dim = 0.0
+	force_frame = true
 
 
 func build() -> void:
@@ -99,6 +100,15 @@ func _build_access() -> void:
 	cb.button_pressed = a.colorblind_markers
 	cb.toggled.connect(func(on: bool) -> void: a.colorblind_markers = on)
 	add_row("menu.colorblind", cb)
+	var st: Node = Svc.node("Settings")
+	var tips := CheckButton.new()
+	tips.button_pressed = bool(st.get("tips_enabled"))
+	tips.toggled.connect(func(on: bool) -> void: st.set("tips_enabled", on))
+	add_row("menu.tips", tips)
+	add_button("menu.tips_reset", func() -> void:
+		st.set("tips_seen", PackedStringArray())
+		st.set("tips_enabled", true)
+		_rebuild())
 
 
 func _build_keys() -> void:

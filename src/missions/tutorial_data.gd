@@ -2,10 +2,10 @@ class_name TutorialData
 extends RefCounted
 ## The first-ten-minutes tutorial as data: each step waits for one named event, then moves to the next.
 
-## Events: left_dock, faced_wind, timer, finn_talked, lugger_looted, docked, sold_fish, hired_crew, bought_food, quest_taken.
+## Events: left_dock, steered, timer, finn_talked, lugger_looted, docked, sold_fish, hired_crew, bought_food, quest_taken.
 const STEPS: Array[Dictionary] = [
 	{"id": "leave_dock", "prompt": "tut.leave_dock", "wait": "left_dock"},
-	{"id": "into_wind", "prompt": "tut.into_wind", "wait": "faced_wind"},
+	{"id": "steer", "prompt": "tut.steer", "wait": "steered"},
 	{"id": "compass", "prompt": "tut.compass", "wait": "timer", "seconds": 12.0},
 	{"id": "back_to_dock", "prompt": "tut.back_to_dock", "wait": "docked"},
 	{"id": "find_finn", "prompt": "tut.find_finn", "wait": "finn_talked"},
