@@ -20,6 +20,8 @@ var pad_radius: float = 0.0
 var pad_h: float = 4.0
 var pad_blend: float = 40.0
 var keep_clear: Callable
+## A harbour town's pad only cuts hills down to pad_h and never raises the sea floor, so the coast keeps its shape.
+var pad_cut_only: bool = false
 var no_camp: bool = false
 
 
@@ -104,6 +106,8 @@ func _make_noise() -> FastNoiseLite:
 
 ## Terrain height at a point, including the coastline warp used by the mesh.
 func ground_y(p: Vector2) -> float:
+	if _noise == null:
+		_noise = _make_noise()  # asked before the island is in the tree (a harbour planning its town)
 	var warp: float = 1.0 + 0.25 * _noise.get_noise_2d(p.x * 1.7 + 311.0, p.y * 1.7)
 	return _pad(p, height_at(p / warp, _noise))
 
@@ -111,7 +115,8 @@ func ground_y(p: Vector2) -> float:
 func _pad(p: Vector2, h: float) -> float:
 	if pad_radius <= 0.0:
 		return h
-	return lerpf(pad_h, h, smoothstep(pad_radius, pad_radius + pad_blend, p.distance_to(pad_center)))
+	var flat: float = minf(h, pad_h) if pad_cut_only else pad_h
+	return lerpf(flat, h, smoothstep(pad_radius, pad_radius + pad_blend, p.distance_to(pad_center)))
 
 
 func _build_mesh() -> ArrayMesh:

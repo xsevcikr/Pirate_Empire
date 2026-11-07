@@ -1621,3 +1621,22 @@ weather.side.stern,stern,zádi
 weather.sea_hit,The sea broke over us: %d hull damage.,Vlna se přes nás převalila: poškození trupu %d.
 weather.weathered,We rode out the storm. The crew learned from it.,Přestáli jsme bouři. Posádka se přiučila.
 log.storm_weathered,Rode out a storm at sea.,Přestáli jsme bouři na moři.
+dock.sign_supplies,Chandler (supplies),Lodní zásoby
+dock.talk,Talk,Promluvit
+supply_shop.title,Chandler,Lodní zásoby
+supply_shop.restock,"Restock food, water and rum for %d days: %d g","Doplnit jídlo, vodu a rum na %d dní: %d g"
+supply_shop.buy,Buy,Koupit
+supply_shop.bought,"Loaded %d food, %d water and %d rum.","Naloženo %d jídla, %d vody a %d rumu."
+npc.line_1,"Fair winds, Captain! Fresh bread at the stall.","Dobrý vítr, kapitáne! U stánku mají čerstvý chleba."
+npc.line_2,They say a navy squadron passed the cape last night.,Prý v noci kolem mysu proplula námořní eskadra.
+npc.line_3,Mind your purse near the tavern.,U hospody si hlídej měšec.
+npc.line_4,The chandler has barrels of water and rum. Stock up before you sail.,Kupec má sudy vody a rumu. Zásob se před vyplutím.
+npc.line_5,Prices for sugar are up again. Smugglers' doing.,Cukr zase podražil. To dělají pašeráci.
+npc.line_6,My cousin sailed for the Frozen North and never came back.,Můj bratranec odplul na Mrazivý sever a už se nevrátil.
+npc.line_7,Lovely day for it.,Krásný den.
+npc.line_8,The shipyard is hiring carpenters. Busy times.,Loděnice nabírá tesaře. Je hodně práce.
+npc.line_9,A pirate? Here? Keep your voice down!,Pirát? Tady? Mluv potichu!
+npc.line_10,Try the fish stew at the tavern.,Zkus v hospodě rybí polévku.
+npc.guard_1,Move along. No trouble in my town.,Pokračuj. V mém městě žádné potíže.
+npc.guard_2,Keep your blade sheathed in the streets.,Na ulici nech čepel v pochvě.
+npc.guard_3,The castle is closed to visitors.,Hrad je pro návštěvy zavřený.
