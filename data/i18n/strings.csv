@@ -1450,3 +1450,7 @@ bark.patched.1,That'll hold her!,To vydrží!
 minimap.home,Home,Domov
 minimap.home_far,Home %s,Domov %s
 minimap.zoom_tip,Click to zoom the map in or out,Kliknutím přiblížíš nebo oddálíš mapu
+guards.launched,"The alarm bells ring! %d guard boats put out from %s.","Zvoní poplach! %d strážní lodě vyplouvají z přístavu %s."
+guards.boat,%s Watch,Stráž %s
+guards.beaten,"The watch of %s is beaten! War chest: %d gold, %d round shot, %d pistol shots, %d rum.","Stráž přístavu %s je poražena! Válečná pokladna: %d zlaťáků, %d koulí, %d nábojů do pistole, %d rumu."
+guards.gave_up,The watch of %s gives up the chase and rows home.,Stráž přístavu %s vzdává pronásledování a vrací se domů.
