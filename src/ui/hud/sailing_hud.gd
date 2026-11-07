@@ -1,8 +1,8 @@
 class_name SailingHud
 extends CanvasLayer
-## Sailing HUD, kept small: a card in the bottom-right corner with speed, sails, wind, hull and crew. Guns, ammo,
-## the target and the captain's health only appear in a fight; flooding and fire only when there are any. The key
-## list is folded away behind one hint ("?" shows it). The top-left corner is left free for the map.
+## Sailing HUD, kept small: a card in the bottom-right corner with speed, sails, hull and crew. Guns, ammo,
+## the target and the captain's health only appear in a fight; flooding and fire only when there are any. There is
+## no wind: sailing ignores it. The key list is folded away behind one hint ("?" shows it). The top-left corner is left free for the map.
 
 const COMBAT_RANGE_M: float = 700.0  ## a hostile ship this close puts the gun line on the card
 const COMBAT_HOLD_S: float = 8.0  ## ...and it stays that long after the last hit or shot
@@ -90,7 +90,7 @@ func in_combat() -> bool:
 
 
 func _process(delta: float) -> void:
-	if ship == null or wind == null or not is_instance_valid(ship):
+	if ship == null or not is_instance_valid(ship):
 		return
 	_watch(ship)
 	_combat_left = maxf(_combat_left - delta, 0.0)
@@ -133,7 +133,7 @@ func _scan_hostiles() -> bool:
 func card_text() -> String:
 	var d: DamageModel = ship.damage
 	var lines: Array[String] = []
-	lines.append(Loc.t("hud.card_sail") % [ship.speed_knots(), Loc.t("hud.sails_%d" % clampi(ship.sail_level, 0, 3)), wind.speed_kn])
+	lines.append(Loc.t("hud.card_sail") % [ship.speed_knots(), Loc.t("hud.sails_%d" % clampi(ship.sail_level, 0, 3)), ])
 	var state: String = Loc.t("hud.card_ship") % [int(round(d.hull_fraction() * 100.0)), ship.crew.count]
 	var flood: float = d.flood_fraction()
 	if flood > 0.02:
