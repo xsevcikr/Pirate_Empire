@@ -14,6 +14,8 @@ var new_game_button: Button
 func _ready() -> void:
 	Svc.node("Game").change_state(1)  # Game.State.MENU
 	super()
+	Sfx.music(AudioData.MENU_TRACK)  # the Pirate Empire theme plays until the menu closes
+	tree_exiting.connect(func() -> void: Sfx.music(""))
 
 
 func build() -> void:
