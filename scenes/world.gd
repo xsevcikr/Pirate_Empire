@@ -36,6 +36,7 @@ var world_audio: WorldAudio
 var weather: WeatherSystem
 var streamer: WorldStreamer
 var debris: DebrisManager
+var sea_life: SeaLife
 var _dock_hit_cool: float = 0.0
 var discovery: Discovery
 var _discover_accum: float = 99.0
@@ -135,9 +136,14 @@ func _ready() -> void:
 	rig.target = ship
 	add_child(rig)
 
+	sea_life = SeaLife.new()
+	sea_life.ship = ship
+	sea_life.islands = streamer.gen.islands
+	add_child(sea_life)
 	auto_drive = AutoDrive.new()
 	auto_drive.controller = pc
 	auto_drive.rig = rig
+	auto_drive.sea_life = sea_life
 	add_child(auto_drive)
 
 	day_night.sun = sun

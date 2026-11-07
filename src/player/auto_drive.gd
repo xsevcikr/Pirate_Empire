@@ -3,7 +3,8 @@ extends Node
 ## K hands the ship to auto drive and lets the captain walk the deck; K again (or the badge button) takes the helm
 ## back. Auto drive follows the course marked on the chart (M) and stops there, or holds the heading if no course is
 ## set, steering round islands and ships. It lets go of the wheel by itself when the ship is hit, runs aground or
-## has no way out, so the captain is never left strolling while the ship is in trouble.
+## has no way out, so the captain is never left strolling while the ship is in trouble. At the rail E fishes
+## (RailFishing).
 
 signal changed(on: bool)
 
@@ -16,6 +17,8 @@ var rig: CameraRig
 var overlay: GameOverlay
 var pilot: Autopilot
 var walker: DeckWalker
+var fishing: RailFishing
+var sea_life: SeaLife
 var badge: AutoDriveBadge
 var _ship: Ship
 var _blocked_s: float = 0.0
@@ -66,6 +69,10 @@ func engage() -> bool:
 	walker = DeckWalker.new()
 	walker.setup(s)
 	s.add_child(walker)
+	fishing = RailFishing.new()
+	fishing.walker = walker
+	fishing.sea_life = sea_life
+	walker.add_child(fishing)
 	if rig != null:
 		walker.camera = rig.camera
 		rig.set_walker(walker.anchor)
@@ -91,6 +98,7 @@ func take_helm(why: String = "") -> void:
 	if walker != null and is_instance_valid(walker):
 		walker.queue_free()
 	walker = null
+	fishing = null
 	if rig != null:
 		rig.set_walker(null)
 	_ship = null
