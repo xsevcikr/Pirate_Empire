@@ -76,17 +76,53 @@ func test_mast_falls_at_zero_hp() -> void:
 	assert_near(d.sail_health(), 0.0, 0.001)
 
 
-func test_ten_leaks_sink_a_sloop_in_predicted_time() -> void:
+func test_leaks_waterlog_a_sloop_but_never_sink_her() -> void:
 	var d := DamageModel.new(_sloop(), 6)
 	for i in 10:
 		d.leak_rate[i % d.section_count] += DamageModel.LEAK_BASE_T_PER_S
-	var predicted: float = d.displacement_t() * DamageModel.FLOOD_CAPACITY_SHARE / (10.0 * DamageModel.LEAK_BASE_T_PER_S)
-	var t: float = 0.0
-	while not d.sunk and t < 1000.0:
+	for i in 20000:  # over half an hour of nobody bailing
 		d.tick(0.1, 0.0)
-		t += 0.1
+	assert_true(not d.sunk, "a leak alone never sinks her")
+	assert_near(d.flood_fraction(), DamageModel.WATERLOGGED, 0.01)
+
+
+func test_a_real_hit_sinks_a_waterlogged_ship() -> void:
+	var d := DamageModel.new(_sloop(), 6)
+	d.leak_rate[1] = 1.0
+	for i in 2000:
+		d.tick(0.1, 0.0)
+	assert_true(not d.sunk)
+	d.apply_hit(_hit("round", Vector3(2.5, -0.5, 0.0), true))
+	assert_true(d.sunk, "the next cannonball finishes her")
+
+
+func test_fire_alone_never_sinks_a_ship() -> void:
+	var d := DamageModel.new(_sloop(), 6)
+	for i in d.section_count:
+		d.fire_level[i] = 3
+	for i in 6000:
+		d.tick(0.1, 0.0)
+		for j in d.section_count:  # keep it burning
+			d.fire_level[j] = 3
+	assert_true(not d.sunk)
+	assert_true(d.hull_hp_total() > 0.0)
+
+
+func test_small_bumps_never_sink_a_ship() -> void:
+	var d := DamageModel.new(_sloop(), 6)
+	var bump: float = d.stats.hull_hp * DamageModel.REAL_IMPACT_SHARE * 0.5
+	for i in 500:
+		d.apply_impact(i % d.section_count, bump, 0.0, false)
+	assert_true(not d.sunk, "bumps alone leave her afloat")
+	assert_true(d.hull_hp_total() >= 0.99)
+	d.apply_impact(0, d.stats.hull_hp * 0.3, 0.0, false)
+	assert_true(d.sunk, "a real ramming finishes her")
+
+
+func test_ram_counts_as_a_real_hit_even_when_small() -> void:
+	var d := DamageModel.new(_sloop(), 6)
+	d.apply_impact(0, d.stats.hull_hp * 2.0, 0.0, false, true)
 	assert_true(d.sunk)
-	assert_near(t, predicted, predicted * 0.1, "sink time")
 
 
 func test_bailing_can_outpace_a_small_leak() -> void:

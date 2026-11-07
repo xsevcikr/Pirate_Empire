@@ -33,13 +33,14 @@ var reserve_kind: Array[String] = ["green", "sailor"]
 ## Our deck gun: loaded by the hands sent to it, fired on the captain's order.
 var cannon_loaded: bool = false
 var cannon_load: float = 0.0  ## man-seconds of work done toward the next load
+var aim_assist: bool = false  ## Easy: the captain's pistol shots snap onto the nearest foe in front (AimAssist)
 var hull_repaired: float = 0.0  ## hull hit points the repair party has patched on our own ship
 
 var _next_id: int = 1
 var _spawn_clock: Array[float] = [0.0, 0.0]
 
 
-## `mine`: {level, melee, ranged, shots, hp, rum, crew: [{type, level}], reserve, morale, effic}
+## `mine`: {level, melee, ranged, shots, hp, rum, crew: [{type, level, name, melee_mult?, nerve?, panics?, rallies?}], reserve, morale, effic}
 ## `theirs`: {fighters: [archetype or {kind, hp}], reserve, reserve_kind, morale}
 func setup(mine: Dictionary, theirs: Dictionary, seed_value: int = 1) -> void:
 	rng.seed = seed_value
@@ -60,7 +61,10 @@ func setup(mine: Dictionary, theirs: Dictionary, seed_value: int = 1) -> void:
 	var effic: float = float(mine.get("effic", 1.0))
 	for i in mini(crew.size(), DeckData.MAX_ON_SCREEN - 1):
 		var f: FighterState = FighterState.make_crew(str(crew[i]["type"]), int(crew[i].get("level", 1)))
-		f.morale_effic = effic
+		f.morale_effic = effic * float(crew[i].get("nerve", 1.0))
+		f.melee_mult = float(crew[i].get("melee_mult", 1.0))
+		f.panics = f.panics or bool(crew[i].get("panics", false))
+		f.rallies = f.rallies or bool(crew[i].get("rallies", false))
 		f.display_name = str(crew[i].get("name", "Hand"))
 		f.pos = _slot(0, i, mini(crew.size(), DeckData.MAX_ON_SCREEN - 1))
 		f.dir = Vector2.RIGHT
@@ -347,6 +351,13 @@ func fire_ranged(shooter: FighterState, aim: Vector2) -> bool:
 		shooter.lower_block()
 	var w: Dictionary = WeaponData.WEAPONS[shooter.ranged]
 	var a: Vector2 = aim.normalized() if aim.length() > 0.001 else shooter.dir
+	var assist: bool = shooter.is_player and aim_assist
+	if assist:  # Easy: the captain's pistol swings onto the nearest foe in front of him
+		var foes: Array = []
+		for o in fighters:
+			if o.team != shooter.team and o.is_standing():
+				foes.append(o.pos)
+		a = AimAssist.deck_aim(shooter.pos, a, foes, float(WeaponData.WEAPONS[shooter.ranged]["range"]))
 	shooter.dir = a
 	shooter.charges -= 1
 	shooter.ranged_ammo -= 1
@@ -371,7 +382,7 @@ func fire_ranged(shooter: FighterState, aim: Vector2) -> bool:
 				t.pos += (t.pos - shooter.pos).normalized() * 1.0  # blunderbuss knockback
 			_after_hit(shooter, t, res)
 		return true
-	var shot: Vector2 = a.rotated(deg_to_rad(rng.randfn(0.0, shooter.shot_spread_deg())))
+	var shot: Vector2 = a.rotated(deg_to_rad(rng.randfn(0.0, shooter.shot_spread_deg() * (AimAssist.DECK_SPREAD_MULT if assist else 1.0))))
 	var tgt: FighterState = null
 	var best_t: float = range_m
 	for o in fighters:

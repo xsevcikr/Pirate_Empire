@@ -89,7 +89,8 @@ static func resolve(state: Dictionary, port_id: String, choice: Choice, rng: Ran
 			out["kept_cargo"] = true
 			out["hostile"] = true
 			state["rep"][faction] = minf(float(state["rep"][faction]), TradeData.FIGHT_REP_CAP)
-			state["bounty"][faction] = float(state["bounty"].get(faction, 0.0)) + TradeData.FIGHT_BOUNTY
+			Bounty.set_value(state, faction, Bounty.value(state, faction) + TradeData.FIGHT_BOUNTY)
+			state["bounty_crime_day"] = int(state["day"])
 	return out
 
 

@@ -9,16 +9,16 @@ const ACTIONS: Dictionary = {
 	"sail_down": [KEY_S, KEY_DOWN],
 	"camera_mode": [KEY_C],
 	"time_fast": [KEY_T],
-	"wind_cw": [KEY_BRACKETRIGHT],
-	"wind_ccw": [KEY_BRACKETLEFT],
 	"fire_port": [KEY_Q],
 	"fire_starboard": [KEY_E],
 	"elev_up": [KEY_R],
 	"elev_down": [KEY_F],
 	"crew_focus": [KEY_TAB],
+	"controls_help": [KEY_SLASH],
 	"grapple": [KEY_G],
 	"photo_mode": [KEY_P],
 	"interact": [KEY_SPACE],
+	"disembark": [KEY_F],  ## near a harbour only; out at sea F still lowers the guns
 	"world_map": [KEY_M],
 	"kedge": [KEY_X],
 	"dump_cargo": [KEY_B],
@@ -46,8 +46,6 @@ const ACTIONS: Dictionary = {
 	"deck_grenade": [KEY_G],
 	"deck_switch": [KEY_Q],
 	"drink_rum": [KEY_Z],
-	"wind_stronger": [KEY_EQUAL, KEY_KP_ADD],
-	"wind_weaker": [KEY_MINUS, KEY_KP_SUBTRACT],
 }
 
 ## Gamepad buttons for the deck fight.

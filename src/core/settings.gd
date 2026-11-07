@@ -12,6 +12,8 @@ var voice_volume: float = 1.0
 var ambience_volume: float = 0.8
 var locale: String = "en"
 var accessibility := Accessibility.new()
+var tips_enabled: bool = true  ## first-time tips (FirstTips); the player can switch them off in Accessibility
+var tips_seen: PackedStringArray = []
 
 
 func save_settings() -> void:
@@ -25,6 +27,9 @@ func save_settings() -> void:
 	cfg.set_value("access", "fov", accessibility.fov)
 	cfg.set_value("access", "subtitles", accessibility.subtitles)
 	cfg.set_value("access", "colorblind", accessibility.colorblind_markers)
+	cfg.set_value("tips", "enabled", tips_enabled)
+	cfg.set_value("tips", "seen", tips_seen)
+	cfg.set_value("access", "hit_effects", accessibility.hit_effects)
 	cfg.save(PATH)
 
 
@@ -45,6 +50,9 @@ func load_settings() -> void:
 	accessibility.set_fov(cfg.get_value("access", "fov", accessibility.fov))
 	accessibility.subtitles = cfg.get_value("access", "subtitles", accessibility.subtitles)
 	accessibility.colorblind_markers = cfg.get_value("access", "colorblind", accessibility.colorblind_markers)
+	tips_enabled = bool(cfg.get_value("tips", "enabled", tips_enabled))
+	tips_seen = PackedStringArray(cfg.get_value("tips", "seen", tips_seen))
+	accessibility.hit_effects = cfg.get_value("access", "hit_effects", accessibility.hit_effects)
 	apply()
 
 

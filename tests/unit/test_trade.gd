@@ -134,6 +134,7 @@ func test_bank_interest_and_safety() -> void:
 	assert_true(not Finance.deposit(s, 900))
 	assert_eq(Finance.accrue(s, 7.0), 6)
 	assert_eq(s["bank"], 606)
+	s["difficulty"] = 2  # Hard: the full defeat rules, no second chance
 	Finance.defeat(s, Vector2.ZERO)
 	assert_eq(s["bank"], 606)
 	assert_eq(s["gold"], 200)  # half of the 400 carried
@@ -142,6 +143,7 @@ func test_bank_interest_and_safety() -> void:
 func test_defeat_uninsured_vs_insured() -> void:
 	var a: Dictionary = SaveGame.new_state()
 	a["ship_class"] = "sloop"
+	a["difficulty"] = 2  # Hard: the full defeat rules, no second chance
 	var b: Dictionary = a.duplicate(true)
 	b["gold"] = 10000
 	assert_true(Finance.buy_insurance(b))

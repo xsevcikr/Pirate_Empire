@@ -323,11 +323,24 @@ static func street_clutter(parent: Node3D, half_w: float, half_l: float, rng: Ra
 
 ## Old-town detail for the harbour's destructible buildings. `body` is the box mesh (centred), so everything added
 ## here hides and falls with it when the building is destroyed.
-static func dress_body(body: Node3D, kind: String, size: Vector3, seed_v: int) -> void:
+## `light` keeps a house to a door, front windows, corner posts, a beam and a chimney: what reads from the sea.
+static func dress_body(body: Node3D, kind: String, size: Vector3, seed_v: int, light: bool = false) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_v
 	var hx: float = size.x * 0.5 + 0.03
 	var hz: float = size.z * 0.5 + 0.03
+	if light and kind in ["house", "warehouse"]:
+		for xs in [-1.0, 1.0]:
+			box(body, Vector3(0.22, size.y, 0.22), Vector3(xs * (size.x * 0.5), 0.0, hz), TIMBER)
+		box(body, Vector3(size.x + 0.1, 0.22, 0.12), Vector3(0, size.y * 0.5 - 0.6, hz), TIMBER)
+		var nw: int = maxi(int(size.x / 2.6), 1)
+		for i in nw:
+			var wx: float = -size.x * 0.5 + size.x * (float(i) + 0.5) / float(nw)
+			if absf(wx) > 0.9:
+				box(body, Vector3(0.8, 0.9, 0.08), Vector3(wx, size.y * 0.15, hz + 0.02), Color(0.12, 0.17, 0.22))
+		box(body, Vector3(1.0, 2.2, 0.12), Vector3(0, -size.y * 0.5 + 1.1, hz + 0.02), Color(0.22, 0.13, 0.07))
+		box(body, Vector3(0.7, size.y * 0.5, 0.7), Vector3(size.x * 0.25, size.y * 0.5 + size.y * 0.3, 0.0), STONE.darkened(0.15))
+		return
 	match kind:
 		"house", "warehouse":
 			var n: int = maxi(int(size.x / 1.7), 2)

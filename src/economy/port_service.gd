@@ -146,12 +146,13 @@ static func hire(state: Dictionary, tier: String, port_id: String) -> bool:
 	var cm := CrewManager.new()
 	cm.gold = int(state["gold"])
 	var level: int = PortData.PORTS[port_id]["tavern_level"]
-	if not cm.hire(1, tier, level, int(state["crew"]), ship_stats(state["ship_class"]).crew_max, Progression.stat(state, "hire_cost_mult")):
+	if not cm.hire(1, tier, level, int(state["crew"]), ship_stats(state["ship_class"]).crew_max, Progression.stat(state, "hire_cost_mult") * Bounty.hire_mult(state, port_id)):
 		return false
 	state["gold"] = cm.gold
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(state["seed"]) * 131 + state["roster"].size() * 17 + int(state["crew"])
 	state["roster"].append({"name": NAMES[rng.randi() % NAMES.size()], "type": tier, "level": 1, "xp": 0})
+	CrewPersona.ensure_last(state)
 	state["crew"] = int(state["crew"]) + 1
 	return true
 
@@ -167,6 +168,7 @@ static func _hire_specialist(state: Dictionary, type: String, port_id: String) -
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(state["seed"]) * 131 + state["roster"].size() * 17 + int(state["crew"]) + 5
 	state["roster"].append({"name": NAMES[rng.randi() % NAMES.size()], "type": type, "level": 1, "xp": 0})
+	CrewPersona.ensure_last(state)
 	state["crew"] = int(state["crew"]) + 1
 	return true
 

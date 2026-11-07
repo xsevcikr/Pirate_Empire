@@ -20,13 +20,19 @@ var tutorial: Tutorial
 var player_controller: PlayerController
 var hud: SailingHud
 var minimap: Minimap
+var status_panel: StatusPanel
 var damage_panel: DamagePanel
 var convoys: ConvoyManager
 var tours: TourDirector
 var rivals: RivalDirector
 var crews: CrewDirector
+var guards: CityGuards
+var bounties: BountyDirector
 var progress: ProgressDirector
+var easy_play: EasyPlayDirector
+var goals_card: GoalsCard
 var world_audio: WorldAudio
+var weather: WeatherSystem
 var streamer: WorldStreamer
 var debris: DebrisManager
 var _dock_hit_cool: float = 0.0
@@ -122,7 +128,6 @@ func _ready() -> void:
 	var pc := PlayerController.new()
 	player_controller = pc
 	pc.ship = ship
-	pc.wind = wind
 	add_child(pc)
 
 	rig = CameraRig.new()
@@ -136,6 +141,12 @@ func _ready() -> void:
 	var clouds := CloudLayer.new()
 	add_child(clouds)
 	day_night.clouds = clouds
+	var stars := StarDome.new()
+	add_child(stars)
+	day_night.stars = stars
+	var lanterns := NightLights.new()
+	add_child(lanterns)
+	day_night.lights = lanterns
 	add_child(day_night)
 
 	hud = SailingHud.new()
@@ -149,8 +160,19 @@ func _ready() -> void:
 	minimap.ship = ship
 	minimap.world = self
 	add_child(minimap)
+	status_panel = StatusPanel.new()
+	status_panel.name = "StatusPanel"
+	status_panel.ship = ship
+	add_child(status_panel)
 
 	Session.apply(self)
+	weather = WeatherSystem.new()
+	weather.world = self
+	weather.state = Session.state if Session.has_state() else {}
+	add_child(weather)
+	var badge := WeatherBadge.new()
+	badge.weather = weather
+	add_child(badge)
 	Game.change_state(Game.State.PLAYING)
 	if Session.has_state():
 		_start_game_layer()
@@ -181,16 +203,40 @@ func _start_game_layer() -> void:
 	crews.world = self
 	crews.state = Session.state
 	add_child(crews)
+	guards = CityGuards.new()
+	guards.ship = ship
+	guards.world = self
+	guards.state = Session.state
+	add_child(guards)
+	bounties = BountyDirector.new()
+	bounties.ship = ship
+	bounties.world = self
+	bounties.state = Session.state
+	add_child(bounties)
 	progress = ProgressDirector.new()
 	progress.ship = ship
 	progress.state = Session.state
 	add_child(progress)
 	tours.step_completed.connect(progress.on_tour_step)
 	tours.tour_completed.connect(progress.on_tour_done)
+	easy_play = EasyPlayDirector.new()
+	easy_play.name = "EasyPlay"
+	easy_play.ship = ship
+	easy_play.ocean = ocean.model
+	easy_play.state = Session.state
+	add_child(easy_play)
+	goals_card = GoalsCard.new()
+	goals_card.name = "GoalsCard"
+	goals_card.open_goals.connect(open_goals)
+	goals_card.open_book.connect(open_collection)
+	goals_card.ask_parrot.connect(func() -> void: easy_play.hint())
+	add_child(goals_card)
 	var orders := SeaOrderBar.new()
 	orders.name = "SeaOrderBar"
 	orders.controller = player_controller
+	orders.hud = hud
 	orders.drink_pressed.connect(drink_rum)
+	orders.hail_pressed.connect(prizes.hail)
 	add_child(orders)
 	world_audio = WorldAudio.new()
 	world_audio.world = self
@@ -198,6 +244,13 @@ func _start_game_layer() -> void:
 	damage_panel = DamagePanel.new()
 	damage_panel.world = self
 	add_child(damage_panel)
+	var markers := WorldMarkers.new()  # nameplates over close ships, floating damage and gold numbers
+	markers.world = self
+	add_child(markers)
+	var tips := FirstTips.new()  # first-time tips; Settings > Accessibility switches them off
+	tips.name = "FirstTips"
+	tips.world = self
+	add_child(tips)
 	apply_customization()
 	ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 	tutorial = Tutorial.new()
@@ -304,6 +357,8 @@ func _game_tick() -> void:
 		TradeNetwork.spawn_due(Session.state, now_h, _trade_rng)
 		TradeNetwork.advance(Session.state, now_h)
 		PortService.advance_markets(Session.state, hours)
+		for rep: Dictionary in TradeRoutes.advance(Session.state, now_h, _trade_rng):
+			EventBus.toast.emit(TradeRoutes.report_text(rep))
 		_blockade_tick(hours)
 		_last_market_h = now_h
 	if (now_h - _last_repair_h) * 60.0 >= 1.0:
@@ -361,6 +416,14 @@ func _on_player_sunk() -> void:
 		get_tree().paused = false
 		var dock: Vector2 = PortData.PORTS[result["port"]]["dock"]
 		sync_player_ship()
+		if bool(result.get("ship_kept", false)):  # the same hull floats again: pump her out and patch her up
+			ship.damage.reset_all()
+			ship.damage.sunk = false
+			Session.apply_hull(ship)
+			ship.refresh_damage()
+			ship.linear_velocity = Vector3.ZERO
+			ship.angular_velocity = Vector3.ZERO
+			ship.rotation = Vector3(0.0, ship.rotation.y, 0.0)
 		ship.global_position = Vector3(dock.x, 0.5, dock.y)
 		ship.damage.sank.connect(_on_player_sunk, CONNECT_ONE_SHOT)
 		Session.autosave(self))
@@ -379,7 +442,8 @@ func _daily_crew_tick() -> void:
 	var here: String = dock_port()
 	var near_port: bool = here != ""
 	var faction: String = PortData.PORTS[here if near_port else PortData.START_PORT]["faction"]
-	var ctx: Dictionary = {"in_port": near_port, "shore_leave": near_port and float(Session.state["rep"][faction]) >= 20.0, "day": GameClock.day}
+	var ctx: Dictionary = {"in_port": near_port, "shore_leave": near_port and float(Session.state["rep"][faction]) >= 20.0, "day": GameClock.day,
+		"storm_day": WeatherSystem.take_storm_day(Session.state)}
 	var report: Dictionary = CrewLife.daily_tick(Session.state, ctx)
 	Session.apply_to_ship(ship)
 	if report["no_food"]:
@@ -390,8 +454,14 @@ func _daily_crew_tick() -> void:
 		EventBus.toast.emit(Loc.t("crew.unpaid"))
 	if int(report["deaths"]) > 0:
 		EventBus.toast.emit(Loc.t("crew.died_" + str(report["died_of"] if report["died_of"] != "" else "wounds")) % int(report["deaths"]))
-	if int(report["deserted"]) > 0:
-		EventBus.toast.emit(Loc.t("crew.deserted") % int(report["deserted"]))
+	if int(report["deserted"]) > report["deserted_names"].size():
+		EventBus.toast.emit(Loc.t("crew.deserted") % (int(report["deserted"]) - report["deserted_names"].size()))
+	for n: String in report["deserted_names"]:
+		EventBus.toast.emit(Loc.t("persona.deserted") % n)
+	for ev: Dictionary in report["persona_events"]:
+		EventBus.toast.emit(Loc.t(str(ev["key"])) % str(ev["name"]))
+	if str(report["talked_down"]) != "":
+		EventBus.toast.emit(Loc.t("persona.talked_down") % str(report["talked_down"]))
 	if report["mutiny"]:
 		open_mutiny()
 
@@ -443,10 +513,13 @@ func _replace_player_ship() -> void:
 	player_controller.ship = fresh
 	hud.ship = fresh
 	minimap.ship = fresh
+	status_panel.ship = fresh
 	if prizes != null:
 		prizes.player = fresh
 	if tutorial != null:
 		tutorial.ship = fresh
+	if bounties != null:
+		bounties.ship = fresh
 	old.queue_free()
 
 
@@ -479,6 +552,27 @@ func go_ashore() -> Dictionary:
 	return r
 
 
+## Over the X of a treasure map and slow: Space sends the boat ashore to dig.
+func treasure_index() -> int:
+	return BuriedTreasure.near(Session.state, Vector2(ship.global_position.x, ship.global_position.z))
+
+
+func can_dig() -> bool:
+	return Session.has_state() and treasure_index() >= 0 and ship.speed_knots() <= BuriedTreasure.DIG_MAX_SPEED_KN
+
+
+func dig_treasure() -> Dictionary:
+	var i: int = treasure_index()
+	if i < 0:
+		return {}
+	var r: Dictionary = BuriedTreasure.dig(Session.state, i, _trade_rng)
+	if bool(r.get("ok", false)):
+		Sfx.play("chest")
+		EventBus.toast.emit(BuriedTreasure.summary(r))
+		Session.autosave(self)
+	return r
+
+
 ## Tonnage in the hold times the fee, at lawful ports only.
 func _docking_fee(port_id: String) -> int:
 	if not bool(PortData.PORTS[port_id]["lawful"]):
@@ -499,6 +593,7 @@ func open_lagoon() -> void:
 	layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	layer.layer = 50
 	add_child(layer)
+	Session.state["day"] = GameClock.day  # the rest day and mission days read it
 	var screen := LagoonScreen.new()
 	screen.world = self
 	layer.add_child(screen)
@@ -510,26 +605,76 @@ func open_lagoon() -> void:
 		layer.queue_free())
 
 
-## A day at the lagoon while the captain is away; raids are reported as they happen.
+## A day at the lagoon while the captain is away; raids and parties coming home from missions are reported.
 func _lagoon_day() -> void:
 	if not Lagoon.claimed(Session.state):
 		return
+	Session.state["day"] = GameClock.day  # missions come home by the clock's day
 	var r: Dictionary = Lagoon.daily(Session.state, _trade_rng)
 	match str(r["raid"]):
 		"repelled":
 			EventBus.toast.emit(Loc.t("lagoon.raid_repelled"))
 		"lost":
 			EventBus.toast.emit(Loc.t("lagoon.raid_lost") % int(r["lost_gold"]))
+	for e: Dictionary in LagoonMissions.daily(Session.state, _trade_rng):
+		EventBus.toast.emit(LagoonMissions.report(e))
+		Sfx.play("coin" if int(e["gold"]) > 0 else "bell")
 	if streamer.lagoon != null:
 		streamer.lagoon.sync()
 
 
-func open_port() -> void:
+## F near a harbour: tie the ship up alongside the pier and walk ashore with the crew.
+func can_disembark() -> bool:
+	return Mooring.can_disembark(dock_port(), LagoonData.near_dock(Vector2(ship.global_position.x, ship.global_position.z)), ship.speed_knots())
+
+
+func disembark() -> void:
+	if not can_disembark():
+		return
+	var port: String = dock_port()
+	if port == "":  # the lagoon's own piers: the lagoon screen is the walk ashore there
+		_moor(Vector2(ship.global_position.x, ship.global_position.z), ship.rotation.y)
+		open_lagoon()
+		return
+	var b: Dictionary = Mooring.berth(port, ship.stats.length_m, ship.stats.beam_m)
+	_moor(b["pos"], b["yaw"])
+	open_port(true)
+
+
+## Lay the ship still at `at`, sails furled, so she is where the captain left her when he comes back aboard.
+func _moor(at: Vector2, yaw: float) -> void:
+	ship.global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(at.x, ship.global_position.y, at.y))
+	ship.linear_velocity = Vector3.ZERO
+	ship.angular_velocity = Vector3.ZERO
+	ship.sail_level = 0
+	ship.rudder_input = 0.0
+
+
+## The harbour line of the HUD: what Space and F do here, or why they do nothing yet.
+func harbour_hint() -> String:
+	if can_dock():
+		return Loc.t("hud.dock_hint")
+	if can_land_lagoon():
+		return Loc.t("lagoon.hint")
+	if can_dig():
+		return Loc.t("buried.hint")
+	if can_land():
+		return Loc.t("hud.land_hint")
+	var why: String = Mooring.blocked_reason(dock_port(), LagoonData.near_dock(Vector2(ship.global_position.x, ship.global_position.z)), ship.speed_knots())
+	return Loc.t(why) if why != "" else ""
+
+
+func open_port(on_foot: bool = false) -> void:
 	if get_node_or_null("PortLayer") != null:
 		return
 	var menu := PortMenu.new()
 	menu.port_id = dock_port() if dock_port() != "" else PortData.START_PORT
+	if not Bounty.port_open(Session.state, menu.port_id):
+		EventBus.toast.emit(Loc.t("bounty.port_shut") % PortData.PORTS[menu.port_id]["name"])
+		menu.free()
+		return
 	var inspect: bool = Smuggling.rolled(Session.state, menu.port_id, _trade_rng)
+	menu.on_foot = on_foot and not inspect  # after an inspection the walk starts once it is settled
 	var fee: int = _docking_fee(menu.port_id)
 	if fee > 0:
 		Session.state["gold"] = int(Session.state["gold"]) - fee
@@ -556,16 +701,27 @@ func open_port() -> void:
 		screen.resolved.connect(func(choice: int, _o: Dictionary) -> void:
 			EventBus.inspection_resolved.emit(menu.port_id, choice)
 			if choice == Smuggling.Choice.FIGHT:
-				menu.close())
+				menu.close()
+			elif on_foot and is_instance_valid(menu):
+				menu.on_foot = true
+				menu.walk_ashore())
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if Session.has_state() and event.is_action_pressed("disembark") and can_disembark() and get_node_or_null("PauseMenu") == null and get_node_or_null("PortLayer") == null:
+		disembark()
+		get_viewport().set_input_as_handled()
+		return
 	if Session.has_state() and event.is_action_pressed("interact") and can_dock() and get_node_or_null("PauseMenu") == null:
 		open_port()
 		get_viewport().set_input_as_handled()
 		return
 	if Session.has_state() and event.is_action_pressed("interact") and can_land_lagoon() and get_node_or_null("PauseMenu") == null:
 		open_lagoon()
+		get_viewport().set_input_as_handled()
+		return
+	if Session.has_state() and event.is_action_pressed("interact") and can_dig() and get_node_or_null("PauseMenu") == null:
+		dig_treasure()
 		get_viewport().set_input_as_handled()
 		return
 	if Session.has_state() and event.is_action_pressed("interact") and can_land() and get_node_or_null("PauseMenu") == null:
@@ -635,7 +791,8 @@ func _navigate(delta: float) -> void:
 			EventBus.toast.emit(Loc.t("map.stream_learned"))
 	if overlay != null:
 		var v: Vector2 = OceanCurrent.velocity_at(at, hours)
-		overlay.set_nav(Loc.t("hud.nav") % [v.length() / OceanCurrent.KN_TO_MS, _compass(v), OceanCurrent.tide_m(hours), Loc.t("tide.rising" if OceanCurrent.tide_rising(hours) else "tide.falling")])
+		var strong: bool = v.length() / OceanCurrent.KN_TO_MS >= 1.0  # only a current worth steering for is shown
+		overlay.set_nav(Loc.t("hud.nav") % [v.length() / OceanCurrent.KN_TO_MS, _compass(v), OceanCurrent.tide_m(hours), Loc.t("tide.rising" if OceanCurrent.tide_rising(hours) else "tide.falling")] if strong else "")
 
 
 static func _compass(v: Vector2) -> String:
@@ -652,6 +809,7 @@ func _on_building_destroyed(b: DestructibleBuilding, by_player: bool) -> void:
 		return
 	var faction: String = PortData.PORTS[b.port_id]["faction"]
 	Session.state["rep"][faction] = clampf(float(Session.state["rep"][faction]) + DestructionData.rep_cost(b.kind), -100.0, 100.0)
+	Bounty.announce(Bounty.crime(Session.state, faction, "raze"), faction)
 	if not DestructionData.is_fort_part(b.kind):
 		Blockade.building_destroyed(Session.state, b.port_id)
 	EventBus.toast.emit(Loc.t("destroy.fell") % [Loc.t("building." + b.kind), PortData.PORTS[b.port_id]["name"]])
@@ -779,6 +937,14 @@ func open_log() -> void:
 	_open_screen(JournalScreen.new())
 
 
+func open_goals() -> void:
+	_open_screen(GoalsScreen.new())
+
+
+func open_collection() -> void:
+	_open_screen(CollectionScreen.new())
+
+
 func open_customize() -> void:
 	var screen: MenuScreen = _open_screen(CustomizeScreen.new())
 	if screen != null:
@@ -848,9 +1014,9 @@ func _physics_process(delta: float) -> void:
 	_navigate(delta)
 	_seamanship(delta)
 	if overlay != null:
-		overlay.set_dock_hint(Loc.t("hud.dock_hint") if can_dock() else (Loc.t("lagoon.hint") if can_land_lagoon() else (Loc.t("hud.land_hint") if can_land() else "")))
+		overlay.set_dock_hint(harbour_hint())
 		var st: Dictionary = Session.state
-		overlay.set_info(Loc.t("hud.status") % [int(st["gold"]), CrewLife.days_left(st, "food"), CrewLife.days_left(st, "water"), PortService.cargo_used(st), PortService.cargo_capacity(st), int(st["morale"]), Loc.t("morale." + Morale.band(float(st["morale"])))])
+		overlay.set_info(GameOverlay.status_text(st))
 	wind.update(delta)
 	var ss: float = snappedf(wind.sea_state(), 0.1)
 	if absf(ss - _last_sea_state) > 0.05:
