@@ -73,7 +73,7 @@ func _build_stage() -> void:
 	vp.add_child(_stage)
 	add_child(cont)
 	move_child(cont, 0)
-	var holder: Control = _box.get_parent()
+	var holder: Control = holder()
 	holder.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	holder.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 16)
 	if _title_key != "":

@@ -28,7 +28,7 @@ var sail_level: int = 3
 
 var rudder_actual: float = 0.0
 var submerged_fraction: float = 0.0
-var angle_off_wind: float = 90.0
+var angle_off_wind: float = 90.0  # kept for old callers; sailing ignores the wind
 var speed_forward_ms: float = 0.0
 
 var damage: DamageModel
