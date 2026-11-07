@@ -36,6 +36,7 @@ const ACTIONS: Dictionary = {
 	"ammo_3": [KEY_3],
 	"ammo_4": [KEY_4],
 	"ammo_5": [KEY_5],
+	"auto_drive": [KEY_K],  ## the ship sails herself and the captain walks the deck
 	"deck_light": [KEY_J],
 	"deck_heavy": [KEY_K],
 	"deck_block": [KEY_SHIFT],
