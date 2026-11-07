@@ -39,7 +39,7 @@ var _next_id: int = 1
 var _spawn_clock: Array[float] = [0.0, 0.0]
 
 
-## `mine`: {level, melee, ranged, shots, hp, rum, crew: [{type, level}], reserve, morale, effic}
+## `mine`: {level, melee, ranged, shots, hp, rum, crew: [{type, level, name, melee_mult?, nerve?, panics?, rallies?}], reserve, morale, effic}
 ## `theirs`: {fighters: [archetype or {kind, hp}], reserve, reserve_kind, morale}
 func setup(mine: Dictionary, theirs: Dictionary, seed_value: int = 1) -> void:
 	rng.seed = seed_value
@@ -60,7 +60,10 @@ func setup(mine: Dictionary, theirs: Dictionary, seed_value: int = 1) -> void:
 	var effic: float = float(mine.get("effic", 1.0))
 	for i in mini(crew.size(), DeckData.MAX_ON_SCREEN - 1):
 		var f: FighterState = FighterState.make_crew(str(crew[i]["type"]), int(crew[i].get("level", 1)))
-		f.morale_effic = effic
+		f.morale_effic = effic * float(crew[i].get("nerve", 1.0))
+		f.melee_mult = float(crew[i].get("melee_mult", 1.0))
+		f.panics = f.panics or bool(crew[i].get("panics", false))
+		f.rallies = f.rallies or bool(crew[i].get("rallies", false))
 		f.display_name = str(crew[i].get("name", "Hand"))
 		f.pos = _slot(0, i, mini(crew.size(), DeckData.MAX_ON_SCREEN - 1))
 		f.dir = Vector2.RIGHT

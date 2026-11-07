@@ -152,6 +152,7 @@ static func hire(state: Dictionary, tier: String, port_id: String) -> bool:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(state["seed"]) * 131 + state["roster"].size() * 17 + int(state["crew"])
 	state["roster"].append({"name": NAMES[rng.randi() % NAMES.size()], "type": tier, "level": 1, "xp": 0})
+	CrewPersona.ensure_last(state)
 	state["crew"] = int(state["crew"]) + 1
 	return true
 
@@ -167,6 +168,7 @@ static func _hire_specialist(state: Dictionary, type: String, port_id: String) -
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(state["seed"]) * 131 + state["roster"].size() * 17 + int(state["crew"]) + 5
 	state["roster"].append({"name": NAMES[rng.randi() % NAMES.size()], "type": type, "level": 1, "xp": 0})
+	CrewPersona.ensure_last(state)
 	state["crew"] = int(state["crew"]) + 1
 	return true
 

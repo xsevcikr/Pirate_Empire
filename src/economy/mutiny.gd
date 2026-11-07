@@ -22,7 +22,7 @@ static func pay_off_cost(state: Dictionary) -> int:
 
 static func duel_win_chance(state: Dictionary) -> float:
 	var bonus: float = DUEL_WEAPON_BONUS if state["melee"] != "rusty_cutlass" else 0.0
-	return clampf(DUEL_BASE_WIN + DUEL_WIN_PER_LEVEL * float(state.get("captain_level", 1)) + bonus, 0.05, 0.95)
+	return clampf(DUEL_BASE_WIN + DUEL_WIN_PER_LEVEL * float(state.get("captain_level", 1)) + bonus + CrewPersona.duel_bonus(state), 0.05, 0.95)
 
 
 ## Resolve one option. Returns {ok, text_key}. `rng` makes the duel repeatable.
@@ -44,7 +44,7 @@ static func resolve(option: Option, state: Dictionary, rng: RandomNumberGenerato
 			return {"ok": false, "text_key": "mutiny.duel_lost"}
 		Option.MAROON:
 			var n: int = ceili(float(state["crew"]) * MAROON_CREW_FRACTION)
-			CrewLife.remove_crew(state, n)
+			CrewPersona.remove_least_loyal(state, n)  # the mutineers are the least loyal men
 			state["morale"] = MAROON_MORALE
 			return {"ok": true, "text_key": "mutiny.marooned"}
 	return {"ok": false, "text_key": ""}
