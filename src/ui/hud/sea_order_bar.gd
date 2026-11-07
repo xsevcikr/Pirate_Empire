@@ -2,6 +2,7 @@ class_name SeaOrderBar
 extends CanvasLayer
 ## The crew's order buttons at sea, along the bottom of the screen: Attack, Load cannons, Fire!, Retreat, Repair,
 ## a pull of rum for the captain, and the hail that demands a ship's surrender. F1-F7 press them from the keyboard.
+## Out of a fight the bar is hidden.
 
 const BUTTONS: Array[String] = ["orders.attack", "orders.load", "orders.fire", "orders.retreat", "orders.repair", "orders.rum", "orders.hail"]
 const ORDER_OF: Array[int] = [CrewOrders.Order.ATTACK, CrewOrders.Order.LOAD, CrewOrders.Order.FIRE, CrewOrders.Order.RETREAT,
@@ -11,6 +12,7 @@ signal drink_pressed
 signal hail_pressed
 
 var controller: PlayerController
+var hud: SailingHud  ## the bar shows only in a fight (or while an order stands); F1-F7 work regardless
 var _buttons: Array[Button] = []
 
 
@@ -61,6 +63,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(_delta: float) -> void:
 	if controller == null:
 		return
+	visible = hud == null or hud.in_combat() or controller.order != CrewOrders.Order.NONE
 	for i in _buttons.size():
 		if _buttons[i].toggle_mode:
 			_buttons[i].set_pressed_no_signal(controller.order == ORDER_OF[i])
