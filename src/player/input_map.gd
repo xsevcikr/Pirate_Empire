@@ -19,6 +19,7 @@ const ACTIONS: Dictionary = {
 	"grapple": [KEY_G],
 	"photo_mode": [KEY_P],
 	"interact": [KEY_SPACE],
+	"disembark": [KEY_F],  ## near a harbour only; out at sea F still lowers the guns
 	"world_map": [KEY_M],
 	"kedge": [KEY_X],
 	"dump_cargo": [KEY_B],
