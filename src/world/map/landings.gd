@@ -93,6 +93,7 @@ static func go_ashore(state: Dictionary, island_name: String, rng: RandomNumberG
 	var recruit: bool = rng.randf() < float(y["recruit"]) and PortService.crew_room(state) > 0
 	if recruit:
 		state["roster"].append({"name": PortService.NAMES[rng.randi() % PortService.NAMES.size()], "type": "green", "level": 1, "xp": 0})
+		CrewPersona.ensure_last(state)
 		state["crew"] = int(state["crew"]) + 1
 	if not state.has("landings"):
 		state["landings"] = {}

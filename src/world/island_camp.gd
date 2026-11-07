@@ -22,7 +22,7 @@ static func find_site(isl: Island, rng: RandomNumberGenerator) -> Dictionary:
 		var rad: float = isl.radius_m * rng.randf_range(0.4, 1.1)
 		var p: Vector2 = Vector2.from_angle(ang) * rad
 		var h: float = isl.ground_y(p)
-		if h < BEACH_MIN_M or h > BEACH_MAX_M:
+		if h < BEACH_MIN_M or h > BEACH_MAX_M or (isl.keep_clear.is_valid() and isl.keep_clear.call(p)):
 			continue
 		var flat: bool = true
 		for d in [Vector2(9, 0), Vector2(-9, 0), Vector2(0, 9), Vector2(0, -9)]:

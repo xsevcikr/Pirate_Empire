@@ -1,7 +1,7 @@
 class_name Ship
 extends RigidBody3D
-## A sailing ship: buoyancy sampled on the Gerstner surface, wind sail thrust,
-## quadratic hull drag, rudder yaw and wind heel. Forward is -Z, starboard is +X.
+## A sailing ship: buoyancy sampled on the Gerstner surface, sail thrust (the same on every heading: there are no
+## wind mechanics), quadratic hull drag, rudder yaw and a slight lean in turns. Forward is -Z, starboard is +X.
 
 const RHO_REF_WIND_MS: float = 10.29  # 20 knots
 const WATER_LATERAL_DAMP: float = 3.0
@@ -28,7 +28,7 @@ var sail_level: int = 3
 
 var rudder_actual: float = 0.0
 var submerged_fraction: float = 0.0
-var angle_off_wind: float = 90.0
+var angle_off_wind: float = 90.0  # kept for old callers; sailing ignores the wind
 var speed_forward_ms: float = 0.0
 
 var damage: DamageModel
@@ -115,7 +115,7 @@ func _build_points() -> void:
 
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
-	if ocean == null or wind == null:
+	if ocean == null:
 		return
 	var dt: float = state.step
 	var xf: Transform3D = state.transform
@@ -135,7 +135,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var wet: int = 0
 	var max_depth: float = stats.draft_m * 2.0
 	var flood: float = damage.flood_fraction()
-	var buoyancy_scale: float = 0.04 if damage.sunk else 1.0 - 0.95 * flood
+	var buoyancy_scale: float = 0.04 if damage.sunk else 1.0 - 0.45 * flood  # waterlogged she rides low but floats
 	for p in _points:
 		var offset: Vector3 = xf.basis * p
 		var world: Vector3 = xf.origin + offset
@@ -155,22 +155,21 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var lateral: float = flat_vel.dot(right)
 
 	if in_water:
-		# Sail thrust: terminal speed = max_speed * wind_ratio * point-of-sail factor * sqrt(level).
-		angle_off_wind = wind.angle_off_wind_deg(flat_fwd)
-		var factor: float = SailModel.speed_factor(angle_off_wind, stats.square_rig)
+		# Sail thrust: no wind to worry about, the ship makes the same speed on every heading. Terminal speed is
+		# max_speed * sqrt(level), less for torn sails and flooding. The wind only moves the sails' cloth.
+		if wind != null:
+			angle_off_wind = wind.angle_off_wind_deg(flat_fwd)
 		var level: float = SailModel.LEVELS[clampi(sail_level, 0, 3)]
-		var ratio: float = minf(wind.speed_ms() / RHO_REF_WIND_MS, 1.5)
 		var condition: float = damage.sail_health() * (1.0 - 0.8 * flood)
-		var thrust: float = _f_ref * ratio * ratio * factor * factor * level * condition
+		var thrust: float = _f_ref * level * condition
 		state.apply_central_force(forward * thrust)
 		# Hull drag
 		state.apply_central_force(-forward * _k_drag * speed_forward_ms * absf(speed_forward_ms) * (1.0 + (0.5 if mast_drag_s > 0.0 else 0.0)))
 		if mast_drag_s > 0.0:  # a fallen mast dragging in the water turns the ship toward the side it fell
 			state.apply_torque(Vector3.UP * _mast_side * stats.mass_kg * stats.length_m * 0.05)
 		state.apply_central_force(-right * stats.mass_kg * WATER_LATERAL_DAMP * lateral)
-		# Heel away from the wind
-		var side: float = wind.direction.x * right.x + wind.direction.y * right.z
-		var heel: float = HEEL_COEFF * _f_ref * ratio * ratio * level * side
+		# Lean a little into turns (there is no wind heel any more)
+		var heel: float = HEEL_COEFF * _f_ref * level * rudder_actual * clampf(speed_forward_ms / maxf(MathUtils.knots_to_ms(stats.max_speed_kn), 0.1), 0.0, 1.0) * 0.5
 		state.apply_torque(forward * heel * stats.length_m * 0.25)
 		# Rudder
 		rudder_actual = move_toward(rudder_actual, rudder_input, dt / RUDDER_TIME_S)
@@ -294,6 +293,9 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 		info.damage *= float(Difficulty.value("damage_taken"))
 	if source != null and source != self:
 		last_attacker = source
+		if _is_player_ship(source) and not has_meta("player_struck"):
+			set_meta("player_struck", true)
+			_player_crime("attack")
 	info.source = source
 	var water_y: float = ocean.height_at(world_pos.x, world_pos.z) if ocean else 0.0
 	info.below_waterline = world_pos.y < water_y
@@ -303,10 +305,16 @@ func receive_cannonball(world_pos: Vector3, world_normal: Vector3, world_dir: Ve
 	var parent: Node = get_parent()
 	if result["ricochet"]:
 		Vfx.burst(parent, world_pos, Color(1, 0.9, 0.5), 8, 8.0, 0.4, 0.06, -9.8, 60.0, world_normal)
+		HitFx.sparks(parent, world_pos, world_normal, 30)
+		Sfx.play("ricochet", world_pos)
 	else:
 		Vfx.splinters(parent, world_pos)
+		HitFx.sparks(parent, world_pos, world_normal)
 		Sfx.play("wood_impact", world_pos)
 		Sfx.play("splinter", world_pos)
+	if HitFx.focus(self) == self:  # our own ship, the one the camera follows
+		Sfx.play("hit_thud")
+		HitFx.shake(self, HitFx.hit_shake(info.damage, stats.hull_hp) * (0.5 if result["ricochet"] else 1.0))
 	_update_damage_visuals()
 	hit_taken.emit(result)
 	return result
@@ -359,8 +367,9 @@ func _on_contact(body: Node) -> void:
 	var dmg: float = CollisionModel.hull_damage(e, material, false, rams)
 	var scrape: float = 0.0
 	var other: Ship = body as Ship
+	var their_ram: bool = false
 	if other != null:
-		var their_ram: bool = other._has_ram() and (-other.global_transform.basis.z).dot(-n) > 0.8
+		their_ram = other._has_ram() and (-other.global_transform.basis.z).dot(-n) > 0.8
 		dmg = CollisionModel.hull_damage(e, material, their_ram, rams) * CollisionModel.angle_factor(toward_hit)
 		scrape = CollisionModel.scrape_damage(mass, other_mass, parts["slide"])
 	var verdict: String = "bump"
@@ -372,7 +381,7 @@ func _on_contact(body: Node) -> void:
 	var local_contact: Vector3 = hull_point(toward_hit)
 	var section: int = damage.section_for(local_contact)
 	var cons: Dictionary = CollisionModel.consequences(dmg, stats.hull_hp, crew.count, stats.cargo_t if player else 0.0, damage.rng)
-	var res: Dictionary = damage.apply_impact(section, dmg + scrape, 0.0, cons["mast_breaks"])
+	var res: Dictionary = damage.apply_impact(section, dmg + scrape, 0.0, cons["mast_breaks"], their_ram)
 	var size: int = CollisionModel.breach_size(dmg, stats.hull_hp)
 	if size == 0 and cons["leak"]:
 		size = 1
@@ -433,7 +442,7 @@ func _take_blow(energy: float, scrape: float, n: Vector3, they_ram: bool) -> voi
 	var dmg: float = CollisionModel.hull_damage(energy, "ship", they_ram, mine) * CollisionModel.angle_factor(toward_hit)
 	var local_contact: Vector3 = hull_point(toward_hit)
 	var section: int = damage.section_for(local_contact)
-	damage.apply_impact(section, dmg + scrape, 0.0, false)
+	damage.apply_impact(section, dmg + scrape, 0.0, false, they_ram)
 	var size: int = CollisionModel.breach_size(dmg, stats.hull_hp)
 	if size == 0 and CollisionModel.breach_size(scrape * 2.0, stats.hull_hp) > 0:
 		size = 1
@@ -515,12 +524,41 @@ func _on_sank() -> void:
 	var bus: Node = Svc.node("EventBus")
 	if bus != null:
 		bus.ship_sunk.emit(Vector2(global_position.x, global_position.z), stats.class_id)
+	if is_instance_valid(last_attacker) and _is_player_ship(last_attacker):
+		_player_crime("sink")
 	sink_started = true
 	sank_signal.emit()
 	get_tree().create_timer(45.0).timeout.connect(queue_free)
 
 
 var sink_started: bool = false
+
+
+## The flag whose standing and bounty a fight with this ship touches.
+func law_faction() -> String:
+	if has_meta("rep_faction"):
+		return str(get_meta("rep_faction"))
+	return str({"iron": "iron_dominion"}.get(faction, faction))
+
+
+## Whether `n` is the ship the player sails (the world scene's `ship`).
+func _is_player_ship(n: Variant) -> bool:
+	if not (n is Ship) or not is_inside_tree():
+		return false
+	var scene: Node = get_tree().current_scene
+	return scene != null and scene.get("ship") == n
+
+
+## The player struck or sank this ship: a lawful flag puts a price on the player's head, a pirate earns a reward.
+func _player_crime(kind: String) -> void:
+	if not Session.has_state() or _is_player_ship(self):
+		return
+	var f: String = law_faction()
+	if f == "pirate":
+		if kind == "sink":
+			EventBus_toast("bounty.reward_owed", Bounty.pirate_taken(Session.state, stats.price, str(get_meta("crew", ""))))
+		return
+	Bounty.announce(Bounty.crime(Session.state, f, kind), f)
 var visuals: ShipVisuals
 var breach_visuals: BreachVisuals
 var _hull_material: ShaderMaterial

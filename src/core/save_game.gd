@@ -2,7 +2,7 @@ class_name SaveGame
 extends RefCounted
 ## Save data: a plain dictionary so it round-trips through JSON. Older versions are migrated on load.
 
-const VERSION: int = 17
+const VERSION: int = 21
 const SLOT_PATH: String = "user://save_%d.json"
 
 
@@ -15,9 +15,12 @@ static func new_state() -> Dictionary:
 		"owned_weapons": ["rusty_cutlass", "flintlock"], "fame": 0, "docked_at": PortData.START_PORT, "starter_exchange": true,
 		"tutorial": "leave_dock", "captain_cut": Morale.CUT_DEFAULT, "captain_level": 1, "rum_ration": true, "wounded": 0,
 		"starve_days": 0, "thirst_days": 0, "unpaid_days": 0, "death_accum": 0.0, "wound_accum": 0.0, "desert_accum": 0.0,
-		"mutiny_shield_day": -99, "last_tick_day": 1, "offers_window": -1, "offers_taken": [], "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
+		"mutiny_shield_day": -99, "persona_talk_day": -99, "last_tick_day": 1, "offers_window": -1, "offers_taken": [], "quests": [], "quests_done": [], "map_fragments": [], "markets": {}, "log": [],
 		"rep": Reputation.START_REP.duplicate(), "bounty": {}, "discovery": "", "streams_known": [], "course": [], "wrecks": [], "destroyed": {}, "tours": {}, "rivals": {}, "crews": {}, "sea_events": {}, "prizes_taken": 0, "captain_xp": 0, "skills": {}, "skill_points_spent": 0, "stats": {}, "achievements": {}, "islands_seen": [], "trade_rem": 0, "custom": {}, "ship_damage": {}, "siren_paid": false, "act": 0, "beat": 0,
-		"landings": {},
+		"landings": {}, "buried": {}, "price_book": {},
+		"bounty_crime_day": -99, "bounty_claims": 0, "hunter_next_h": -1.0, "shanty_day": -99, "shanties_sung": 0,
+		"easy_play": EasyPlay.fresh(),
+		"looks": {},
 		"fleet": [], "bases": [], "lagoon": {}, "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
 	}
@@ -36,7 +39,7 @@ static func from_json(text: String) -> Dictionary:
 
 ## JSON turns ints into floats; put the integer fields back so a round trip compares equal.
 static func _restore_types(d: Dictionary) -> Dictionary:
-	for k in ["version", "gold", "day", "crew", "act", "beat", "seed", "difficulty", "saved_at", "wounded", "starve_days", "thirst_days", "unpaid_days", "mutiny_shield_day", "last_tick_day", "captain_level", "captain_xp", "skill_points_spent", "trade_rem", "bank", "convoy_seq", "convoys_lost"]:
+	for k in ["version", "gold", "day", "crew", "act", "beat", "seed", "difficulty", "saved_at", "wounded", "starve_days", "thirst_days", "unpaid_days", "mutiny_shield_day", "persona_talk_day", "last_tick_day", "captain_level", "captain_xp", "skill_points_spent", "trade_rem", "bank", "convoy_seq", "convoys_lost", "bounty_crime_day", "bounty_claims", "shanty_day", "shanties_sung"]:
 		if d.has(k):
 			d[k] = int(d[k])
 	if d.get("lagoon") is Dictionary:
@@ -118,6 +121,31 @@ static func migrate(d: Dictionary) -> Dictionary:
 		# v17: every man on deck, the captain too, has 200 hit points, and the captain's now carry between fights.
 		d["captain_hp"] = 200.0
 		d["version"] = 17
+	if v < 18:
+		# v18: every named hand has a personality and his own loyalty, which starts near the ship's morale.
+		for m: Variant in d.get("roster", []):
+			if m is Dictionary and not (m as Dictionary).has("loyalty"):
+				(m as Dictionary)["loyalty"] = clampf(float(d.get("morale", 70.0)), 30.0, 70.0)
+		var tmp: Dictionary = {"seed": int(d.get("seed", 1)), "roster": d.get("roster", [])}
+		CrewPersona.ensure_all(tmp)
+		d["version"] = 18
+	if v < 19:
+		# v19 adds buried treasure maps and the price book of the trade routes ledger. An old captain starts with
+		# no maps and an empty book; fleet ships put on a route keep it on their own fleet entry.
+		d["buried"] = {}
+		d["price_book"] = {}
+		d["version"] = 19
+	if v < 20:
+		# v20 makes the bounty system live (when the last crime was, the navy's rewards owed, the next hunters) and
+		# remembers the day the crew last sang at sea. The defaults below fill them in; old bounties stand.
+		d["version"] = 20
+	if v < 21:
+		# v21: the kid-friendly layer, with goals, stars, the collection book and the parrot's finds. An old save
+		# starts them fresh; the steering step replaced the old "face the wind" tutorial step.
+		d["easy_play"] = EasyPlay.fresh()
+		if str(d.get("tutorial", "")) == "into_wind":
+			d["tutorial"] = "steer"
+		d["version"] = 21
 	var base: Dictionary = new_state()
 	for k in base.keys():
 		if not d.has(k):

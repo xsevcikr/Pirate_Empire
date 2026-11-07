@@ -2,7 +2,8 @@ class_name Lagoon
 extends RefCounted
 ## The player's lagoon as plain functions on the save state, so the rules can be tested without the world or UI.
 ## state["lagoon"] is empty until the atoll is claimed, then:
-## {rank, buildings: [{t, x, y, lv, rot, dmg}], piers: [level...], pop, chest, larder, rest_day, raids, repelled}
+## {rank, buildings: [{t, x, y, lv, rot, dmg}], piers: [level...], pop, chest, larder, rest_day, raids, repelled,
+## housing, away, missions, mission_log}; the last four came later and are read with defaults (see LagoonMissions).
 
 const LARDER_CAP: float = 80.0
 
@@ -16,7 +17,7 @@ static func data(s: Dictionary) -> Dictionary:
 
 
 static func new_lagoon() -> Dictionary:
-	return {"rank": 0, "buildings": [], "piers": [], "pop": 0, "chest": 0.0, "larder": 0.0, "rest_day": -1, "raids": 0, "repelled": 0}
+	return {"rank": 0, "buildings": [], "piers": [], "pop": 0, "chest": 0.0, "larder": 0.0, "rest_day": -1, "raids": 0, "repelled": 0, "housing": 0, "away": 0, "missions": [], "mission_log": []}
 
 
 static func claim(s: Dictionary) -> bool:
@@ -40,6 +41,7 @@ static func restore_types(s: Dictionary) -> void:
 	var piers: Array = l["piers"]
 	for i in piers.size():
 		piers[i] = int(piers[i])
+	LagoonMissions.restore_types(l)
 
 
 # ---- plots and buildings ---------------------------------------------------------------------
@@ -101,7 +103,7 @@ static func demolish(s: Dictionary, c: Vector2i) -> int:
 		spent += LagoonData.cost(b["t"], lv)
 	var refund: int = int(spent * LagoonData.DEMOLISH_REFUND)
 	data(s)["buildings"].erase(b)
-	data(s)["pop"] = mini(int(data(s)["pop"]), beds(s))  # those who lived there move out
+	data(s)["pop"] = mini(int(data(s)["pop"]), maxi(beds(s) - LagoonMissions.away(s), 0))  # those who lived there move out
 	s["gold"] = int(s["gold"]) + refund
 	return refund
 
@@ -160,7 +162,39 @@ static func count_of(s: Dictionary, type: String) -> int:
 
 
 static func beds(s: Dictionary) -> int:
-	return int(total(s, "beds"))
+	return int(total(s, "beds")) + housing_beds(s) if claimed(s) else 0
+
+
+# ---- housing (bought at the harbour office) ----------------------------------------------------
+
+static func housing_level(s: Dictionary) -> int:
+	return int(data(s).get("housing", 0)) if claimed(s) else 0
+
+
+static func housing_beds(s: Dictionary) -> int:
+	var lv: int = housing_level(s)
+	return int(LagoonData.HOUSING["beds"][lv - 1]) if lv > 0 else 0
+
+
+## Gold for the next housing level, -1 at the top. Each level needs the lagoon rank below it (level 1 at once).
+static func housing_cost(s: Dictionary) -> int:
+	var lv: int = housing_level(s)
+	if not claimed(s) or lv >= (LagoonData.HOUSING["cost"] as Array).size():
+		return -1
+	return int(LagoonData.HOUSING["cost"][lv])
+
+
+static func housing_rank_needed(s: Dictionary) -> int:
+	return housing_level(s)
+
+
+static func expand_housing(s: Dictionary) -> bool:
+	var cost: int = housing_cost(s)
+	if cost < 0 or cost > int(s["gold"]) or rank_of(s) < housing_rank_needed(s):
+		return false
+	s["gold"] = int(s["gold"]) - cost
+	data(s)["housing"] = housing_level(s) + 1
+	return true
 
 
 static func income_daily(s: Dictionary) -> float:
@@ -340,7 +374,7 @@ static func daily(s: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
 	if not claimed(s):
 		return out
 	var l: Dictionary = data(s)
-	var room: int = beds(s) - int(l["pop"])
+	var room: int = beds(s) - int(l["pop"]) - LagoonMissions.away(s)  # beds of parties out on missions stay theirs
 	var grow: int = clampi(room, -999, 1 + count_of(s, "tavern"))
 	l["pop"] = maxi(int(l["pop"]) + grow, 0)
 	out["moved_in"] = maxi(grow, 0)
