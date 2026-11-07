@@ -1454,3 +1454,83 @@ guards.launched,"The alarm bells ring! %d guard boats put out from %s.","Zvoní 
 guards.boat,%s Watch,Stráž %s
 guards.beaten,"The watch of %s is beaten! War chest: %d gold, %d round shot, %d pistol shots, %d rum.","Stráž přístavu %s je poražena! Válečná pokladna: %d zlaťáků, %d koulí, %d nábojů do pistole, %d rumu."
 guards.gave_up,The watch of %s gives up the chase and rows home.,Stráž přístavu %s vzdává pronásledování a vrací se domů.
+lagoon.office,Harbour office (upgrades and missions),Přístavní kancelář (vylepšení a výpravy)
+lagoon.office_away,Harbour office (%d parties out),Přístavní kancelář (venku %d výprav)
+lagoon.away_line,%d pirates are out on missions,%d pirátů je pryč na výpravách
+office.title,Harbour Office,Přístavní kancelář
+office.lagoon,Lagoon,Laguna
+office.missions,Missions,Výpravy
+office.needs_lagoon_yard,Needs a level %d shipyard in your lagoon,Potřebuje loděnici úrovně %d ve tvé laguně
+office.rank_desc,"Raise the lagoon: more building plots, more piers and more parties out on missions at once.","Povýšit lagunu: víc stavebních parcel, víc mol a víc výprav najednou."
+office.stat_plots,Plots,Parcely
+office.stat_piers,Piers,Mola
+office.stat_parties,Parties,Výpravy
+office.raise,Raise,Povýšit
+office.housing,Pirate quarters,Pirátské ubikace
+office.housing_desc,"Bunkhouses and hammocks all over the atoll, so more pirates can live in your empire.","Noclehárny a houpací sítě po celém atolu, aby ve tvé říši mohlo žít víc pirátů."
+office.stat_people,People,Lidé
+office.stat_beds,Beds,Lůžka
+office.expand,Expand,Rozšířit
+office.needs_rank,Needs the lagoon rank %s,Potřebuje hodnost laguny %s
+office.away,"%d pirates away, back in %d days","%d pirátů pryč, zpět za %d dní"
+office.send,Send,Vyslat
+office.send_note,Send %d pirates,Vyslat %d pirátů
+office.stat_crew,Pirates,Piráti
+office.stat_days,Days,Dní
+office.stat_reward,Gold,Zlato
+office.stat_risk,Death risk,Riziko smrti
+office.stat_lost,Never return,Nevrátí se
+office.no_slots,"All %d parties are out, raise the lagoon for more","Všech %d výprav je venku, povyš lagunu pro další"
+office.no_crew,Needs %d pirates at home (%d here),Potřebuje %d pirátů doma (tady je %d)
+office.returned,Came home on day %d,Vrátili se %d. den
+office.sent,%s: the party has set out,%s: výprava vyrazila
+mission.fishing,Fishing trip,Rybářská výprava
+mission.wreck_dive,Dive the wrecks,Potápění k vrakům
+mission.merchant_raid,Raid a merchant,Přepadení obchodníka
+mission.smuggling,Smuggling run,Pašerácká jízda
+mission.treasure_hunt,Treasure hunt,Hon za pokladem
+mission.convoy_raid,Raid a convoy,Přepadení konvoje
+mission.fort_raid,Storm a fort,Útok na pevnost
+mission.desc.fishing,"A day with nets off the reef. Safe, but it pays little.","Den se sítěmi u útesu. Bezpečné, ale vynese málo."
+mission.desc.wreck_dive,Dive the old wrecks around the atoll for coins and trinkets. Sharks live there.,Potápění k starým vrakům kolem atolu pro mince a cetky. Žijí tam žraloci.
+mission.desc.merchant_raid,Take a longboat out and rob a lone merchant ship.,Vyplout na člunu a oloupit osamělou obchodní loď.
+mission.desc.smuggling,Run rum and silk past the navy into a lawful port.,Propašovat rum a hedvábí kolem námořnictva do zákonného přístavu.
+mission.desc.treasure_hunt,Follow an old map to a buried chest on a far island.,Najít podle staré mapy zakopanou truhlu na vzdáleném ostrově.
+mission.desc.convoy_raid,Fall on a navy-guarded convoy. Rich pickings and heavy fighting.,Přepadnout konvoj pod ochranou námořnictva. Bohatá kořist a tvrdý boj.
+mission.desc.fort_raid,Storm a coastal fort and empty its treasury. Many will not come back.,Dobýt pobřežní pevnost a vybrat její pokladnu. Mnozí se nevrátí.
+mission.report_ok,%s: all came home with %d gold,%s: všichni se vrátili s %d zlaťáky
+mission.report_hurt,"%s: back with %d gold, %d pirates died","%s: zpět s %d zlaťáky, %d pirátů zemřelo"
+mission.report_lost,%s: the party of %d never came back,%s: výprava %d pirátů se už nevrátila
+orders.hail,Demand surrender,Vyzvat ke kapitulaci
+parley.nobody,No ship close enough to hear the hail.,Žádná loď není dost blízko na výzvu.
+parley.struck,They strike their colours! (%d%% chance),Stahují vlajku! (šance %d %%)
+parley.refused,"They answer with a curse and stand to arms. (%d%% chance)","Odpoví kletbou a chystají se k boji. (šance %d %%)"
+persona.loyalty,loyalty,věrnost
+persona.loyal_line,Loyal hands: %d of %d   (mutiny duel odds %d%%),Věrní muži: %d z %d   (šance v souboji při vzpouře %d %%)
+persona.ringleader,"Ringleader: %s. %d loyal hands stand with you.","Vůdce vzpoury: %s. Při tobě stojí %d věrných mužů."
+persona.deserted,%s has slipped ashore and deserted.,%s se vytratil na břeh a dezertoval.
+persona.talked_down,"Your loyal hands talk the crew down; %s backs off, for now.","Věrní muži posádku uklidnili; %s zatím ustoupil."
+persona.ev_dry,%s grumbles that a ship without rum is no ship at all.,"%s reptá, že loď bez rumu není žádná loď."
+persona.ev_omen,%s saw an ill omen in the sky and is spooked.,%s viděl na obloze zlé znamení a je vyděšený.
+persona.ev_brawl,%s started a brawl below decks.,%s rozpoutal rvačku v podpalubí.
+persona.ev_cheer,%s strikes up a shanty and the crew joins in.,%s spustil píseň a posádka se přidala.
+trait.brave,Brave,Statečný
+trait.steadfast,Steadfast,Neochvějný
+trait.greedy,Greedy,Hamižný
+trait.drunkard,Drunkard,Opilec
+trait.superstitious,Superstitious,Pověrčivý
+trait.hothead,Hothead,Horká hlava
+trait.cheerful,Cheerful,Veselý
+trait.coward,Coward,Zbabělec
+trait.brave_tip,"Hits 15% harder on deck, rallies the men near him, warms to you after every boarding won.","Na palubě bije o 15 % silněji, povzbuzuje muže kolem sebe a po každém vyhraném nalodění ti je věrnější."
+trait.steadfast_tip,"Loyalty falls only half as fast and never below 35.","Věrnost mu klesá jen poloviční rychlostí a nikdy pod 35."
+trait.greedy_tip,"Counts his loot share twice; hates a captain's cut over 35%.","Svůj podíl z kořisti počítá dvakrát; nesnáší kapitánův podíl nad 35 %."
+trait.drunkard_tip,"Loves the rum ration; sours fast without it.","Miluje příděl rumu; bez něj rychle zatrpkne."
+trait.superstitious_tip,"Storms and ill omens shake his loyalty.","Bouře a zlá znamení otřásají jeho věrností."
+trait.hothead_tip,"Hits 10% harder, but starts brawls when morale is low and takes defeat badly.","Bije o 10 % silněji, ale při nízké morálce rozpoutává rvačky a špatně nese porážky."
+trait.cheerful_tip,"Lifts the whole crew's morale a little every day.","Každý den trochu zvedne morálku celé posádky."
+trait.coward_tip,"Hits 15% softer, may panic on deck and is first to desert.","Bije o 15 % slaběji, na palubě může zpanikařit a dezertuje jako první."
+loyalty.devoted,devoted,oddaný
+loyalty.loyal,loyal,věrný
+loyalty.wavering,wavering,váhavý
+loyalty.disloyal,disloyal,nevěrný

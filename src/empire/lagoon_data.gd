@@ -54,6 +54,9 @@ const BUILDINGS: Dictionary = {
 }
 const ORDER: Array[String] = ["hut", "tavern", "market", "warehouse", "shipyard", "farm", "tower", "battery", "campfire", "flagpole", "lanterns", "palms", "well", "treasure", "statue"]
 
+## Housing bought at the harbour office: beds on top of the huts, so more pirates can live in the lagoon.
+const HOUSING: Dictionary = {"cost": [2000, 6000, 15000, 35000], "beds": [10, 25, 45, 70]}
+
 ## Piers: how many ships each moors and how far it reaches out from the beach.
 const PIER: Dictionary = {"cost": [1200, 3500, 8000], "berths": [1, 2, 3], "length_m": [34.0, 50.0, 66.0]}
 ## Bearings of the pier slots either side of the harbour line, in order of building.

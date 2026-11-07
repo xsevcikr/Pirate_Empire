@@ -197,6 +197,7 @@ func _start_game_layer() -> void:
 	orders.name = "SeaOrderBar"
 	orders.controller = player_controller
 	orders.drink_pressed.connect(drink_rum)
+	orders.hail_pressed.connect(prizes.hail)
 	add_child(orders)
 	world_audio = WorldAudio.new()
 	world_audio.world = self
@@ -396,8 +397,14 @@ func _daily_crew_tick() -> void:
 		EventBus.toast.emit(Loc.t("crew.unpaid"))
 	if int(report["deaths"]) > 0:
 		EventBus.toast.emit(Loc.t("crew.died_" + str(report["died_of"] if report["died_of"] != "" else "wounds")) % int(report["deaths"]))
-	if int(report["deserted"]) > 0:
-		EventBus.toast.emit(Loc.t("crew.deserted") % int(report["deserted"]))
+	if int(report["deserted"]) > report["deserted_names"].size():
+		EventBus.toast.emit(Loc.t("crew.deserted") % (int(report["deserted"]) - report["deserted_names"].size()))
+	for n: String in report["deserted_names"]:
+		EventBus.toast.emit(Loc.t("persona.deserted") % n)
+	for ev: Dictionary in report["persona_events"]:
+		EventBus.toast.emit(Loc.t(str(ev["key"])) % str(ev["name"]))
+	if str(report["talked_down"]) != "":
+		EventBus.toast.emit(Loc.t("persona.talked_down") % str(report["talked_down"]))
 	if report["mutiny"]:
 		open_mutiny()
 
@@ -505,6 +512,7 @@ func open_lagoon() -> void:
 	layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	layer.layer = 50
 	add_child(layer)
+	Session.state["day"] = GameClock.day  # the rest day and mission days read it
 	var screen := LagoonScreen.new()
 	screen.world = self
 	layer.add_child(screen)
@@ -516,16 +524,20 @@ func open_lagoon() -> void:
 		layer.queue_free())
 
 
-## A day at the lagoon while the captain is away; raids are reported as they happen.
+## A day at the lagoon while the captain is away; raids and parties coming home from missions are reported.
 func _lagoon_day() -> void:
 	if not Lagoon.claimed(Session.state):
 		return
+	Session.state["day"] = GameClock.day  # missions come home by the clock's day
 	var r: Dictionary = Lagoon.daily(Session.state, _trade_rng)
 	match str(r["raid"]):
 		"repelled":
 			EventBus.toast.emit(Loc.t("lagoon.raid_repelled"))
 		"lost":
 			EventBus.toast.emit(Loc.t("lagoon.raid_lost") % int(r["lost_gold"]))
+	for e: Dictionary in LagoonMissions.daily(Session.state, _trade_rng):
+		EventBus.toast.emit(LagoonMissions.report(e))
+		Sfx.play("coin" if int(e["gold"]) > 0 else "bell")
 	if streamer.lagoon != null:
 		streamer.lagoon.sync()
 
