@@ -1,7 +1,7 @@
 class_name Ship
 extends RigidBody3D
-## A sailing ship: buoyancy sampled on the Gerstner surface, wind sail thrust,
-## quadratic hull drag, rudder yaw and wind heel. Forward is -Z, starboard is +X.
+## A sailing ship: buoyancy sampled on the Gerstner surface, sail thrust (the same on every heading: there are no
+## wind mechanics), quadratic hull drag, rudder yaw and a slight lean in turns. Forward is -Z, starboard is +X.
 
 const RHO_REF_WIND_MS: float = 10.29  # 20 knots
 const WATER_LATERAL_DAMP: float = 3.0
@@ -115,7 +115,7 @@ func _build_points() -> void:
 
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
-	if ocean == null or wind == null:
+	if ocean == null:
 		return
 	var dt: float = state.step
 	var xf: Transform3D = state.transform
@@ -155,22 +155,21 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var lateral: float = flat_vel.dot(right)
 
 	if in_water:
-		# Sail thrust: terminal speed = max_speed * wind_ratio * point-of-sail factor * sqrt(level).
-		angle_off_wind = wind.angle_off_wind_deg(flat_fwd)
-		var factor: float = SailModel.speed_factor(angle_off_wind, stats.square_rig)
+		# Sail thrust: no wind to worry about, the ship makes the same speed on every heading. Terminal speed is
+		# max_speed * sqrt(level), less for torn sails and flooding. The wind only moves the sails' cloth.
+		if wind != null:
+			angle_off_wind = wind.angle_off_wind_deg(flat_fwd)
 		var level: float = SailModel.LEVELS[clampi(sail_level, 0, 3)]
-		var ratio: float = minf(wind.speed_ms() / RHO_REF_WIND_MS, 1.5)
 		var condition: float = damage.sail_health() * (1.0 - 0.8 * flood)
-		var thrust: float = _f_ref * ratio * ratio * factor * factor * level * condition
+		var thrust: float = _f_ref * level * condition
 		state.apply_central_force(forward * thrust)
 		# Hull drag
 		state.apply_central_force(-forward * _k_drag * speed_forward_ms * absf(speed_forward_ms) * (1.0 + (0.5 if mast_drag_s > 0.0 else 0.0)))
 		if mast_drag_s > 0.0:  # a fallen mast dragging in the water turns the ship toward the side it fell
 			state.apply_torque(Vector3.UP * _mast_side * stats.mass_kg * stats.length_m * 0.05)
 		state.apply_central_force(-right * stats.mass_kg * WATER_LATERAL_DAMP * lateral)
-		# Heel away from the wind
-		var side: float = wind.direction.x * right.x + wind.direction.y * right.z
-		var heel: float = HEEL_COEFF * _f_ref * ratio * ratio * level * side
+		# Lean a little into turns (there is no wind heel any more)
+		var heel: float = HEEL_COEFF * _f_ref * level * rudder_actual * clampf(speed_forward_ms / maxf(MathUtils.knots_to_ms(stats.max_speed_kn), 0.1), 0.0, 1.0) * 0.5
 		state.apply_torque(forward * heel * stats.length_m * 0.25)
 		# Rudder
 		rudder_actual = move_toward(rudder_actual, rudder_input, dt / RUDDER_TIME_S)

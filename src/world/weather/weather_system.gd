@@ -146,7 +146,7 @@ func _apply_world(delta: float) -> void:
 	if world == null:
 		return
 	var wind: WindModel = world.get("wind")
-	if wind != null and not SeaEvents.is_becalmed(state):
+	if wind != null:  # nothing becalms the ship any more (no wind mechanics)
 		wind.speed_kn = move_toward(wind.speed_kn, float(current["wind"]), WeatherRules.WIND_KN_PER_S * delta)
 	var dn: DayNight = world.get("day_night")
 	if dn != null:
