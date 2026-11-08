@@ -10,6 +10,7 @@ var ocean: WaveModel
 var active: Array[Dictionary] = []
 var hits: int = 0
 var misses: int = 0
+var near_misses: int = 0
 var _pool: Array[MeshInstance3D] = []
 var _mesh: SphereMesh
 var _material: ShaderMaterial
@@ -84,8 +85,10 @@ func _physics_process(delta: float) -> void:
 			misses += 1
 			done = true
 		elif ocean and p["pos"].y < ocean.height_at(p["pos"].x, p["pos"].z):
-			Vfx.splash(self, Vector3(p["pos"].x, ocean.height_at(p["pos"].x, p["pos"].z), p["pos"].z))
+			var at := Vector3(p["pos"].x, ocean.height_at(p["pos"].x, p["pos"].z), p["pos"].z)
+			Vfx.splash(self, at)
 			Sfx.play("splash", p["pos"])
+			_near_miss(at, p["source"])
 			misses += 1
 			done = true
 		elif p["age"] > MAX_AGE_S or p["pos"].y < -60.0:
@@ -96,6 +99,24 @@ func _physics_process(delta: float) -> void:
 		else:
 			(p["node"] as MeshInstance3D).global_position = p["pos"]
 		i -= 1
+
+
+## A ball from someone else landing close alongside the ship the camera follows: a big wet splash right
+## beside us, a slap of water and a small jolt.
+func _near_miss(at: Vector3, source: Node) -> void:
+	var me: Node3D = HitFx.focus(self)
+	if me == null or source == me:
+		return
+	var d: float = Vector2(at.x - me.global_position.x, at.z - me.global_position.z).length()
+	var reach: float = HitFx.NEAR_MISS_M
+	if me is Ship:
+		reach += (me as Ship).stats.length_m * 0.5
+	if d > reach:
+		return
+	near_misses += 1
+	Vfx.splash(self, at, 1.6)
+	Sfx.play("splash_near")
+	HitFx.shake(self, HitFx.SHAKE_NEAR_MISS)
 
 
 func _release(p: Dictionary) -> void:

@@ -136,6 +136,7 @@ static func muzzle(parent: Node, pos: Vector3, dir: Vector3) -> void:
 	sprites(parent, pos, "fx_spark", Color(1.0, 0.85, 0.4, 1.0), 6, 10.0, 0.18, 1.6, 1.4, 0.0, 20.0, dir, true)
 	sprites(parent, pos + dir * 0.8, "fx_puff", Color(1.0, 0.6, 0.25, 0.95), 4, 6.0, 0.25, 1.6, 1.8, 0.0, 15.0, dir)
 	sprites(parent, pos + dir * 1.2, "fx_puff", Color(0.96, 0.96, 0.98, 0.9), 14, 7.0, 3.2, 2.0, 3.2, 0.6, 30.0, dir)
+	HitFx.flash(parent, pos + dir * 0.8, 2.5, 7.0)
 
 
 ## A shot hitting the sea: a column of spray drops, a white puff and a ring of foam spreading on the water.
@@ -159,3 +160,5 @@ static func explosion(parent: Node, pos: Vector3) -> void:
 	sprites(parent, pos, "fx_spark", Color(1.0, 0.8, 0.3, 1.0), 24, 20.0, 0.6, 1.8, 1.2, -6.0, 180.0, Vector3.UP, true)
 	sprites(parent, pos, "fx_puff", Color(1.0, 0.55, 0.15, 0.95), 18, 12.0, 0.9, 3.0, 2.0, 0.0, 180.0)
 	sprites(parent, pos, "fx_puff", Color(0.32, 0.3, 0.34, 0.85), 22, 7.0, 4.5, 3.4, 2.6, 1.2, 180.0)
+	HitFx.flash(parent, pos + Vector3.UP * 2.0, 8.0, 40.0)
+	HitFx.shake(parent, HitFx.SHAKE_EXPLOSION, pos, HitFx.EXPLOSION_FALLOFF_M)

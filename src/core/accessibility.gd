@@ -7,6 +7,7 @@ var motion_blur: float = 0.0  ## 0 to 1
 var fov: float = 65.0  ## 50 to 100
 var subtitles: bool = true
 var colorblind_markers: bool = false
+var hit_effects: bool = true  ## sparks and flashes on cannon hits
 
 
 func set_camera_shake(v: float) -> void:

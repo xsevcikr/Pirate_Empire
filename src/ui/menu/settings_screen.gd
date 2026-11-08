@@ -85,6 +85,10 @@ func _build_access() -> void:
 	shake.value = a.camera_shake
 	shake.value_changed.connect(a.set_camera_shake)
 	add_row("menu.camera_shake", shake)
+	var fx := CheckButton.new()
+	fx.button_pressed = a.hit_effects
+	fx.toggled.connect(func(on: bool) -> void: a.hit_effects = on)
+	add_row("menu.hit_effects", fx)
 	var fov := HSlider.new()
 	fov.min_value = 50.0
 	fov.max_value = 100.0
