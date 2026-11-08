@@ -21,6 +21,7 @@ var player_controller: PlayerController
 var hud: SailingHud
 var minimap: Minimap
 var status_panel: StatusPanel
+var auto_drive: AutoDrive
 var damage_panel: DamagePanel
 var convoys: ConvoyManager
 var tours: TourDirector
@@ -35,6 +36,7 @@ var world_audio: WorldAudio
 var weather: WeatherSystem
 var streamer: WorldStreamer
 var debris: DebrisManager
+var sea_life: SeaLife
 var _dock_hit_cool: float = 0.0
 var discovery: Discovery
 var _discover_accum: float = 99.0
@@ -134,6 +136,16 @@ func _ready() -> void:
 	rig.target = ship
 	add_child(rig)
 
+	sea_life = SeaLife.new()
+	sea_life.ship = ship
+	sea_life.islands = streamer.gen.islands
+	add_child(sea_life)
+	auto_drive = AutoDrive.new()
+	auto_drive.controller = pc
+	auto_drive.rig = rig
+	auto_drive.sea_life = sea_life
+	add_child(auto_drive)
+
 	day_night.sun = sun
 	day_night.env = env
 	day_night.sky_material = sky_mat
@@ -181,6 +193,7 @@ func _ready() -> void:
 func _start_game_layer() -> void:
 	overlay = GameOverlay.new()
 	add_child(overlay)
+	auto_drive.overlay = overlay
 	prizes = PrizeFlow.new()
 	prizes.player = ship
 	add_child(prizes)
@@ -486,6 +499,7 @@ func sync_player_ship() -> void:
 	if ship.stats.class_id != Session.state["ship_class"] or not _upgrades_applied():
 		_replace_player_ship()
 	Session.apply_to_ship(ship)
+	apply_customization()
 
 
 func _upgrades_applied() -> bool:
@@ -543,6 +557,8 @@ func can_land() -> bool:
 
 
 func go_ashore() -> Dictionary:
+	if auto_drive != null:  # stepping ashore: back at the helm first
+		auto_drive.take_helm()
 	var i: int = landing_island()
 	if i < 0:
 		return {}
@@ -586,6 +602,8 @@ func can_land_lagoon() -> bool:
 
 
 func open_lagoon() -> void:
+	if auto_drive != null:  # stepping ashore: back at the helm first
+		auto_drive.take_helm()
 	if get_node_or_null("PortLayer") != null:
 		return
 	var layer := CanvasLayer.new()
@@ -665,6 +683,8 @@ func harbour_hint() -> String:
 
 
 func open_port(on_foot: bool = false) -> void:
+	if auto_drive != null:  # stepping ashore: back at the helm first
+		auto_drive.take_helm()
 	if get_node_or_null("PortLayer") != null:
 		return
 	var menu := PortMenu.new()
@@ -959,9 +979,10 @@ func open_fishing() -> void:
 	_open_screen(FishingScreen.make(int(Session.state["seed"]) + int(Session.state["day"]) * 13 + int(Time.get_ticks_msec() % 991)))
 
 
-## Push the flag, sail, hull and name choices onto the ship's look.
+## Push the flag, sail, hull and name choices, then the sails, flags and cannons bought at a shipyard, onto the ship.
 func apply_customization() -> void:
 	ShipCustom.apply(ship, Customization.get_custom(Session.state))
+	ShipLooks.apply(ship.visuals, Session.state)
 
 
 func open_rivals() -> void:

@@ -20,6 +20,7 @@ static func new_state() -> Dictionary:
 		"landings": {}, "buried": {}, "price_book": {},
 		"bounty_crime_day": -99, "bounty_claims": 0, "hunter_next_h": -1.0, "shanty_day": -99, "shanties_sung": 0,
 		"easy_play": EasyPlay.fresh(),
+		"looks": {},
 		"fleet": [], "bases": [], "lagoon": {}, "convoys": [], "convoy_clock_h": 0.0, "convoy_seq": 0, "convoys_lost": 0, "bank": 0, "insured": false, "blockade": {}, "port_damage": {}, "marque": "", "seed": 1, "difficulty": 1,
 		"captain": "", "pos": [0.0, 420.0], "yaw": -90.0, "sail_level": 0, "playtime": 0.0, "saved_at": 0,
 	}

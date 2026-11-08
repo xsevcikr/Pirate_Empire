@@ -18,6 +18,9 @@ uniform int pattern = 0;  // 0 plain, 1 striped, 2 skull, 3 torn, 4 black
 uniform vec3 mark_color : source_color = vec3(0.1, 0.1, 0.1);
 uniform vec2 sail_size = vec2(4.4, 4.7);  // model-space width and height
 uniform float shade : hint_range(0.0, 1.0) = 0.5;
+uniform float see_through : hint_range(0.0, 1.0) = 0.0;  // the captain on deck: a screen-door fade so he shows
+
+const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 
 varying vec2 v_uv;
 
@@ -43,6 +46,12 @@ void vertex() {
 }
 
 void fragment() {
+	if (see_through > 0.0) {
+		ivec2 px = ivec2(FRAGCOORD.xy) % 4;
+		if ((BAYER[px.y * 4 + px.x] + 0.5) / 16.0 < see_through) {
+			discard;
+		}
+	}
 	vec3 col;
 	if (custom) {
 		col = canvas_color;
